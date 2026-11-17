@@ -11,11 +11,13 @@ catalog. The whole-catalog assertion is marked ``network`` and checks the full
 
 import datetime as dt
 import gzip
+import re
 from pathlib import Path
 
 import pytest
 
 from hindsight import catalog, releases
+from hindsight.accessions import Molecule
 from hindsight.ncbi import NcbiClient
 
 FIXTURE = Path(__file__).parent / "data" / "catalog_fixture.tsv.gz"
@@ -67,26 +69,48 @@ def test_no_sars_cov_2_and_no_ratg13_in_the_fixture():
     assert not bases & RATG13_ACCESSIONS
 
 
+# Matching on organism name needs care in both directions. A bare "coronavirus 2"
+# substring also matches "Human coronavirus 229E", which is a 1960s common-cold virus
+# and entirely legitimate in a 2019 database; and the pre-2020 species name "Severe
+# acute respiratory syndrome-related coronavirus" must not be mistaken for the
+# post-2020 "Severe acute respiratory syndrome coronavirus 2". The word boundary
+# distinguishes all of them.
+POST_EMERGENCE_NAME_RE = re.compile(r"\bcoronavirus 2\b|\bsars-cov-2\b|\bratg13\b")
+
+
 @pytest.mark.network
 def test_full_release_97_viral_set_excludes_sars_cov_2():
     """Stream the real release 97 catalog and check the whole viral set.
 
-    This downloads ~1.2 GB. It is the assertion that the benchmark's central claim is
-    true of the actual data, not only of a hand-picked fixture.
+    This downloads ~1.2 GB and takes around nine minutes. It is the assertion that the
+    benchmark's central claim holds for the actual data, not only for a hand-picked
+    fixture. The counts are exact because an archived catalog is immutable: if one of
+    them moves, something about the archive has changed and we want to know.
     """
     client = NcbiClient()
     release = releases.resolve(dt.date(2019, 12, 1))
     stats = catalog.ManifestStats()
     bases: set[str] = set()
-    organisms_matching = []
+    nucleotide = 0
+    coronavirus_genomes = 0
+    post_emergence_names = set()
     for row in catalog.iter_viral_rows(catalog.stream_catalog_lines(client, release), stats):
         bases.add(row.base_accession)
         lowered = row.organism.lower()
-        if "coronavirus 2" in lowered or "ratg13" in lowered:
-            organisms_matching.append(row.organism)
+        if POST_EMERGENCE_NAME_RE.search(lowered):
+            post_emergence_names.add(row.organism)
+        if row.molecule is Molecule.NUCLEOTIDE:
+            nucleotide += 1
+            if "coronavirus" in lowered:
+                coronavirus_genomes += 1
 
-    assert stats.rows_viral > 300_000
-    assert "NC_004718" in bases
+    assert stats.rows_viral == 385_308
+    assert nucleotide == 12_179
+    assert coronavirus_genomes == 45
+
+    relative_bases = {accession.split(".")[0] for accession in PRE_EMERGENCE_RELATIVES}
+    assert relative_bases <= bases, "SARS-CoV and its bat relatives must all be present"
+
     assert not bases & SARS_COV_2_ACCESSIONS
     assert not bases & RATG13_ACCESSIONS
-    assert organisms_matching == []
+    assert post_emergence_names == set()
