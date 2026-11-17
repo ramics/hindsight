@@ -343,3 +343,45 @@ def test_sample_record_is_json_serialisable():
     result = pipeline.SampleResult(accession="SRRX", role="index")
     result.timings.append(pipeline.Timing("fetch", 1.5, "sra-odp"))
     json.dumps(pipeline._sample_record(result))
+
+
+def test_provenance_merges_rather_than_replaces(tmp_path):
+    """A partial run must not erase what an earlier one recorded.
+
+    This is a real loss, not a hypothetical: a three-negative run overwrote the record
+    describing the index sample and the frozen dilution series, and the numbers had to
+    be regenerated.
+    """
+    path = tmp_path / "day2-provenance.json"
+    first = {
+        "generated_at": "2026-11-17T17:00:00",
+        "command": ["hindsight", "samples", "run", "--only", "SRR_INDEX"],
+        "samples": [{"accession": "SRR_INDEX", "role": "index", "viral_pairs": 62117}],
+        "dilution_series": {"levels": [{"name": "viral000010"}]},
+    }
+    path.write_text(json.dumps(pipeline.merge_provenance(path, first)))
+
+    second = {
+        "generated_at": "2026-11-17T18:00:00",
+        "command": ["hindsight", "samples", "run", "--skip", "SRR_INDEX"],
+        "samples": [{"accession": "SRR_NEG1", "role": "negative"}],
+        "dilution_series": None,
+    }
+    merged = pipeline.merge_provenance(path, second)
+
+    assert [s["accession"] for s in merged["samples"]] == ["SRR_INDEX", "SRR_NEG1"]
+    assert merged["samples"][0]["viral_pairs"] == 62117
+    assert merged["dilution_series"]["levels"] == [{"name": "viral000010"}]
+    assert [r["samples"] for r in merged["runs"]] == [["SRR_INDEX"], ["SRR_NEG1"]]
+    assert [r["wrote_series"] for r in merged["runs"]] == [True, False]
+
+
+def test_a_rerun_of_a_sample_replaces_its_own_record(tmp_path):
+    path = tmp_path / "day2-provenance.json"
+    old = {"samples": [{"accession": "SRR1", "role": "negative", "qc_pairs": 1}]}
+    path.write_text(json.dumps(pipeline.merge_provenance(path, old)))
+    merged = pipeline.merge_provenance(
+        path, {"samples": [{"accession": "SRR1", "role": "negative", "qc_pairs": 2}]}
+    )
+    assert len(merged["samples"]) == 1
+    assert merged["samples"][0]["qc_pairs"] == 2

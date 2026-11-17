@@ -910,9 +910,51 @@ def run_day2(
         "dilution_series": series,
     }
     out = config.work_dir / "day2-provenance.json"
+    record = merge_provenance(out, record)
     out.write_text(json.dumps(record, indent=2, default=str) + "\n")
     log(f"wrote {out}")
     return record
+
+
+def merge_provenance(path: Path, fresh: dict) -> dict:
+    """Fold a run's record into whatever is already on disk.
+
+    The pipeline is built to be run in pieces — `--only`, `--skip`, one sample at a
+    time on a machine that cannot hold them all — and the provenance record has to
+    survive that. Writing it whole meant a run of three negatives silently replaced
+    the index sample's record and the frozen dilution series with a file describing
+    three negatives, which is how this benchmark lost its own numbers once.
+
+    So: samples merge by accession, the newest wins for a sample this run touched, and
+    a series that this run did not rebuild is kept rather than erased. `runs` keeps one
+    line per invocation, so the record still says what was produced when and by which
+    command.
+    """
+    if not path.exists():
+        fresh["runs"] = [_run_stamp(fresh)]
+        return fresh
+    previous = json.loads(path.read_text())
+    merged = dict(fresh)
+    by_accession = {s["accession"]: s for s in previous.get("samples", [])}
+    for sample in fresh.get("samples", []):
+        by_accession[sample["accession"]] = sample
+    merged["samples"] = sorted(
+        by_accession.values(), key=lambda s: (s.get("role") != "index", s["accession"])
+    )
+    if not fresh.get("dilution_series") and previous.get("dilution_series"):
+        merged["dilution_series"] = previous["dilution_series"]
+    merged["runs"] = [*previous.get("runs", []), _run_stamp(fresh)]
+    return merged
+
+
+def _run_stamp(record: dict) -> dict:
+    return {
+        "generated_at": record.get("generated_at"),
+        "command": record.get("command"),
+        "wall_clock_seconds": record.get("wall_clock_seconds"),
+        "samples": [s["accession"] for s in record.get("samples", [])],
+        "wrote_series": bool(record.get("dilution_series")),
+    }
 
 
 def _sample_record(result: SampleResult) -> dict:
