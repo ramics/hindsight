@@ -200,7 +200,11 @@ def fasterq_dump_paired(
             raise RuntimeError(f"{tool} is not on PATH; the SRA path needs sra-tools and pigz")
 
     # Held open across the subprocess call rather than wrapped in `with`, so both
-    # the dumper's stdout and stderr land in one log in order.
+    # the dumper's stdout and stderr land in one log in order. The directory may not
+    # exist yet on a sample whose first stage this is, and a missing log directory
+    # must not be reported as "the SRA mirror is unavailable".
+    if log_path:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
     log_handle = open(log_path, "ab") if log_path else subprocess.DEVNULL  # noqa: SIM115
     try:
         proc = subprocess.run(  # noqa: S603

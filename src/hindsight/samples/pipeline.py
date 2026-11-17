@@ -536,6 +536,10 @@ def process_sample(
     return result
 
 
+# Failures that mean "this code is wrong", not "the mirror is having a bad day".
+FETCH_BUGS = (AttributeError, TypeError, NameError, ImportError, FileNotFoundError)
+
+
 def _fetch_pair(
     accession: str,
     mates: tuple[ena.RunFile, ena.RunFile],
@@ -595,6 +599,12 @@ def _fetch_pair(
             )
             container.unlink(missing_ok=True)
             return r1, r2, "sra-odp-chunked"
+        except FETCH_BUGS:
+            # A mistake in this code is not a mirror outage, and must not be downgraded
+            # into one: the fallback is ENA at about 1 MB/s, so a swallowed bug costs
+            # hours and reads as "the fast source was down today". This distinction was
+            # written after a missing log directory did exactly that.
+            raise
         except Exception as exc:  # noqa: BLE001 - any failure here is a fallback, not fatal
             log(f"{accession}: SRA mirror unavailable ({exc}); falling back to ENA FASTQ")
 

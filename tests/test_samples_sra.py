@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -133,3 +135,34 @@ def test_conversion_is_skipped_when_the_pair_is_already_there(tmp_path, monkeypa
     monkeypatch.setattr(sra.subprocess, "run", explode)
     r1, r2 = sra.fasterq_dump_paired(tmp_path / "x.sra", out, accession="SRR1", threads=1)
     assert r1.name == "SRR1_1.fastq.gz" and r2.name == "SRR1_2.fastq.gz"
+
+
+def test_conversion_creates_its_own_log_directory(tmp_path, monkeypatch):
+    """A sample whose first stage is the conversion has no logs/ directory yet.
+
+    It cost an hour to learn that this surfaced as "SRA mirror unavailable" and a
+    fallback to ENA at 1 MB/s, rather than as the missing directory it was.
+    """
+    out = tmp_path / "raw"
+    monkeypatch.setattr(sra.shutil, "which", lambda name: f"/usr/bin/{name}")
+
+    def fake_run(argv, **kwargs):
+        if argv[0] == "fasterq-dump":
+            for mate in (1, 2):
+                (out / f"SRR1_{mate}.fastq").write_text("@a\nACGT\n+\nIIII\n")
+        else:  # pigz
+            target = Path(argv[-1])
+            target.with_suffix(".fastq.gz").write_bytes(b"")
+            target.unlink()
+        return subprocess.CompletedProcess(argv, 0)
+
+    monkeypatch.setattr(sra.subprocess, "run", fake_run)
+    r1, r2 = sra.fasterq_dump_paired(
+        tmp_path / "x.sra",
+        out,
+        accession="SRR1",
+        threads=1,
+        log_path=tmp_path / "logs" / "fasterq-dump.log",
+    )
+    assert r1.exists() and r2.exists()
+    assert (tmp_path / "logs" / "fasterq-dump.log").exists()
