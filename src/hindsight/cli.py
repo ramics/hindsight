@@ -373,11 +373,23 @@ def samples_select_cmd(manifest: Path, count: int, seed: int) -> None:
     help="Process only these run accessions (repeatable). Default: everything in the config.",
 )
 @click.option(
+    "--skip",
+    multiple=True,
+    help=(
+        "Leave these run accessions alone (repeatable). Needed once a sample's "
+        "intermediates have been pruned: its stage markers remain, but the files they "
+        "describe are gone, so re-running it re-fetches gigabytes to rebuild what "
+        "nothing downstream reads any more."
+    ),
+)
+@click.option(
     "--skip-series",
     is_flag=True,
     help="Fetch, QC and filter, but do not write the dilution series.",
 )
-def samples_run_cmd(config_path: Path, only: tuple[str, ...], skip_series: bool) -> None:
+def samples_run_cmd(
+    config_path: Path, only: tuple[str, ...], skip: tuple[str, ...], skip_series: bool
+) -> None:
     """Run the whole sample pipeline. Resumable: re-running finishes what was left."""
     from .samples.pipeline import run_day2
 
@@ -385,6 +397,7 @@ def samples_run_cmd(config_path: Path, only: tuple[str, ...], skip_series: bool)
     record = run_day2(
         config,
         only=list(only) or None,
+        skip=list(skip) or None,
         skip_series=skip_series,
         log=lambda msg: click.echo(msg, err=True),
     )

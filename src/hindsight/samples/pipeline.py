@@ -806,6 +806,7 @@ def run_day2(
     config: registry.Config,
     *,
     only: list[str] | None = None,
+    skip: list[str] | None = None,
     skip_series: bool = False,
     log=print,
 ) -> dict:
@@ -830,6 +831,9 @@ def run_day2(
     if only:
         wanted = set(only)
         specs = [s for s in specs if s.accession in wanted]
+    if skip:
+        unwanted = set(skip)
+        specs = [s for s in specs if s.accession not in unwanted]
 
     truth_index = None
     if any(s.is_index for s in specs):

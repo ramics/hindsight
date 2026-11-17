@@ -168,3 +168,27 @@ def test_the_committed_config_matches_the_committed_manifest():
     )
     assert sorted(config.negatives_pinned) == derived
     assert len(registry.patient_rows(rows)) == 408
+
+
+def test_only_and_skip_select_the_cohort_the_same_way(tmp_path):
+    """`--skip` exists because a pruned sample's markers outlive its files.
+
+    Re-running a sample whose intermediates have been deleted re-fetches gigabytes to
+    rebuild files nothing downstream reads, so "everything except that one" has to be
+    expressible without listing the other nineteen.
+    """
+    path = tmp_path / "day2.toml"
+    path.write_text(_config_text('pinned_runs = ["SRRA", "SRRB", "SRRC"]'))
+    config = registry.load_config(path)
+    specs = registry.samples_from_config(config)
+
+    def names(only=None, skip=None):
+        chosen = specs
+        if only:
+            chosen = [s for s in chosen if s.accession in set(only)]
+        if skip:
+            chosen = [s for s in chosen if s.accession not in set(skip)]
+        return [s.accession for s in chosen]
+
+    assert names(skip=["SRR10971381"]) == ["SRRA", "SRRB", "SRRC"]
+    assert names(only=["SRRA", "SRRB"], skip=["SRRB"]) == ["SRRA"]
