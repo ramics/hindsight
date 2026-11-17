@@ -119,6 +119,49 @@ that variance deliberately.
 Each level's record carries a `selection_sha256` — the digest of its chosen
 identifiers — so two builds can be compared without diffing gigabytes of FASTQ.
 
+## Half the index sample is not sequence
+
+Checking the archive's own columns before trusting its read count:
+
+```console
+$ vdb-dump -R 1-200000 -C READ_FILTER -f tab SRR10971381.sra | sort | uniq -c
+ 101457 SRA_READ_FILTER_PASS, SRA_READ_FILTER_PASS
+  98543 SRA_READ_FILTER_REDACTED, SRA_READ_FILTER_REDACTED
+```
+
+49.3% of the spots are flagged redacted, and a redacted read is distributed as a
+full-length run of `N` at quality zero:
+
+```console
+$ vdb-dump -R 2 -C READ SRR10971381.sra
+READ: NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN...
+```
+
+This is NCBI's human-read redaction, routine for submissions of human-derived
+material. It is not a quirk to note in passing: it decides what "reads per million"
+means. There are three defensible denominators for the index sample and they differ by
+more than a factor of two:
+
+| denominator | pairs | what it is |
+| --- | --- | --- |
+| raw spots | 28,282,964 | what the archive reports, half of it placeholder |
+| non-redacted spots | see `provenance.json` | what survives NCBI's screen |
+| post-QC pairs | see `provenance.json` | what the detection arms actually see |
+
+The pipeline records the viral fragment count against all three per dilution level.
+**The headline figure uses the post-QC denominator**, because that is the one the arms
+see and therefore the one that converts into a required sequencing depth, which is the
+question a limit of detection exists to answer. Wu et al.'s 0.19% was computed against
+the unredacted original and is comparable in kind to the raw-spot figure, but not
+directly comparable to anything measurable from the public data.
+
+A second consequence: the index sample as distributed is *already* partly
+host-depleted, like the negatives, though by a different mechanism. The pipeline's own
+host filter still earns its place — NCBI's screen targets human-identifiable sequence
+rather than all human sequence, so a large fraction of the surviving reads still align
+to GRCh38, and the rate it reports is a measurement of that gap. Day 7 also needs the
+step to work on a sample that has not been through NCBI's screen at all.
+
 ## Ground truth, and why it is not leakage
 
 Fragments are labelled viral by aligning to `NC_045512.2`, the modern SARS-CoV-2

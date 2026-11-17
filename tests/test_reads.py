@@ -155,3 +155,19 @@ def test_hash_fraction_extremes_are_pass_through_and_empty(tmp_path):
     assert reads.write_hash_fraction(source, tmp_path / "none.fastq.gz", seed=1, fraction=0.0) == 0
     assert reads.keeps_fragment("r1", seed=1, fraction=1.5) is True
     assert reads.keeps_fragment("r1", seed=1, fraction=-0.2) is False
+
+
+def test_count_redacted_counts_all_n_reads(tmp_path):
+    path = tmp_path / "r.fastq.gz"
+    with gzip.open(path, "wt") as handle:
+        handle.write("@a\nACGTACGT\n+\nIIIIIIII\n")
+        handle.write("@b\n" + "N" * 151 + "\n+\n" + "!" * 151 + "\n")
+        handle.write("@c\nACGTNNNN\n+\nIIIIIIII\n")
+        handle.write("@d\n" + "N" * 8 + "\n+\n" + "!" * 8 + "\n")
+    # Only wholly redacted reads count; a read with some Ns is still sequence.
+    assert reads.count_redacted(path) == 2
+
+
+def test_count_redacted_on_a_clean_file_is_zero(tmp_path):
+    path = write_fastq(tmp_path / "clean.fastq.gz", ["a", "b", "c"])
+    assert reads.count_redacted(path) == 0

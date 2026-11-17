@@ -223,3 +223,23 @@ def sha256_file(path: Path, *, chunk: int = 1 << 20) -> str:
         while block := handle.read(chunk):
             digest.update(block)
     return digest.hexdigest()
+
+
+def count_redacted(path: Path) -> int:
+    """Count fragments whose sequence is entirely N.
+
+    These are not a quirk of one sample. NCBI redacts reads it identifies as human in
+    submissions of human-derived material, and a redacted read is distributed as a
+    full-length run of N at quality zero. In the index sample that is 49% of the run:
+    the archive has already host-depleted the data that the benchmark is about.
+
+    It matters because it decides what "reads per million" means. A detection limit
+    quoted against the raw spot count is quoted against a denominator half of which is
+    placeholder, and is therefore twice as flattering as it looks.
+    """
+    total = 0
+    for _, seq, _, _ in iter_records(path):
+        stripped = seq.strip()
+        if stripped and stripped.count("N") == len(stripped):
+            total += 1
+    return total

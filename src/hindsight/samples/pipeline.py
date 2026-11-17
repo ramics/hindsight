@@ -60,6 +60,8 @@ class SampleResult:
     raw_bytes: int = 0
     raw_pairs: int = 0
     qc_pairs: int = 0
+    redacted_pairs: int = 0
+    non_redacted_pairs: int = 0
     capped_pairs: int = 0
     pruned_bytes: int = 0
     cap_fraction: float = 1.0
@@ -364,6 +366,21 @@ def process_sample(
     result.raw_pairs = fastp_report["summary"]["before_filtering"]["total_reads"] // 2
     result.qc_pairs = fastp_report["summary"]["after_filtering"]["total_reads"] // 2
 
+    # ---- archive redaction -----------------------------------------------------
+    # Counted from the raw FASTQ rather than inferred: NCBI distributes the reads it
+    # redacted as full-length runs of N, and in the index sample half the run is
+    # exactly that. Every per-million figure downstream needs this number to say
+    # which denominator it used.
+    redaction_stage = Stage(sample_dir, "redaction")
+    if redaction_stage.done:
+        result.redacted_pairs = redaction_stage.load()["redacted_pairs"]
+    else:
+        started = time.monotonic()
+        result.redacted_pairs = reads.count_redacted(r1)
+        redaction_stage.finish({"redacted_pairs": result.redacted_pairs})
+        result.timings.append(Timing("redaction", time.monotonic() - started))
+    result.non_redacted_pairs = result.raw_pairs - result.redacted_pairs
+
     # ---- truth labelling (index only) -----------------------------------------
     viral_ids: set[str] = set()
     ids_path = sample_dir / "truth" / "viral_fragment_ids.txt"
@@ -581,6 +598,7 @@ def build_series(
     *,
     index_accession: str,
     viral_ids: set[str],
+    denominators: dict[str, int] | None = None,
     log=print,
 ) -> dict:
     """Write the frozen dilution series and return its record.
@@ -648,6 +666,17 @@ def build_series(
                 "viral_fragments_per_million": dilute_mod.reads_per_million(
                     level.viral_reads, background_pairs
                 ),
+                # Three denominators, because three are defensible and they differ by
+                # a factor of two. The headline figure is the first: it is the only
+                # one the detection arms see, so it is the one that converts into a
+                # required sequencing depth. The raw figure is the one comparable in
+                # kind to Wu et al.'s 0.19% — though not directly, since theirs was
+                # computed before NCBI redacted half the run.
+                "per_million": {
+                    key: level.viral_reads / value * 1_000_000
+                    for key, value in (denominators or {}).items()
+                    if value
+                },
                 "files": {"read_1": _describe(out1), "read_2": _describe(out2)},
             }
         )
@@ -661,6 +690,8 @@ def build_series(
         "nested": True,
         "background_fragments": background_pairs,
         "viral_fragments_available": len(viral_ids),
+        "denominators": denominators or {},
+        "headline_denominator": "in_file",
         "levels": levels_record,
     }
 
@@ -724,7 +755,17 @@ def run_day2(
             reads.normalise_id(line) for line in ids_path.read_text().splitlines() if line.strip()
         }
         series = build_series(
-            config, index_accession=index_result.accession, viral_ids=viral_ids, log=log
+            config,
+            index_accession=index_result.accession,
+            viral_ids=viral_ids,
+            denominators={
+                # "in_file" is filled per level by build_series from the level's own
+                # total; these are the sample-wide alternatives.
+                "raw_spots": index_result.raw_pairs,
+                "non_redacted_spots": index_result.non_redacted_pairs,
+                "post_qc_pairs": index_result.qc_pairs,
+            },
+            log=log,
         )
 
     record = {
