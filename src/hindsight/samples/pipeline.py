@@ -149,6 +149,14 @@ def _pipe_host_filter(
     """
     out1.parent.mkdir(parents=True, exist_ok=True)
     log.parent.mkdir(parents=True, exist_ok=True)
+    # Any output sitting here is from a run that did not finish — this function is
+    # only called when the stage marker is absent. Truncating it first means a second
+    # attempt cannot append to, or interleave with, the remains of the first. Learned
+    # the hard way: an interrupted run left its bowtie2 orphaned, a restart began
+    # writing the same two files, and both pipes were appending to them at once.
+    for stale in (out1, out2):
+        if stale.exists():
+            stale.unlink()
     sam_threads = max(1, threads // 2)
     with open(log, "ab") as errlog:
         bowtie = subprocess.Popen(  # noqa: S603
@@ -198,11 +206,16 @@ def _pipe_host_filter(
             stderr=errlog,
         )
         view.stdout.close()
-        codes = {
-            "samtools fastq": fastq.wait(),
-            "samtools view": view.wait(),
-            "bowtie2": bowtie.wait(),
-        }
+        children = {"bowtie2": bowtie, "samtools view": view, "samtools fastq": fastq}
+        try:
+            codes = {name: proc.wait() for name, proc in reversed(list(children.items()))}
+        except BaseException:
+            # Ctrl-C, SIGTERM, anything: take the alignment down with us rather than
+            # leaving it writing to these files after this process is gone.
+            for proc in children.values():
+                if proc.poll() is None:
+                    proc.kill()
+            raise
     bad = {name: code for name, code in codes.items() if code != 0}
     if bad:
         raise RuntimeError(f"host filtering failed: {bad} (see {log})")
