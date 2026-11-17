@@ -1,0 +1,223 @@
+# hindsight
+
+Build a viral reference database as it stood on a date you choose — not an
+approximation of it, but the actual record set, at the exact accession versions that
+were public at the time.
+
+```console
+$ hindsight build --date 2019-12-01 --out db/november-2019
+cutoff 2019-12-01 -> release 97 (2019-11-04); first excluded release: release 98 (2020-01-06)
+manifest: 12179 nucleotide + 373129 protein records across 9305 taxa
+nucleotide: wrote 12179 records to viral.fna (0 withdrawn, 0 version mismatches)
+protein: wrote 373129 records to viral.faa (0 withdrawn, 0 version mismatches)
+taxonomy: taxdmp snapshot 2019-11-01
+```
+
+hindsight exists for one job: making a detection benchmark honest. If you want to ask
+whether a pipeline would have flagged a novel pathogen before anyone knew it existed,
+every reference the pipeline consults has to predate the discovery. Today's RefSeq
+cannot answer that question, and neither can today's RefSeq with the obvious records
+deleted.
+
+## The leakage argument
+
+The question this tool serves is: **would an automated, pathogen-agnostic pipeline
+have flagged SARS-CoV-2 in the index sample, using only what was knowable before it
+existed?**
+
+Answering it requires a database with a specific property: it must contain everything
+a real analyst could have consulted in December 2019, and nothing they could not. The
+easy approaches all fail:
+
+- **Use today's database and delete SARS-CoV-2.** The genome is gone but its relatives
+  are not. RaTG13 (deposited 27 January 2020), the pangolin coronaviruses, and
+  thousands of SARS-CoV-2-era sequences remain, and they are the records that make
+  the index sample easy to classify. You have deleted the answer and left the
+  answer key.
+- **Use today's database and filter by deposition date.** Better, but the records
+  themselves have moved. Accessions get revised: sequence corrected, annotation
+  rebuilt, taxonomy reassigned. A record first deposited in 2007 may now be at
+  version 3, and version 3 may postdate your cutoff. Taxon names and the shape of the
+  taxonomic tree have also changed, and a classifier's output is a taxon.
+- **Rebuild from a snapshot someone happened to keep.** Not reproducible, and not
+  available for an arbitrary date.
+
+hindsight takes a different route, which works because NCBI never threw anything away.
+
+**RefSeq release catalogs are archived back to release 1 (June 2003).** Each release
+has a dated set of files, and `RefSeq-release<N>.catalog.gz` lists every accession in
+that release — crucially, at the **version** it held in that release. The viral set is
+a filter on one column:
+
+```
+694009  Severe acute respiratory syndrome-related coronavirus  NC_004718.3  complete|viral  na  29751
+```
+
+So hindsight:
+
+1. Picks the last release issued **strictly before** your cutoff date.
+2. Reads that release's catalog and extracts the viral accession set, versions included.
+3. Fetches each record **at that exact version** from E-utilities, which honours the
+   version suffix and returns the revision as it was.
+4. Pairs it with the NCBI taxonomy dump archived nearest before the same release date,
+   so names, ranks and tree structure are contemporaneous too.
+5. Writes a `provenance.json` recording the cutoff, the release, the release NCBI
+   issued next (the one deliberately excluded), the taxonomy snapshot, every count,
+   every withdrawn record, and a SHA-256 of every output.
+
+For a December 2019 cutoff that gives release 97, November 2019:
+
+| | |
+| --- | --- |
+| Viral nucleotide records | 12,179 |
+| Viral protein records | 373,129 |
+| Distinct taxa | 9,305 |
+| Coronavirus genomes | 45 |
+| SARS-CoV | present, `NC_004718.3` |
+| Bat SARS-related and other bat CoV genomes | 14, including `NC_014470.1` (BM48-31/BGR/2008) and `NC_025217.1` (Bat Hp-betacoronavirus/Zhejiang2013) |
+| SARS-CoV-2 (`NC_045512`, `MN908947`) | absent |
+| RaTG13 (`MN996532`) | absent |
+
+That is the shape the benchmark needs. The nearest relatives a December 2019 analyst
+could have reached — 79–88% identity to the index sample, which is what Wu et al.
+actually had — are in. Everything learned from the pandemic is out. Nothing was
+deleted to make it so; those records simply had not been written yet.
+
+These are not claims in a README. `tests/test_leakage.py` asserts them, and the
+network-marked test in that file streams the full 385,308-row release 97 viral set
+from NCBI and checks the whole thing.
+
+## Install
+
+```bash
+uv sync --locked --all-extras     # or: pip install -e ".[dev]"
+```
+
+Set `NCBI_API_KEY` if you have one ([free from your NCBI
+account](https://www.ncbi.nlm.nih.gov/account/settings/)). It raises the E-utilities
+request ceiling from 3/s to 10/s and takes a full build from hours to under one.
+
+## Use
+
+```bash
+# Which release does a date select, and what does that exclude?
+hindsight resolve 2019-12-01
+
+# The accession set only — fast, no sequence fetched. Good for sanity-checking a cutoff.
+hindsight build --date 2019-12-01 --out db/nov2019 --manifest-only
+
+# The nucleotide database, for a Kraken2 arm.
+hindsight build --date 2019-12-01 --out db/nov2019 --molecules nucleotide
+
+# Everything: nucleotide, protein, contemporaneous taxonomy.
+hindsight build --date 2019-12-01 --out db/nov2019
+
+# Re-check a built database against its own provenance.
+hindsight verify db/nov2019
+
+# List the archived releases, or the dated taxonomy snapshots.
+hindsight releases --limit 10
+hindsight taxdumps
+```
+
+Interrupt a build and re-run the same command: it resumes from the last completed
+shard. Downloads resume mid-file with HTTP Range, and fetched records are cached by
+shard with a digest, so nothing is retrieved twice.
+
+### Outputs
+
+```
+db/nov2019/
+  manifest.tsv        every accession in the release's viral set, with version,
+                      molecule, taxid, organism, RefSeq status and length
+  viral.fna           nucleotide records, at their release-97 versions
+  viral.faa           protein records, for a translated-search arm
+  seqid2taxid.map     accession.version -> taxid, in Kraken2's format
+  taxonomy/           nodes.dmp, names.dmp, merged.dmp, delnodes.dmp, as of 2019-11-01
+  withdrawn.tsv       accessions the release listed that NCBI will no longer serve
+  provenance.json     the full audit record, with SHA-256 of every file above
+```
+
+Builds are deterministic: the manifest is sorted, records are emitted in manifest
+order regardless of the order NCBI answers in, and FASTA is rewrapped to a fixed
+width. Two builds of the same cutoff produce byte-identical files.
+
+## What this does not give you, and why it matters
+
+Stated plainly, because a benchmark whose database has unexamined properties is not a
+benchmark.
+
+**Release granularity, not day granularity.** Releases are roughly two months apart
+(97 is 4 November 2019, 98 is 6 January 2020 — a 63-day gap). A 1 December 2019 cutoff
+therefore yields the database as of 4 November, not 30 November. The error is one-sided
+and that is deliberate: hindsight never includes something published after the cutoff,
+but it may omit something published in the weeks before it. `hindsight resolve` prints
+the blind window so you can quote it. If you need the other direction, move the cutoff
+forward and check what the later release contains.
+
+**RefSeq, not GenBank or nr/nt.** This reconstructs the curated RefSeq viral set,
+which is what Kraken2's standard viral library and comparable reference sets are built
+from. It is not the whole of GenBank. The original Wu et al. analysis searched much
+larger databases, so an arm benchmarked here against `viral.faa` is a faithful
+automation of their *method*, not a replay of their *search space*. GenBank has no
+equivalent dated catalog, so a time-correct nr is not reconstructible this way. Say so
+in the methods.
+
+**Withdrawn records.** A record present in release 97 that NCBI has since suppressed
+cannot be fetched today, no matter how the request is phrased. hindsight records every
+such accession in `withdrawn.tsv` and in the provenance rather than silently shipping a
+smaller database. For release 97 this set is currently empty, but it will not stay that
+way forever, so check it.
+
+**Version substitution is rejected, not tolerated.** If E-utilities ever returns a
+record at a version other than the one requested, hindsight refuses it, counts it in
+`version_mismatches`, and reports it on stderr. A record quietly upgraded to its
+current revision is exactly the leak this tool exists to prevent, and it would be
+invisible in the output FASTA.
+
+**Monthly taxonomy snapshots.** Taxonomy dumps are archived monthly, so the snapshot
+sits up to a month before the release date; the lag is recorded in the provenance
+(3 days for release 97). The `taxdmp` archive starts 2014-08-01 and `new_taxdump`
+starts 2018-12-01, so cutoffs earlier than that have no contemporaneous taxonomy and
+hindsight says so rather than reaching for a later tree.
+
+**NCBI's own products disagree slightly.** The release 97 catalog cites taxid 10658
+(*Enterobacteria phage PRD1*), which the 2019-11-01 taxonomy already lists as deleted.
+One taxon out of 9,305. hindsight checks every catalog taxid against the dated tree and
+splits the misses into merged, deleted and unexplained, so a discrepancy appears in the
+provenance instead of surfacing later as an unexplained Kraken2 build warning.
+
+## Notes from the archive
+
+Things that are easy to get wrong, found the hard way and now encoded in tests:
+
+- **Release numbering is not contiguous.** RefSeq goes 99 (2 March 2020) → 200
+  (4 May 2020). Releases 100–199 do not exist. Any code that interpolates a date
+  between release numbers, or walks the range, is wrong.
+- **Archived file timestamps are not release dates.** Release 97's catalog carries an
+  mtime of 9 January 2020, because that is when it was moved into `archive/` — two
+  months after the release it describes. The date comes from the release notes header,
+  which is why the release table is built from those and vendored into the repo as
+  [`release_dates.tsv`](src/hindsight/data/release_dates.tsv), reviewable in a diff.
+- **The release notes contain typos.** Release 232's header says "Septmeber"; release
+  5's says "May 2 , 2004"; release 39's says "January 23,2010". The parser handles
+  those but refuses anything looser than an unambiguous three-letter month prefix — a
+  fuzzy match would read "Smarch" as March and mis-date a release by a season.
+- **E-utilities signals a rate-limit rejection with HTTP 200** and a JSON body. Code
+  that checks only the status code will write `{"error":"API rate limit exceeded"}`
+  into a FASTA file as a sequence.
+
+## Development
+
+```bash
+uv run pytest             # 127 offline tests
+uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
+uv run ruff check . && uv run ruff format --check .
+```
+
+Network tests are deselected by default and excluded from CI: they are rate-limited
+per IP and move more than a gigabyte. Run them when changing anything about fetching,
+and before trusting a build.
+
+`hindsight refresh-releases` regenerates the vendored release table from NCBI's release
+notes. Only needed when a new release lands.
