@@ -475,11 +475,29 @@ def samples_report_cmd(provenance: Path) -> None:
     """
     record = json.loads(provenance.read_text())
     machine = record.get("machine", {})
+    # wall_clock_seconds is the last invocation only. A cohort this size is built
+    # over several invocations (a crash, a resume, a rerun of one sample), so the
+    # honest figure is the sum of the stamps, with the count said out loud.
+    runs = record.get("runs") or []
+    total_seconds = sum(r.get("wall_clock_seconds", 0) for r in runs) or record.get(
+        "wall_clock_seconds", 0
+    )
+    invocations = (
+        f" over {len(runs)} invocations" if len(runs) > 1 else " in one invocation" if runs else ""
+    )
     click.echo(
         f"ran on {machine.get('instance_type') or machine.get('machine', 'unknown')}, "
         f"{machine.get('cpu_count')} cores, {machine.get('memory_gib')} GiB, "
-        f"{record.get('wall_clock_seconds', 0) / 60:.0f} min wall clock"
+        f"{total_seconds / 60:.0f} min wall clock{invocations}"
     )
+    cap = (record.get("parameters") or {}).get("negatives_max_pairs")
+    if cap:
+        capped = sum(
+            1
+            for sample in record.get("samples", [])
+            if sample.get("role") == "negative" and sample.get("cap_fraction", 1.0) < 1.0
+        )
+        click.echo(f"negatives capped at {cap:,} pairs each; the cap bound on {capped} of them")
     drift = record.get("tool_pin_drift") or []
     tools_line = ", ".join(f"{t['name']} {t['version']}" for t in record.get("tools", []))
     click.echo(f"tools: {tools_line}" + (f"  [drift: {', '.join(drift)}]" if drift else ""))
@@ -521,9 +539,10 @@ def samples_report_cmd(provenance: Path) -> None:
             row += f"{value:>20.3f}" if value is not None else f"{'-':>20}"
         click.echo(row)
     click.echo("")
+    headline = series.get("headline_denominator", "post_qc_pairs")
     click.echo(
         "per-million columns are viral fragments per million; the headline denominator "
-        f"is {series.get('headline_denominator', 'in_file')}"
+        f"is {headline.replace('_', ' ')}"
     )
 
 

@@ -795,12 +795,15 @@ def build_series(
                 "viral_fragments_per_million": dilute_mod.reads_per_million(
                     level.viral_reads, background_pairs
                 ),
-                # Three denominators, because three are defensible and they differ by
-                # a factor of two. The headline figure is the first: it is the only
-                # one the detection arms see, so it is the one that converts into a
-                # required sequencing depth. The raw figure is the one comparable in
-                # kind to Wu et al.'s 0.19% — though not directly, since theirs was
-                # computed before NCBI redacted half the run.
+                # Three denominators, because three are defensible and they differ
+                # by a factor of two. The headline is post_qc_pairs: the reads that
+                # survived QC are the ones a real run would have paid to sequence,
+                # so that figure is the one that converts into a required depth.
+                # viral_fragments_per_million above is the in-file rate, which is
+                # what a classifier reading the level actually sees. The raw figure
+                # is the one comparable in kind to Wu et al.'s 0.19% — though not
+                # directly, since theirs was computed before NCBI redacted half the
+                # run.
                 "per_million": {
                     key: level.viral_reads / value * 1_000_000
                     for key, value in (denominators or {}).items()
@@ -830,7 +833,7 @@ def build_series(
         "background_fragments": background_pairs,
         "viral_fragments_available": len(viral_ids),
         "denominators": denominators or {},
-        "headline_denominator": "in_file",
+        "headline_denominator": "post_qc_pairs",
         "levels": levels_record,
     }
 

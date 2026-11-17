@@ -231,6 +231,36 @@ def test_build_series_partitions_background_and_viral(tmp_path):
     assert reads.read_ids(r2) == ids
 
 
+def test_the_headline_denominator_names_a_denominator_that_was_recorded(tmp_path):
+    """The headline is post-QC reads, and the label has to point at a real column.
+
+    A label naming a key that is not in per_million would make the report render a
+    number under the wrong heading, which is worse than no label at all.
+    """
+    config = _series_config(tmp_path, levels=(3,))
+    sample = config.work_dir / "samples" / "SRRX"
+    all_ids = [f"frag{i:03d}" for i in range(20)]
+    viral = set(all_ids[:6])
+    for mate in (1, 2):
+        _fastq(sample / "qc" / f"SRRX_qc_{mate}.fastq.gz", all_ids)
+        _fastq(sample / "nonhost" / f"SRRX_nonhost_{mate}.fastq.gz", all_ids)
+
+    record = pipeline.build_series(
+        config,
+        index_accession="SRRX",
+        viral_ids=viral,
+        denominators={"raw_spots": 100, "non_redacted_spots": 50, "post_qc_pairs": 20},
+        log=lambda msg: None,
+    )
+
+    assert record["headline_denominator"] == "post_qc_pairs"
+    for level in record["levels"]:
+        assert record["headline_denominator"] in level["per_million"]
+        assert level["per_million"]["post_qc_pairs"] == pytest.approx(
+            level["viral_fragments"] / 20 * 1e6
+        )
+
+
 def test_materialise_refuses_a_part_that_changed_since_freezing(tmp_path):
     """The recorded digests are there to be checked, not just published."""
     config = _series_config(tmp_path, levels=(3,))

@@ -266,18 +266,29 @@ mistake".
 
 ## What it costs
 
-Measured on the machine that produced the committed provenance record — see
-`machine` in `work/day2-provenance.json` for the exact CPU, memory and instance type,
-which the pipeline records from the host rather than from configuration.
+Measured on the machine that produced `results/day2-provenance.json`, which is the
+committed copy of the run's own `work/day2-provenance.json` — see its `machine` block
+for the exact CPU, memory and instance type, which the pipeline records from the host
+rather than from configuration. The committed copy is there because the container is
+ephemeral and Days 3 to 7 read these counts; `work/` is not tracked.
 
-| step | cost |
+The figures below are medians over the 13 negatives whose per-stage timings survived;
+the other seven were pruned before the `.pruned.done` marker existed, so their timings
+were lost with the record that was overwritten. The whole cohort took about 2.5 hours of
+wall clock across several invocations, on 4 cores and 15.7 GiB.
+
+| step | measured |
 | --- | --- |
-| index sample, fetch | 2.4 GB, ENA at ~1 MB/s on this link |
-| negatives, fetch | 20 containers, ~3 GB, minutes from the mirror |
-| conversion | ~25 s per negative; needs 14× the container in free disk |
-| fastp | a few minutes per sample |
-| host filter | the dominant cost; see the provenance record's per-stage timings |
-| peak disk | about 20 GB with the human index in place |
+| index sample, fetch | 2.7 GB container, chunked from the SRA mirror |
+| negatives, fetch | 20 containers, 17.3 GB in total; median 158 s each, worst 346 s |
+| conversion | inside the fetch figure; needs 14x the container in free scratch |
+| fastp | median 57 s per negative, worst 148 s |
+| redaction scan | median 15 s |
+| depth cap | median 221 s — the cap rewrites the pair, so it is not free |
+| host filter | median 115 s per negative, worst 415 s |
+| index sample, end to end | about 10 min once the container is on disk |
+| peak disk | about 20 GB with the 4.1 GB human index in place |
+| intermediates pruned | 43 GiB in total, which is why the cohort fits at all |
 
 The human bowtie2 index is 4.1 GB and is fetched prebuilt by
 `scripts/fetch-host-index.sh`. Building it locally instead costs a couple of hours of
