@@ -193,6 +193,13 @@ def fasterq_dump_paired(
     if r1.exists() and r2.exists():
         return r1, r2
 
+    # Exactly one of the pair can exist here: a download or a conversion that stopped
+    # partway. pigz refuses to overwrite, so leaving it in place fails the conversion
+    # at its last step -- after the dump -- and the failure reads as the mirror being
+    # unavailable. Half a FASTQ is worth nothing anyway.
+    for stale in (r1, r2, plain1, plain2):
+        stale.unlink(missing_ok=True)
+
     tmp_dir = Path(tmp_dir or out_dir.parent / "tmp")
     tmp_dir.mkdir(parents=True, exist_ok=True)
     for tool in ("fasterq-dump", "pigz"):

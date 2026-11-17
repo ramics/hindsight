@@ -166,3 +166,30 @@ def test_conversion_creates_its_own_log_directory(tmp_path, monkeypatch):
     )
     assert r1.exists() and r2.exists()
     assert (tmp_path / "logs" / "fasterq-dump.log").exists()
+
+
+def test_a_half_finished_pair_is_cleared_before_converting(tmp_path, monkeypatch):
+    """One mate present means an attempt stopped partway, and pigz will not overwrite.
+
+    Left in place it failed the conversion at its last step, which the fetch logic
+    reported as the mirror being unavailable and answered with a 700 MB download from
+    ENA at 1 MB/s.
+    """
+    out = tmp_path / "raw"
+    out.mkdir()
+    (out / "SRR1_1.fastq.gz").write_bytes(b"half a download")
+    monkeypatch.setattr(sra.shutil, "which", lambda name: f"/usr/bin/{name}")
+
+    def fake_run(argv, **kwargs):
+        if argv[0] == "fasterq-dump":
+            for mate in (1, 2):
+                (out / f"SRR1_{mate}.fastq").write_text("@a\nACGT\n+\nIIII\n")
+        else:
+            target = Path(argv[-1])
+            target.with_suffix(".fastq.gz").write_bytes(b"freshly converted")
+            target.unlink()
+        return subprocess.CompletedProcess(argv, 0)
+
+    monkeypatch.setattr(sra.subprocess, "run", fake_run)
+    r1, _ = sra.fasterq_dump_paired(tmp_path / "x.sra", out, accession="SRR1", threads=1)
+    assert r1.read_bytes() == b"freshly converted"
