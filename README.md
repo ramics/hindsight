@@ -142,6 +142,37 @@ Builds are deterministic: the manifest is sorted, records are emitted in manifes
 order regardless of the order NCBI answers in, and FASTA is rewrapped to a fixed
 width. Two builds of the same cutoff produce byte-identical files.
 
+## The samples
+
+`hindsight build` is one half of the benchmark. The other half is the reads, and
+`hindsight samples` prepares them:
+
+```console
+$ scripts/day2.sh
+```
+
+That fetches the index sample (`SRR10971381`, the Wu et al. BALF metatranscriptome)
+and 20 time-matched pre-COVID Wuhan BALF negatives from `PRJNA699976`, runs read QC
+and host filtering over both, labels which fragments in the index sample are really
+SARS-CoV-2, and freezes a dilution series — the sample's own viral reads thinned to
+50,000 / 10,000 / 1,000 / 100 / 10 fragments and held in the sample's own background.
+Every stage is resumable, every seed is recorded, and the counts, digests, tool
+versions, timings and machine land in `work/day2-provenance.json`.
+
+The ground-truth label is the one place the pipeline is allowed to know something from
+2020: fragments are labelled by aligning to the modern SARS-CoV-2 reference. The
+detection arms never see that label or that reference — they see only the November
+2019 database above. Knowing the answer is the benchmark's job; it is what the arms
+are not allowed to do.
+
+Two properties of the negative set have to travel with every number derived from it:
+the deposit holds **non-human reads only**, so a false-alarm rate per raw sequenced
+read is not available for those samples, and ENA reports **no collection date** for
+any of the 440 runs, so the 2016-17 window is the paper's at cohort level and is not
+verifiable per run. [`docs/day2-samples.md`](docs/day2-samples.md) has the full
+account, including why the levels are nested, why the negatives are chosen by a seeded
+hash rather than by eye, and what the whole thing costs in wall-clock and disk.
+
 ## What this does not give you, and why it matters
 
 Stated plainly, because a benchmark whose database has unexamined properties is not a
@@ -210,7 +241,7 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 ## Development
 
 ```bash
-uv run pytest             # 127 offline tests
+uv run pytest             # 195 offline tests
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```

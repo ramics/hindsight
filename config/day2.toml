@@ -1,0 +1,94 @@
+# Day 2 of the benchmark: the samples.
+#
+# Everything the sample side of the benchmark depends on is in this file: which runs,
+# which tool versions, which parameters, which seeds. `hindsight samples run` reads
+# nothing else, and `day2-provenance.json` records what it read alongside what the
+# tools actually reported, so a reproduction that drifts says so instead of looking
+# identical.
+
+[samples]
+# The index sample. Wu et al. 2020 BALF metatranscriptome; the run the first
+# SARS-CoV-2 genome was assembled from.
+index_run = "SRR10971381"
+
+# Ground truth only. The pipeline aligns to this to decide which fragments are viral,
+# and that label never reaches the detection arms — they see only the November 2019
+# database hindsight builds. Using the modern genome here is deliberate: the benchmark
+# needs to know the right answer in order to score an arm that is not allowed to.
+truth_reference = "NC_045512.2"
+
+[negatives]
+# Shi et al. 2022 (PLoS Pathogens, PMC8853501): 408 patient BALF metatranscriptomes
+# collected May 2016 - December 2017 at The Central Hospital of Wuhan, the same
+# hospital and protocol as the index sample, plus 28 healthy-volunteer and 4 blank
+# controls. 440 runs, ~487 GB in total, which is why the benchmark uses a subset.
+project = "PRJNA699976"
+count = 20
+seed = 20191201
+manifest = "negatives-PRJNA699976.tsv"
+
+# The 20 runs the seeded ranking chose, frozen here after the first selection so that
+# re-running cannot change the cohort. Comment this out to re-derive from the manifest
+# (`hindsight samples select-negatives` prints what the seed gives).
+#
+# Eligible pool: the 175 of the 408 patient runs whose deposit exposes a _1/_2 pair,
+# so one read layout runs through the whole pipeline. The other 233 were deposited as
+# a single merged FASTQ.
+pinned_runs = [
+  "SRR13677553", "SRR13677559", "SRR13677560", "SRR13677589", "SRR13677700",
+  "SRR13677717", "SRR13677722", "SRR13677730", "SRR13677740", "SRR13677744",
+  "SRR13677748", "SRR13677777", "SRR13677842", "SRR13677843", "SRR13677844",
+  "SRR13677878", "SRR13677921", "SRR13677922", "SRR13677975", "SRR13677977",
+]
+
+[dilution]
+# Viral fragments held in the index sample's own background. The top level sits below
+# the sample's own viral count, so every rung is a subsample and none is synthetic.
+levels = [50000, 10000, 1000, 100, 10]
+# One seed, one ranking, nested levels: the 10-fragment level is a subset of the
+# 100-fragment level and so on up. See src/hindsight/samples/dilute.py for why.
+seed = 20191201
+
+[run]
+threads = 4
+# bowtie2 index prefix for the host. GRCh38 no-alt analysis set, as distributed
+# prebuilt by the bowtie2 authors:
+#   https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.{1,2,3,4,rev.1,rev.2}.bt2
+host_index = "work/ref/bt2/GRCh38_noalt_as"
+work_dir = "work"
+
+[tools]
+# Versions this configuration was run with. A mismatch is reported in the provenance
+# record rather than enforced: trimming and alignment both change between versions,
+# and a detection limit that moves because the trimmer changed is a result about the
+# trimmer.
+fastp = "0.23.4"
+bowtie2 = "2.5.2"
+samtools = "1.19.2"
+
+[fastp]
+args = [
+  "--detect_adapter_for_pe",
+  "--cut_tail",
+  "--cut_tail_mean_quality", "20",
+  "--length_required", "50",
+  "--qualified_quality_phred", "15",
+  "--unqualified_percent_limit", "40",
+  "--n_base_limit", "5",
+]
+
+[bowtie2]
+# Local alignment for host filtering: BALF metatranscriptomes carry chimeric and
+# partially-adapter reads, and an end-to-end aligner leaves those in the non-host set
+# where they become somebody's false positive.
+host_args = ["--local", "--mm"]
+# Local again for the truth label, so a fragment overlapping the end of a transcript
+# still counts as viral.
+truth_args = ["--local"]
+min_truth_mapq = 20
+
+[fetch]
+# "auto" prefers SRA's Open Data mirror and converts locally, falling back to ENA
+# ready-made FASTQ when the conversion would not fit in the free disk. "ena" or
+# "sra-odp" force one source.
+source = "auto"
