@@ -403,6 +403,50 @@ def samples_run_cmd(config_path: Path, only: tuple[str, ...], skip_series: bool)
             )
 
 
+@samples_grp.command("materialise")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("work/day2-provenance.json"),
+    show_default=True,
+)
+@click.option("--level", "level_name", required=True, help="Level name, e.g. viral001000.")
+@click.option(
+    "--out",
+    "out_dir",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("work/series/materialised"),
+    show_default=True,
+)
+@click.option(
+    "--no-verify",
+    is_flag=True,
+    help="Skip re-checking each part against its recorded digest. Not recommended.",
+)
+def samples_materialise_cmd(
+    provenance: Path, level_name: str, out_dir: Path, no_verify: bool
+) -> None:
+    """Write one dilution level out as an ordinary FASTQ pair.
+
+    The series is stored as parts — the background once, the viral fragments once per
+    level — because five materialised levels are 21 GB of files that are 99.9%
+    identical. A classifier that reads stdin needs no materialisation at all:
+
+    \b
+        cat work/series/parts/background_1.fastq.gz \\
+            work/series/parts/viral001000_viral_1.fastq.gz | kraken2 --gzip-compressed ...
+    """
+    from .samples.pipeline import materialise_level
+
+    record = json.loads(provenance.read_text())
+    series = record.get("dilution_series")
+    if not series:
+        raise click.ClickException(f"{provenance} holds no dilution series")
+    r1, r2 = materialise_level(series, level_name, out_dir, verify=not no_verify)
+    for path in (r1, r2):
+        click.echo(f"{path} ({path.stat().st_size:,} bytes)")
+
+
 @samples_grp.command("report")
 @click.option(
     "--provenance",

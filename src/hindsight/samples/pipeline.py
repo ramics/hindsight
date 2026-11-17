@@ -623,9 +623,24 @@ def build_series(
 ) -> dict:
     """Write the frozen dilution series and return its record.
 
-    Each level is the background (non-host, viral removed) plus the level's viral
-    fragments, both mates. Levels are written by concatenating gzip members, so the
-    background is compressed once rather than once per level.
+    A level is the background — the index sample's non-host fragments with the viral
+    ones removed — plus that level's viral fragments. The obvious way to ship it is
+    one FASTQ pair per level, and that is what this did first. It does not survive
+    contact with the arithmetic: the background is about 2 GB per mate, so five levels
+    is 21 GB of files that are 99.9% identical to each other.
+
+    So the series is shipped as *parts*: the background once, the viral fragments once
+    per level, and a manifest saying which parts make which level. A level is defined
+    as the concatenation of its parts, in the order the manifest gives, which is
+    exact because the gzip format is concatenable — ``cat`` of the parts is a valid
+    gzip stream that decompresses to the concatenation. Nothing is approximated and
+    nothing is recomputed on demand; the digest of every part is recorded.
+
+    Day 3 and Day 4 can then either stream a level straight into a classifier::
+
+        cat background_1.fastq.gz viral001000_1.fastq.gz | kraken2 --gzip-compressed ...
+
+    or materialise it as a file with ``hindsight samples materialise``.
     """
     sample_dir = config.work_dir / "samples" / index_accession
     out_dir = config.work_dir / "series"
@@ -640,6 +655,10 @@ def build_series(
     bg1, bg2 = parts / "background_1.fastq.gz", parts / "background_2.fastq.gz"
     stage = Stage(out_dir, "background")
     if not stage.done:
+        # Anything here is from an attempt that did not finish; appending to it or
+        # trusting its length would both be wrong.
+        for stale in (bg1, bg2):
+            stale.unlink(missing_ok=True)
         log("writing the background (non-host fragments, viral removed)")
         written1 = reads.write_excluding(nh1, bg1, viral_ids)
         written2 = reads.write_excluding(nh2, bg2, viral_ids)
@@ -658,6 +677,8 @@ def build_series(
         v2 = parts / f"{level.name}_viral_2.fastq.gz"
         lvl_stage = Stage(out_dir, level.name)
         if not lvl_stage.done:
+            for stale in (v1, v2):
+                stale.unlink(missing_ok=True)
             log(f"{level.name}: extracting {level.viral_reads} viral fragments")
             got1 = reads.write_subset(qc1, v1, keep)
             got2 = reads.write_subset(qc2, v2, keep)
@@ -666,13 +687,7 @@ def build_series(
                     f"{level.name}: wanted {level.viral_reads} fragments, "
                     f"found {got1}/{got2} in the QC'd FASTQs"
                 )
-            out1 = out_dir / f"{index_accession}_{level.name}_1.fastq.gz"
-            out2 = out_dir / f"{index_accession}_{level.name}_2.fastq.gz"
-            reads.concatenate([bg1, v1], out1)
-            reads.concatenate([bg2, v2], out2)
             lvl_stage.finish({"viral_reads": level.viral_reads})
-        out1 = out_dir / f"{index_accession}_{level.name}_1.fastq.gz"
-        out2 = out_dir / f"{index_accession}_{level.name}_2.fastq.gz"
         levels_record.append(
             {
                 "name": level.name,
@@ -697,7 +712,11 @@ def build_series(
                     for key, value in (denominators or {}).items()
                     if value
                 },
-                "files": {"read_1": _describe(out1), "read_2": _describe(out2)},
+                # A level is these parts, concatenated in this order.
+                "parts": {
+                    "read_1": [_describe(bg1), _describe(v1)],
+                    "read_2": [_describe(bg2), _describe(v2)],
+                },
             }
         )
     return {
@@ -708,12 +727,59 @@ def build_series(
             "levels are nested prefixes of that ranking"
         ),
         "nested": True,
+        "storage": (
+            "parts, not materialised levels: a level is the concatenation of its "
+            "parts in the listed order, which is exact because gzip is concatenable. "
+            "`hindsight samples materialise` writes one out; a classifier can also "
+            "read `cat part1 part2` directly."
+        ),
         "background_fragments": background_pairs,
         "viral_fragments_available": len(viral_ids),
         "denominators": denominators or {},
         "headline_denominator": "in_file",
         "levels": levels_record,
     }
+
+
+def materialise_level(
+    record: dict,
+    level_name: str,
+    out_dir: Path,
+    *,
+    verify: bool = True,
+) -> tuple[Path, Path]:
+    """Write one level out as an ordinary FASTQ pair, from its parts.
+
+    ``verify`` re-checks each part against the digest in the record before using it,
+    which is the point of recording them: a level assembled from a part that has
+    changed since it was frozen is not the level the benchmark measured.
+    """
+    levels = {lvl["name"]: lvl for lvl in record["levels"]}
+    if level_name not in levels:
+        raise KeyError(f"no level named {level_name!r}; have {sorted(levels)}")
+    level = levels[level_name]
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    run = record["index_run"]
+    outputs = []
+    for mate, key in ((1, "read_1"), (2, "read_2")):
+        sources = []
+        for part in level["parts"][key]:
+            path = Path(part["path"])
+            if not path.exists():
+                raise FileNotFoundError(f"{level_name}: missing part {path}")
+            if verify:
+                digest = reads.sha256_file(path)
+                if digest != part["sha256"]:
+                    raise RuntimeError(
+                        f"{path} has changed since the series was frozen "
+                        f"({digest} != {part['sha256']})"
+                    )
+            sources.append(path)
+        dest = out_dir / f"{run}_{level_name}_{mate}.fastq.gz"
+        reads.concatenate(sources, dest)
+        outputs.append(dest)
+    return outputs[0], outputs[1]
 
 
 def run_day2(

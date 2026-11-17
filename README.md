@@ -241,7 +241,7 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 ## Development
 
 ```bash
-uv run pytest             # 195 offline tests
+uv run pytest             # 205 offline tests
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```

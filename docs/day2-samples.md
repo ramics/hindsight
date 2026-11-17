@@ -21,7 +21,7 @@ so an interrupted run continues where it stopped. Everything it decided lands in
 | `work/samples/<run>/qc/` | after fastp, with `fastp.json` |
 | `work/samples/<run>/nonhost/` | fragments where neither mate aligned to GRCh38 |
 | `work/samples/<run>/truth/viral_fragment_ids.txt` | index sample only: the ground-truth viral fragments |
-| `work/series/<run>_viral<NNNNNN>_{1,2}.fastq.gz` | the dilution series |
+| `work/series/parts/` | the dilution series, as parts (see below) |
 | `work/day2-provenance.json` | tool versions, parameters, seeds, counts, digests, timings, machine |
 
 Days 3 and 4 consume `work/series/` and the negatives' `nonhost/`, and nothing else.
@@ -118,6 +118,34 @@ that variance deliberately.
 
 Each level's record carries a `selection_sha256` — the digest of its chosen
 identifiers — so two builds can be compared without diffing gigabytes of FASTQ.
+
+### Stored as parts, not as five levels
+
+Written out as one FASTQ pair per level, the series is 21 GB of files that are 99.9%
+identical: the background is ~2 GB per mate and all five levels share it. So the
+series ships as parts — the background once, the viral fragments once per level —
+plus a manifest in the provenance record saying which parts make which level, in which
+order, with the SHA-256 of each.
+
+A level *is* the concatenation of its parts. That is exact rather than approximate,
+because gzip is a concatenable format: `cat` of two gzip members is a valid stream that
+decompresses to the concatenation. So a classifier that reads stdin needs no
+materialisation at all:
+
+```console
+$ cat work/series/parts/background_1.fastq.gz \
+      work/series/parts/viral001000_viral_1.fastq.gz | kraken2 --gzip-compressed ...
+```
+
+and one that insists on files gets them on demand:
+
+```console
+$ hindsight samples materialise --level viral001000 --out work/series/materialised
+```
+
+which re-checks every part against its recorded digest before concatenating. A level
+assembled from a part that has changed since the series was frozen is not the level the
+benchmark measured, which is what the digests are recorded for.
 
 ## Half the index sample is not sequence
 

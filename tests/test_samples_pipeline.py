@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import gzip
 import json
+from pathlib import Path
 
 import pytest
 
@@ -208,15 +209,45 @@ def test_build_series_partitions_background_and_viral(tmp_path):
     assert record["nested"] is True
     assert [lvl["viral_fragments"] for lvl in record["levels"]] == [5, 2]
 
+    # The background is stored once and shared; only the viral part is per level.
+    parts = config.work_dir / "series" / "parts"
+    assert reads.read_ids(parts / "background_1.fastq.gz") == set(all_ids[:35]) - viral
     for level in record["levels"]:
-        path = config.work_dir / "series" / f"SRRX_{level['name']}_1.fastq.gz"
-        got = reads.read_ids(path)
-        assert len(got) == level["total_fragments"]
-        assert len(got & viral) == level["viral_fragments"]
+        names = [Path(p["path"]).name for p in level["parts"]["read_1"]]
+        assert names == ["background_1.fastq.gz", f"{level['name']}_viral_1.fastq.gz"]
+        assert all(p["sha256"] for p in level["parts"]["read_1"])
+        got = reads.read_ids(parts / f"{level['name']}_viral_1.fastq.gz")
+        assert got <= viral and len(got) == level["viral_fragments"]
         assert level["viral_fragments_per_million"] == pytest.approx(
             level["viral_fragments"] / level["total_fragments"] * 1e6
         )
-        assert level["files"]["read_1"]["sha256"]
+
+    # A level is its parts concatenated, and that is a real FASTQ pair.
+    out = config.work_dir / "materialised"
+    r1, r2 = pipeline.materialise_level(record, record["levels"][0]["name"], out)
+    ids = reads.read_ids(r1)
+    assert len(ids) == record["levels"][0]["total_fragments"]
+    assert len(ids & viral) == record["levels"][0]["viral_fragments"]
+    assert reads.read_ids(r2) == ids
+
+
+def test_materialise_refuses_a_part_that_changed_since_freezing(tmp_path):
+    """The recorded digests are there to be checked, not just published."""
+    config = _series_config(tmp_path, levels=(3,))
+    sample = config.work_dir / "samples" / "SRRX"
+    all_ids = [f"frag{i:03d}" for i in range(20)]
+    viral = set(all_ids[:6])
+    for mate in (1, 2):
+        _fastq(sample / "qc" / f"SRRX_qc_{mate}.fastq.gz", all_ids)
+        _fastq(sample / "nonhost" / f"SRRX_nonhost_{mate}.fastq.gz", all_ids)
+    record = pipeline.build_series(
+        config, index_accession="SRRX", viral_ids=viral, log=lambda msg: None
+    )
+    _fastq(config.work_dir / "series" / "parts" / "background_1.fastq.gz", all_ids[:4])
+    with pytest.raises(RuntimeError, match="changed since the series was frozen"):
+        pipeline.materialise_level(
+            record, record["levels"][0]["name"], config.work_dir / "materialised"
+        )
 
 
 def test_build_series_levels_are_nested_on_disk(tmp_path):
@@ -228,12 +259,10 @@ def test_build_series_levels_are_nested_on_disk(tmp_path):
         _fastq(sample / "qc" / f"SRRX_qc_{mate}.fastq.gz", all_ids)
         _fastq(sample / "nonhost" / f"SRRX_nonhost_{mate}.fastq.gz", all_ids)
     pipeline.build_series(config, index_accession="SRRX", viral_ids=viral, log=lambda msg: None)
-    series = config.work_dir / "series"
-    sets = [
-        reads.read_ids(series / f"SRRX_{dilute.level_name(n)}_1.fastq.gz") & viral
-        for n in (6, 3, 1)
-    ]
+    parts = config.work_dir / "series" / "parts"
+    sets = [reads.read_ids(parts / f"{dilute.level_name(n)}_viral_1.fastq.gz") for n in (6, 3, 1)]
     assert sets[2] <= sets[1] <= sets[0]
+    assert all(s <= viral for s in sets)
 
 
 def test_build_series_is_resumable_and_does_not_double_write(tmp_path):
@@ -250,9 +279,11 @@ def test_build_series_is_resumable_and_does_not_double_write(tmp_path):
     again = pipeline.build_series(
         config, index_accession="SRRX", viral_ids=viral, log=lambda msg: None
     )
-    assert first["levels"][0]["files"] == again["levels"][0]["files"]
-    path = config.work_dir / "series" / f"SRRX_{dilute.level_name(4)}_1.fastq.gz"
-    assert reads.count_reads(path) == 16
+    assert first["levels"][0]["parts"] == again["levels"][0]["parts"]
+    # 20 fragments, 8 viral -> 12 background, plus a 4-fragment viral part.
+    parts = config.work_dir / "series" / "parts"
+    assert reads.count_reads(parts / "background_1.fastq.gz") == 12
+    assert reads.count_reads(parts / f"{dilute.level_name(4)}_viral_1.fastq.gz") == 4
 
 
 def test_build_series_refuses_when_a_viral_fragment_is_missing_from_the_qc_fastq(tmp_path):
