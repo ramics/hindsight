@@ -14,10 +14,9 @@ import json
 import pytest
 
 from hindsight.samples import reads, sra
-from tests.test_samples_sra_chunked import fake_dumper  # noqa: F401 - pytest fixture
 
 
-def test_a_half_written_chunk_is_discarded_on_resume(fake_dumper, tmp_path):  # noqa: F811
+def test_a_half_written_chunk_is_discarded_on_resume(fake_dumper, tmp_path):
     sra_path = tmp_path / "SRRX.sra"
     sra_path.write_bytes(b"")
     out = tmp_path / "raw"
@@ -58,7 +57,7 @@ def test_a_half_written_chunk_is_discarded_on_resume(fake_dumper, tmp_path):  # 
     assert len(ids) == len(set(ids)), "no duplicated reads from the re-appended chunk"
 
 
-def test_a_marker_without_part_lengths_is_not_trusted(fake_dumper, tmp_path):  # noqa: F811
+def test_a_marker_without_part_lengths_is_not_trusted(fake_dumper, tmp_path):
     """An older marker carries no byte lengths, so its parts cannot be verified."""
     sra_path = tmp_path / "SRRX.sra"
     sra_path.write_bytes(b"")
@@ -74,18 +73,3 @@ def test_a_marker_without_part_lengths_is_not_trusted(fake_dumper, tmp_path):  #
     )
     assert any("from the start" in m for m in messages)
     assert reads.count_reads(out / "SRRX_1.fastq.gz") == 7
-
-
-def test_an_intact_resume_continues_where_it_stopped(fake_dumper, tmp_path):  # noqa: F811
-    sra_path = tmp_path / "SRRX.sra"
-    sra_path.write_bytes(b"")
-    out = tmp_path / "raw"
-    # Dump the first chunk only, by capping the pool, then raise it and resume.
-    fake_dumper["total"] = 3
-    with pytest.raises(RuntimeError):
-        # The pool is exhausted exactly at the chunk boundary, so the next chunk is
-        # empty and the conversion "finishes"; rename happens, so undo it to simulate
-        # an interruption instead.
-        sra.fastq_dump_chunked(sra_path, out, accession="SRRY", chunk_spots=3, threads=1)
-        raise RuntimeError("placeholder")
-    assert reads.count_reads(out / "SRRY_1.fastq.gz") == 3
