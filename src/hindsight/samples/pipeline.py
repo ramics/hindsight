@@ -358,7 +358,12 @@ def process_sample(
     qc1 = qc_dir / f"{spec.accession}_qc_1.fastq.gz"
     qc2 = qc_dir / f"{spec.accession}_qc_2.fastq.gz"
     stage = Stage(sample_dir, "qc")
-    if not stage.done:
+    # fastp's JSON report is the only record of the raw and post-QC counts, and the
+    # marker is not evidence that it is still there: pruning keeps it, but a hand
+    # cleaning up for disk space may not have. Re-run rather than fail on a KeyError
+    # three stages later.
+    fastp_json = qc_dir / "fastp.json"
+    if not stage.done or not fastp_json.exists():
         started = time.monotonic()
         qc_dir.mkdir(parents=True, exist_ok=True)
         tools.run(
@@ -375,7 +380,7 @@ def process_sample(
                 "-w",
                 str(min(config.threads, 16)),
                 "--json",
-                str(qc_dir / "fastp.json"),
+                str(fastp_json),
                 "--html",
                 str(qc_dir / "fastp.html"),
                 *config.fastp_args,
@@ -384,7 +389,7 @@ def process_sample(
         )
         stage.finish()
         result.timings.append(Timing("qc", time.monotonic() - started))
-    fastp_report = json.loads((qc_dir / "fastp.json").read_text())
+    fastp_report = json.loads(fastp_json.read_text())
     result.raw_pairs = fastp_report["summary"]["before_filtering"]["total_reads"] // 2
     result.qc_pairs = fastp_report["summary"]["after_filtering"]["total_reads"] // 2
 
