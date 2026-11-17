@@ -11,8 +11,6 @@ from __future__ import annotations
 import gzip
 import json
 
-import pytest
-
 from hindsight.samples import reads, sra
 
 
