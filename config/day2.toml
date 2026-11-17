@@ -27,9 +27,15 @@ count = 20
 seed = 20191201
 manifest = "negatives-PRJNA699976.tsv"
 # Depth cap per negative, in read pairs after QC, applied by a seeded streaming hash
-# (see reads.keeps_fragment). Equalises the weight each negative carries in the
-# false-alarm estimate and keeps the set to a few GB; 0 disables the cap.
-max_pairs = 3000000
+# (see reads.keeps_fragment).
+#
+# 0, meaning no cap: the false-alarm threshold Day 5 draws from these samples is
+# exactly the number a cap degrades, so the negatives run at the depth they were
+# sequenced at. The cost is 18 GiB of FASTQ and 120 million read pairs of alignment,
+# which is why the cap exists at all — set it to 3000000 on a machine that cannot
+# spare that, and record in the write-up that the threshold was estimated at reduced
+# depth with each negative weighted equally.
+max_pairs = 0
 
 # The 20 runs the seeded ranking chose, frozen here after the first selection so that
 # re-running cannot change the cohort. Comment this out to re-derive from the manifest
