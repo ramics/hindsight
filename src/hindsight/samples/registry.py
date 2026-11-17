@@ -158,9 +158,7 @@ def choose_negatives(
     """Pick ``count`` negative runs by seeded ranking over the eligible accessions."""
     eligible = sorted(r["run_accession"] for r in paired_rows(patient_rows(rows)))
     if len(eligible) < count:
-        raise ValueError(
-            f"only {len(eligible)} eligible paired patient runs, asked for {count}"
-        )
+        raise ValueError(f"only {len(eligible)} eligible paired patient runs, asked for {count}")
     return sorted(rank_reads(eligible, seed=seed)[:count])
 
 
@@ -183,9 +181,7 @@ def samples_from_config(config: Config) -> list[SampleSpec]:
         how = "pinned in config"
     elif config.negatives_manifest and config.negatives_manifest.exists():
         rows = read_negatives_manifest(config.negatives_manifest)
-        chosen = choose_negatives(
-            rows, count=config.negatives_count, seed=config.negatives_seed
-        )
+        chosen = choose_negatives(rows, count=config.negatives_count, seed=config.negatives_seed)
         how = f"seeded ranking (seed {config.negatives_seed})"
     else:
         raise ValueError(

@@ -128,9 +128,7 @@ def test_config_round_trips_the_things_the_methods_section_needs(tmp_path):
 def test_pinned_runs_win_over_the_manifest(tmp_path):
     manifest = write_manifest(tmp_path, [manifest_row(f"SRR{i}") for i in range(30)])
     path = tmp_path / "day2.toml"
-    path.write_text(
-        _config_text(f'pinned_runs = ["SRRX", "SRRY"]\nmanifest = "{manifest.name}"')
-    )
+    path.write_text(_config_text(f'pinned_runs = ["SRRX", "SRRY"]\nmanifest = "{manifest.name}"'))
     config = registry.load_config(path)
     assert [s.accession for s in registry.samples_from_config(config)[1:]] == ["SRRX", "SRRY"]
 

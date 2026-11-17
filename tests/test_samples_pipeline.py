@@ -270,9 +270,7 @@ def test_build_series_refuses_when_a_viral_fragment_is_missing_from_the_qc_fastq
         _fastq(sample / "nonhost" / f"SRRX_nonhost_{mate}.fastq.gz", present)
     viral = set(present[:3]) | {"ghost1", "ghost2", "ghost3"}
     with pytest.raises(RuntimeError, match="wanted 5 fragments"):
-        pipeline.build_series(
-            config, index_accession="SRRX", viral_ids=viral, log=lambda msg: None
-        )
+        pipeline.build_series(config, index_accession="SRRX", viral_ids=viral, log=lambda msg: None)
 
 
 def test_machine_record_describes_the_host(tmp_path):

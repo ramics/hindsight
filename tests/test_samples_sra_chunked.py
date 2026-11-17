@@ -55,9 +55,7 @@ def test_chunked_conversion_covers_every_spot_once(fake_dumper, tmp_path):
     sra_path = tmp_path / "SRRX.sra"
     sra_path.write_bytes(b"")
     out = tmp_path / "raw"
-    r1, r2 = sra.fastq_dump_chunked(
-        sra_path, out, accession="SRRX", chunk_spots=3, threads=1
-    )
+    r1, r2 = sra.fastq_dump_chunked(sra_path, out, accession="SRRX", chunk_spots=3, threads=1)
     assert reads.count_reads(r1) == 7
     assert [reads.normalise_id(h) for h, *_ in reads.iter_records(r1)] == [
         f"spot{i}" for i in range(1, 8)

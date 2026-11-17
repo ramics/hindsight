@@ -351,11 +351,20 @@ def process_sample(
         tools.run(
             [
                 "fastp",
-                "-i", str(r1), "-I", str(r2),
-                "-o", str(qc1), "-O", str(qc2),
-                "-w", str(min(config.threads, 16)),
-                "--json", str(qc_dir / "fastp.json"),
-                "--html", str(qc_dir / "fastp.html"),
+                "-i",
+                str(r1),
+                "-I",
+                str(r2),
+                "-o",
+                str(qc1),
+                "-O",
+                str(qc2),
+                "-w",
+                str(min(config.threads, 16)),
+                "--json",
+                str(qc_dir / "fastp.json"),
+                "--html",
+                str(qc_dir / "fastp.html"),
                 *config.fastp_args,
             ],
             log=logs / "fastp.log",
@@ -412,9 +421,7 @@ def process_sample(
         result.viral_fraction_raw = (
             result.viral_pairs / result.raw_pairs if result.raw_pairs else 0.0
         )
-        result.viral_fraction_qc = (
-            result.viral_pairs / result.qc_pairs if result.qc_pairs else 0.0
-        )
+        result.viral_fraction_qc = result.viral_pairs / result.qc_pairs if result.qc_pairs else 0.0
 
     # ---- depth cap (negatives only) -------------------------------------------
     # The negatives exist to put a number on how often a method cries wolf, and that

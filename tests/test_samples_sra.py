@@ -118,9 +118,7 @@ def test_md5_of_a_known_file(tmp_path):
 def test_conversion_refuses_without_the_toolkit(tmp_path, monkeypatch):
     monkeypatch.setattr(sra.shutil, "which", lambda name: None)
     with pytest.raises(RuntimeError, match="not on PATH"):
-        sra.fasterq_dump_paired(
-            tmp_path / "x.sra", tmp_path / "out", accession="SRR1", threads=1
-        )
+        sra.fasterq_dump_paired(tmp_path / "x.sra", tmp_path / "out", accession="SRR1", threads=1)
 
 
 def test_conversion_is_skipped_when_the_pair_is_already_there(tmp_path, monkeypatch):

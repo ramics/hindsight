@@ -315,8 +315,7 @@ def samples_plan_cmd(config_path: Path, as_json: bool) -> None:
             json.dumps(
                 {
                     "samples": [
-                        {"accession": s.accession, "role": s.role, "notes": s.notes}
-                        for s in specs
+                        {"accession": s.accession, "role": s.role, "notes": s.notes} for s in specs
                     ],
                     "levels": list(config.levels),
                     "dilution_seed": config.dilution_seed,
@@ -402,6 +401,73 @@ def samples_run_cmd(config_path: Path, only: tuple[str, ...], skip_series: bool)
                 f"  {level['name']}: {level['viral_fragments']} viral, "
                 f"{level['viral_fragments_per_million']:.2f} per million"
             )
+
+
+@samples_grp.command("report")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("work/day2-provenance.json"),
+    show_default=True,
+)
+def samples_report_cmd(provenance: Path) -> None:
+    """Summarise a completed run: counts, denominators, the series, and what it cost.
+
+    The provenance record is the authority, but it is 40 KB of JSON. This is the table
+    that goes in a methods section.
+    """
+    record = json.loads(provenance.read_text())
+    machine = record.get("machine", {})
+    click.echo(
+        f"ran on {machine.get('instance_type') or machine.get('machine', 'unknown')}, "
+        f"{machine.get('cpu_count')} cores, {machine.get('memory_gib')} GiB, "
+        f"{record.get('wall_clock_seconds', 0) / 60:.0f} min wall clock"
+    )
+    drift = record.get("tool_pin_drift") or []
+    tools_line = ", ".join(f"{t['name']} {t['version']}" for t in record.get("tools", []))
+    click.echo(f"tools: {tools_line}" + (f"  [drift: {', '.join(drift)}]" if drift else ""))
+
+    click.echo("")
+    click.echo(
+        f"{'run':<14}{'role':<10}{'raw':>12}{'redacted':>12}"
+        f"{'post-QC':>12}{'non-host':>12}{'viral':>9}"
+    )
+    for sample in record.get("samples", []):
+        click.echo(
+            f"{sample['accession']:<14}{sample['role']:<10}"
+            f"{sample['raw_pairs']:>12,}{sample['redacted_pairs']:>12,}"
+            f"{sample['qc_pairs']:>12,}{sample['nonhost_pairs']:>12,}"
+            f"{sample['viral_pairs'] or '':>9}"
+        )
+
+    series = record.get("dilution_series")
+    if not series:
+        return
+    click.echo("")
+    click.echo(
+        f"dilution series: seed {series['seed']}, "
+        f"{'nested' if series['nested'] else 'independent draws'}, "
+        f"{series['background_fragments']:,} background fragments"
+    )
+    denominators = series.get("denominators", {})
+    keys = list(denominators)
+    click.echo(
+        f"{'level':<14}{'viral':>8}{'total':>12}"
+        + "".join(f"{k.replace('_', ' '):>20}" for k in keys)
+    )
+    for level in series["levels"]:
+        row = (
+            f"{level['name']:<14}{level['viral_fragments']:>8,}" f"{level['total_fragments']:>12,}"
+        )
+        for key in keys:
+            value = level.get("per_million", {}).get(key)
+            row += f"{value:>20.3f}" if value is not None else f"{'-':>20}"
+        click.echo(row)
+    click.echo("")
+    click.echo(
+        "per-million columns are viral fragments per million; the headline denominator "
+        f"is {series.get('headline_denominator', 'in_file')}"
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -148,9 +148,7 @@ def test_hash_fraction_nests_as_the_depth_rises(tmp_path):
 def test_hash_fraction_extremes_are_pass_through_and_empty(tmp_path):
     names = [f"r{i}" for i in range(100)]
     source = write_fastq(tmp_path / "a.fastq.gz", names)
-    everything = reads.write_hash_fraction(
-        source, tmp_path / "all.fastq.gz", seed=1, fraction=1.0
-    )
+    everything = reads.write_hash_fraction(source, tmp_path / "all.fastq.gz", seed=1, fraction=1.0)
     assert everything == 100
     assert reads.write_hash_fraction(source, tmp_path / "none.fastq.gz", seed=1, fraction=0.0) == 0
     assert reads.keeps_fragment("r1", seed=1, fraction=1.5) is True
