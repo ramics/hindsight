@@ -106,6 +106,13 @@ the reproducibility rerun is the natural place to lift:
 * **The negatives at native depth.** The 6-million-pair cap above is a disk
   constraint, and the seeded hash makes a deeper cap a superset of a shallower one, so
   a rerun with `max_pairs = 0` extends this cohort rather than replacing it.
+* **Native depth without a bigger machine.** The 17 GiB that would not fit is
+  host-filtered FASTQ waiting for Day 3 to read it. If Day 3 classifies each negative
+  as it comes off the host filter and keeps only that sample's classifier output —
+  megabytes, not gigabytes — native depth fits here, at the cost of coupling the two
+  days rather than handing one a frozen directory. That is the route to take if the
+  cap turns out to matter to the false-alarm threshold; renting a larger machine for
+  it would be paying to avoid a design decision.
 * **bwa-mem instead of bowtie2 for host filtering.** bwa-mem is usually the faster of
   the two on 150 bp reads. bowtie2 is used here because the index sample had already
   been filtered with it by the time the question came up, and because the prebuilt
