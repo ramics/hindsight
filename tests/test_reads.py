@@ -101,3 +101,57 @@ def test_ids_from_sam_skips_headers_and_dedupes(tmp_path):
         "frag2/1\t0\tNC_045512.2\t300\t42\t100M\n"
     )
     assert reads.ids_from_sam(path) == {"frag1", "frag2"}
+
+
+def test_hash_fraction_keeps_both_mates_in_step(tmp_path):
+    names = [f"r{i:05d}" for i in range(5000)]
+    one = write_fastq(tmp_path / "a_1.fastq.gz", names, mate_suffix="/1")
+    two = write_fastq(tmp_path / "a_2.fastq.gz", names, mate_suffix="/2")
+    kept1 = reads.write_hash_fraction(one, tmp_path / "c_1.fastq.gz", seed=7, fraction=0.2)
+    kept2 = reads.write_hash_fraction(two, tmp_path / "c_2.fastq.gz", seed=7, fraction=0.2)
+    assert kept1 == kept2
+    assert reads.read_ids(tmp_path / "c_1.fastq.gz") == reads.read_ids(tmp_path / "c_2.fastq.gz")
+
+
+def test_hash_fraction_hits_about_the_target_depth(tmp_path):
+    names = [f"r{i:05d}" for i in range(20000)]
+    source = write_fastq(tmp_path / "a.fastq.gz", names)
+    kept = reads.write_hash_fraction(source, tmp_path / "c.fastq.gz", seed=3, fraction=0.25)
+    # Binomial around 5000; three sigma is about 185.
+    assert abs(kept - 5000) < 200
+
+
+def test_hash_fraction_is_reproducible_and_seed_dependent(tmp_path):
+    names = [f"r{i:04d}" for i in range(2000)]
+    source = write_fastq(tmp_path / "a.fastq.gz", names)
+    reads.write_hash_fraction(source, tmp_path / "x.fastq.gz", seed=1, fraction=0.3)
+    reads.write_hash_fraction(source, tmp_path / "y.fastq.gz", seed=1, fraction=0.3)
+    reads.write_hash_fraction(source, tmp_path / "z.fastq.gz", seed=2, fraction=0.3)
+    assert reads.read_ids(tmp_path / "x.fastq.gz") == reads.read_ids(tmp_path / "y.fastq.gz")
+    assert reads.read_ids(tmp_path / "x.fastq.gz") != reads.read_ids(tmp_path / "z.fastq.gz")
+
+
+def test_hash_fraction_nests_as_the_depth_rises(tmp_path):
+    """A deeper cap must be a superset of a shallower one at the same seed.
+
+    Not required by the benchmark, but it means raising the cap later extends the
+    sample rather than replacing it, so results at the old depth stay comparable.
+    """
+    names = [f"r{i:04d}" for i in range(3000)]
+    source = write_fastq(tmp_path / "a.fastq.gz", names)
+    reads.write_hash_fraction(source, tmp_path / "shallow.fastq.gz", seed=9, fraction=0.1)
+    reads.write_hash_fraction(source, tmp_path / "deep.fastq.gz", seed=9, fraction=0.4)
+    shallow = reads.read_ids(tmp_path / "shallow.fastq.gz")
+    assert shallow <= reads.read_ids(tmp_path / "deep.fastq.gz")
+
+
+def test_hash_fraction_extremes_are_pass_through_and_empty(tmp_path):
+    names = [f"r{i}" for i in range(100)]
+    source = write_fastq(tmp_path / "a.fastq.gz", names)
+    everything = reads.write_hash_fraction(
+        source, tmp_path / "all.fastq.gz", seed=1, fraction=1.0
+    )
+    assert everything == 100
+    assert reads.write_hash_fraction(source, tmp_path / "none.fastq.gz", seed=1, fraction=0.0) == 0
+    assert reads.keeps_fragment("r1", seed=1, fraction=1.5) is True
+    assert reads.keeps_fragment("r1", seed=1, fraction=-0.2) is False

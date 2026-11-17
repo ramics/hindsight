@@ -177,11 +177,13 @@ def _series_config(tmp_path, levels=(5, 2)):
         negatives_seed=1,
         negatives_manifest=None,
         negatives_pinned=(),
+        negatives_max_pairs=0,
         truth_reference="NC_045512.2",
         levels=tuple(levels),
         dilution_seed=99,
         threads=1,
         fetch_source="auto",
+        prune_intermediates=False,
         host_index=tmp_path / "idx",
         work_dir=tmp_path / "work",
     )

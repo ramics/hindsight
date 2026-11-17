@@ -60,6 +60,9 @@ class SampleResult:
     raw_bytes: int = 0
     raw_pairs: int = 0
     qc_pairs: int = 0
+    capped_pairs: int = 0
+    pruned_bytes: int = 0
+    cap_fraction: float = 1.0
     host_pairs: int = 0
     nonhost_pairs: int = 0
     viral_pairs: int = 0
@@ -396,6 +399,38 @@ def process_sample(
             result.viral_pairs / result.qc_pairs if result.qc_pairs else 0.0
         )
 
+    # ---- depth cap (negatives only) -------------------------------------------
+    # The negatives exist to put a number on how often a method cries wolf, and that
+    # number is per million reads. Twenty negatives at their native depth are 18 GiB
+    # of FASTQ and 120 million pairs of alignment; capped at a recorded depth they are
+    # a few GB, they finish in minutes, and every sample contributes the same weight
+    # to the false-alarm estimate instead of the deepest one dominating it. The cap
+    # costs sensitivity to genuinely rare background hits, which the write-up has to
+    # say, and `max_pairs = 0` turns it off for a machine with room.
+    filter_from_1, filter_from_2 = qc1, qc2
+    if not spec.is_index and config.negatives_max_pairs:
+        cap_dir = sample_dir / "capped"
+        cap1 = cap_dir / f"{spec.accession}_capped_1.fastq.gz"
+        cap2 = cap_dir / f"{spec.accession}_capped_2.fastq.gz"
+        stage = Stage(sample_dir, "cap")
+        if not stage.done:
+            started = time.monotonic()
+            fraction = min(1.0, config.negatives_max_pairs / max(result.qc_pairs, 1))
+            kept1 = reads.write_hash_fraction(
+                qc1, cap1, seed=config.negatives_seed, fraction=fraction
+            )
+            kept2 = reads.write_hash_fraction(
+                qc2, cap2, seed=config.negatives_seed, fraction=fraction
+            )
+            if kept1 != kept2:
+                raise RuntimeError(f"{spec.accession}: capped mates disagree, {kept1} vs {kept2}")
+            stage.finish({"capped_pairs": kept1, "fraction": fraction})
+            result.timings.append(Timing("cap", time.monotonic() - started))
+        capped = stage.load()
+        result.capped_pairs = capped["capped_pairs"]
+        result.cap_fraction = capped["fraction"]
+        filter_from_1, filter_from_2 = cap1, cap2
+
     # ---- host filtering --------------------------------------------------------
     nh1 = host_dir / f"{spec.accession}_nonhost_1.fastq.gz"
     nh2 = host_dir / f"{spec.accession}_nonhost_2.fastq.gz"
@@ -404,8 +439,8 @@ def process_sample(
         started = time.monotonic()
         _pipe_host_filter(
             index=config.host_index,
-            r1=qc1,
-            r2=qc2,
+            r1=filter_from_1,
+            r2=filter_from_2,
             out1=nh1,
             out2=nh2,
             threads=config.threads,
@@ -421,7 +456,8 @@ def process_sample(
     else:
         result.nonhost_pairs = reads.count_reads(nh1)
         counts_stage.finish({"nonhost_pairs": result.nonhost_pairs})
-    result.host_pairs = result.qc_pairs - result.nonhost_pairs
+    filtered_input = result.capped_pairs or result.qc_pairs
+    result.host_pairs = filtered_input - result.nonhost_pairs
 
     # ---- background and dilution (index only) ---------------------------------
     if spec.is_index:
@@ -442,6 +478,24 @@ def process_sample(
     }
     if spec.is_index and ids_path.exists():
         result.files["viral_fragment_ids"] = _describe(ids_path)
+
+    # ---- pruning ---------------------------------------------------------------
+    # The negatives' raw and QC'd FASTQ are 18 GiB between them and nothing
+    # downstream reads either: Days 3 and 4 consume the host-filtered files. The
+    # digests above are taken first, so the provenance record still describes what was
+    # deleted, and the container plus the recorded parameters regenerate it.
+    if config.prune_intermediates and not spec.is_index:
+        freed = 0
+        for path in (r1, r2, qc1, qc2):
+            if path.exists():
+                freed += path.stat().st_size
+                path.unlink()
+        for extra in (sample_dir / "capped").glob("*.fastq.gz"):
+            freed += extra.stat().st_size
+            extra.unlink()
+        if freed:
+            log(f"{spec.accession}: pruned {freed / 2**30:.2f} GiB of intermediates")
+            result.pruned_bytes = freed
     return result
 
 
@@ -698,6 +752,8 @@ def run_day2(
             "dilution_seed": config.dilution_seed,
             "negatives_seed": config.negatives_seed,
             "negatives_count": config.negatives_count,
+            "negatives_max_pairs": config.negatives_max_pairs,
+            "prune_intermediates": config.prune_intermediates,
         },
         "samples": [_sample_record(r) for r in results],
         "dilution_series": series,

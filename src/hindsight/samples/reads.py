@@ -146,6 +146,60 @@ def write_excluding(
     return written
 
 
+def keeps_fragment(read_id: str, *, seed: int, fraction: float) -> bool:
+    """Whether a seeded hash thins this fragment in or out.
+
+    Used to cap the negatives at a fixed sequencing depth. A two-pass seeded sample
+    would need every identifier in memory — 24 million strings for the largest
+    negative — and taking the first N pairs instead would take them from the head of
+    the file, which on an Illumina run is a corner of the flowcell rather than a
+    random draw.
+
+    So the decision is made per fragment from its identifier alone: keep it when the
+    leading bytes of ``sha256(f"{seed}:{id}")`` fall below ``fraction`` of the range.
+    One pass, no memory, no order dependence, and reproducible from the seed. The
+    count that results is binomial around the target rather than exact, so the
+    *actual* number kept is what gets recorded.
+    """
+    if fraction >= 1.0:
+        return True
+    if fraction <= 0.0:
+        return False
+    digest = hashlib.sha256(f"{seed}:{read_id}".encode()).digest()
+    # 8 bytes is ample precision for a depth cap and avoids a big-int conversion per
+    # read; at 24 million reads the quantisation error is far below the binomial
+    # spread.
+    value = int.from_bytes(digest[:8], "big")
+    return value < fraction * (1 << 64)
+
+
+def write_hash_fraction(
+    source: Path,
+    dest: Path,
+    *,
+    seed: int,
+    fraction: float,
+    compresslevel: int = 6,
+) -> int:
+    """Thin a FASTQ to approximately ``fraction`` of its fragments, deterministically.
+
+    Both mates thinned with the same seed keep the same fragments, so the pair stays
+    in step without either file having to know what the other did.
+    """
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    written = 0
+    with gzip.open(dest, "wt", compresslevel=compresslevel) as out:
+        for header, seq, plus, qual in iter_records(source):
+            if keeps_fragment(normalise_id(header), seed=seed, fraction=fraction):
+                out.write(header)
+                out.write(seq)
+                out.write(plus)
+                out.write(qual)
+                written += 1
+    return written
+
+
 def concatenate(parts: list[Path], dest: Path) -> None:
     """Concatenate gzip members into one file.
 

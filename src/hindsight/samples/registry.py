@@ -62,11 +62,13 @@ class Config:
     negatives_seed: int
     negatives_manifest: Path | None
     negatives_pinned: tuple[str, ...]
+    negatives_max_pairs: int
     truth_reference: str
     levels: tuple[int, ...]
     dilution_seed: int
     threads: int
     fetch_source: str
+    prune_intermediates: bool
     host_index: Path
     work_dir: Path
     tool_pins: dict[str, str | None] = field(default_factory=dict)
@@ -91,11 +93,13 @@ def load_config(path: Path) -> Config:
         negatives_seed=int(negatives.get("seed", 20191201)),
         negatives_manifest=(path.parent / manifest) if manifest else None,
         negatives_pinned=tuple(negatives.get("pinned_runs", ())),
+        negatives_max_pairs=int(negatives.get("max_pairs", 0)),
         truth_reference=samples.get("truth_reference", "NC_045512.2"),
         levels=tuple(int(x) for x in dilution.get("levels", (50000, 10000, 1000, 100, 10))),
         dilution_seed=int(dilution.get("seed", 20191201)),
         threads=int(run.get("threads", 4)),
         fetch_source=str(raw.get("fetch", {}).get("source", "auto")),
+        prune_intermediates=bool(run.get("prune_intermediates", False)),
         host_index=Path(run["host_index"]).expanduser(),
         work_dir=Path(run.get("work_dir", "work")).expanduser(),
         tool_pins=dict(raw.get("tools", {})),

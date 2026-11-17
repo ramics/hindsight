@@ -68,6 +68,29 @@ the seed selects — so the cohort cannot drift without the test failing.
 $ hindsight samples select-negatives --manifest config/negatives-PRJNA699976.tsv
 ```
 
+### The depth cap, and why the negatives have one
+
+At native depth the 20 negatives are 18 GiB of FASTQ and 120 million read pairs of
+alignment. `config/day2.toml` caps each at 3 million pairs after QC, which also
+equalises what each negative contributes: uncapped, a 24-million-read sample would
+outweigh a 1.5-million-read one eightfold in a false-alarm rate that is supposed to be
+per sample.
+
+The cap is applied by a seeded streaming hash — a fragment is kept when the leading
+bytes of `sha256("<seed>:<id>")` fall below the target fraction — so it needs one pass
+and no memory, both mates independently keep the same fragments, and a deeper cap at
+the same seed is a superset of a shallower one. The count that results is binomial
+around the target rather than exact, so the actual number kept is what gets recorded.
+
+The honest cost: the cap lowers sensitivity to genuinely rare background hits, which
+is exactly what a false-alarm rate is about. Day 5 should say so, and `max_pairs = 0`
+removes the cap on a machine with the disk and the hours for it.
+
+Once a negative's host-filtered pair exists, its raw, QC'd and capped FASTQ are
+deleted (`prune_intermediates`). Their digests are recorded first, and the `.sra`
+container plus the pinned parameters regenerate them. The index sample is never
+pruned, because the dilution series is cut from its QC'd reads.
+
 ## The dilution series
 
 The series holds the index sample's **own** SARS-CoV-2 reads, thinned, in the index

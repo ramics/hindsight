@@ -57,10 +57,11 @@ def probe(name: str, *, pinned: str | None = None) -> ToolVersion:
     proc = subprocess.run(  # noqa: S603
         [path, *VERSION_COMMANDS.get(name, ["--version"])],
         capture_output=True,
-        text=True,
         check=False,
     )
-    raw = (proc.stdout + proc.stderr).strip()
+    # Bytes, not text: curl's --version banner carries the locale's own encoding and
+    # a strict UTF-8 decode of it brought the whole pipeline down at the first step.
+    raw = (proc.stdout + proc.stderr).decode("utf-8", errors="replace").strip()
     first = raw.splitlines()[0] if raw else ""
     pattern = VERSION_PATTERNS.get(name, r"([0-9][0-9.]*)")
     match = re.search(pattern, raw)

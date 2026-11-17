@@ -280,6 +280,28 @@ def fastq_dump_chunked(
         # The parts went away but the bookkeeping did not; starting over is the only
         # safe reading of that.
         state = {"next_spot": 1, "spots": 0}
+    elif state["next_spot"] > 1:
+        # A process killed midway through appending a chunk leaves a partial gzip
+        # member on the end of a part file, which the next append would follow with a
+        # complete copy of the same chunk: duplicated reads behind a truncated member,
+        # in a file that is otherwise 2 GB of plausible FASTQ. The marker therefore
+        # records the byte length each part had when the last chunk was *finished*,
+        # and a resume truncates back to it.
+        for part, key in ((part1, "part1_bytes"), (part2, "part2_bytes")):
+            recorded = state.get(key)
+            if recorded is None:
+                note(f"{accession}: no recorded part length; converting from the start")
+                state = {"next_spot": 1, "spots": 0}
+                part1.unlink(missing_ok=True)
+                part2.unlink(missing_ok=True)
+                break
+            if part.stat().st_size > recorded:
+                note(
+                    f"{accession}: discarding {part.stat().st_size - recorded} bytes of "
+                    f"a half-written chunk from {part.name}"
+                )
+                with open(part, "r+b") as handle:
+                    handle.truncate(recorded)
 
     scratch = out_dir / f".{accession}.chunk"
     while True:
@@ -312,7 +334,12 @@ def fastq_dump_chunked(
                 )
         with open(chunk1, "rb") as handle:
             lines = sum(1 for _ in handle)
-        state = {"next_spot": stop + 1, "spots": state["spots"] + lines // 4}
+        state = {
+            "next_spot": stop + 1,
+            "spots": state["spots"] + lines // 4,
+            "part1_bytes": part1.stat().st_size,
+            "part2_bytes": part2.stat().st_size,
+        }
         marker.write_text(json.dumps(state, indent=2) + "\n")
         note(f"{accession}: converted {state['spots']} spots")
         shutil.rmtree(scratch)
