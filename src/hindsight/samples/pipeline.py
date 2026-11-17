@@ -297,6 +297,21 @@ def _truth_label(
     return {reads.normalise_id(line) for line in ids_out.read_text().splitlines() if line.strip()}
 
 
+def _ena_metadata(run: ena.Run) -> dict:
+    return {
+        "study": run.study,
+        "sample": run.sample,
+        "library_strategy": run.library_strategy,
+        "library_layout": run.library_layout,
+        "instrument_model": run.instrument_model,
+        "ena_read_count": run.read_count,
+        "ena_base_count": run.base_count,
+        "collection_date": run.collection_date,
+        "deposit_layout": run.layout,
+        "files": [{"name": f.name, "bytes": f.size, "md5": f.md5} for f in run.files],
+    }
+
+
 def process_sample(
     spec: registry.SampleSpec,
     config: registry.Config,
@@ -321,18 +336,11 @@ def process_sample(
     if mates is None:
         raise RuntimeError(f"{spec.accession}: no _1/_2 pair in the deposit ({run.layout})")
     result.layout = run.layout
-    result.ena_metadata = {
-        "study": run.study,
-        "sample": run.sample,
-        "library_strategy": run.library_strategy,
-        "library_layout": run.library_layout,
-        "instrument_model": run.instrument_model,
-        "ena_read_count": run.read_count,
-        "ena_base_count": run.base_count,
-        "collection_date": run.collection_date,
-        "deposit_layout": run.layout,
-        "files": [{"name": f.name, "bytes": f.size, "md5": f.md5} for f in run.files],
-    }
+    result.ena_metadata = _ena_metadata(run)
+
+    rebuilt = _rebuild_pruned_record(spec, config, run=run, log=log)
+    if rebuilt is not None:
+        return rebuilt
 
     stage = Stage(sample_dir, "fetch")
     started = time.monotonic()
@@ -548,6 +556,67 @@ def process_sample(
         if freed:
             log(f"{spec.accession}: pruned {freed / 2**30:.2f} GiB of intermediates")
             result.pruned_bytes = freed
+        # The marker is what makes a later run cheap: it says this sample is finished
+        # and its intermediates are gone on purpose, and it carries the digests of
+        # what was deleted so the provenance record can still describe them.
+        Stage(sample_dir, "pruned").finish(
+            {"freed_bytes": freed, "files": result.files, "source": result.source}
+        )
+    return result
+
+
+def _rebuild_pruned_record(
+    spec: registry.SampleSpec,
+    config: registry.Config,
+    *,
+    run: ena.Run,
+    log=print,
+) -> SampleResult | None:
+    """Rebuild a finished-and-pruned sample's record from its markers, or None.
+
+    A pruned sample keeps its stage markers but not its FASTQ, and the fetch stage
+    looks at the files rather than the markers, so re-running one used to re-download
+    and re-convert a gigabyte-and-a-half container to rebuild files that nothing reads
+    and that the next prune deletes again. Every count is already recorded: fastp's
+    report survives pruning, and the redaction, cap and counts markers hold the rest.
+    """
+    sample_dir = config.work_dir / "samples" / spec.accession
+    pruned = Stage(sample_dir, "pruned")
+    counts = Stage(sample_dir, "counts")
+    nh1 = sample_dir / "nonhost" / f"{spec.accession}_nonhost_1.fastq.gz"
+    nh2 = sample_dir / "nonhost" / f"{spec.accession}_nonhost_2.fastq.gz"
+    fastp_json = sample_dir / "qc" / "fastp.json"
+    if not (pruned.done and counts.done and nh1.exists() and nh2.exists()):
+        return None
+    if not fastp_json.exists():
+        return None
+
+    payload = pruned.load()
+    report = json.loads(fastp_json.read_text())
+    result = SampleResult(accession=spec.accession, role=spec.role)
+    result.layout = run.layout
+    result.ena_metadata = _ena_metadata(run)
+    result.source = payload.get("source", "")
+    result.raw_pairs = report["summary"]["before_filtering"]["total_reads"] // 2
+    result.qc_pairs = report["summary"]["after_filtering"]["total_reads"] // 2
+    result.redacted_pairs = Stage(sample_dir, "redaction").load().get("redacted_pairs", 0)
+    result.non_redacted_pairs = result.raw_pairs - result.redacted_pairs
+    cap = Stage(sample_dir, "cap")
+    if cap.done:
+        loaded = cap.load()
+        result.capped_pairs = loaded["capped_pairs"]
+        result.cap_fraction = loaded["fraction"]
+    result.nonhost_pairs = counts.load()["nonhost_pairs"]
+    result.host_pairs = (result.capped_pairs or result.qc_pairs) - result.nonhost_pairs
+    result.pruned_bytes = payload.get("freed_bytes", 0)
+    # The raw and QC digests are the pruned marker's copy; the host-filtered files are
+    # still here, so those are measured rather than remembered.
+    result.files = {
+        **payload.get("files", {}),
+        "nonhost_1": _describe(nh1),
+        "nonhost_2": _describe(nh2),
+    }
+    log(f"{spec.accession}: already filtered and pruned; record rebuilt from its markers")
     return result
 
 

@@ -385,3 +385,85 @@ def test_a_rerun_of_a_sample_replaces_its_own_record(tmp_path):
     )
     assert len(merged["samples"]) == 1
     assert merged["samples"][0]["qc_pairs"] == 2
+
+
+def _pruned_sample(tmp_path, accession="SRRN", *, capped=True):
+    """A sample as it looks after a finished, pruned run: markers and nonhost only."""
+    config = _series_config(tmp_path)
+    sample = config.work_dir / "samples" / accession
+    for mate in (1, 2):
+        _fastq(sample / "nonhost" / f"{accession}_nonhost_{mate}.fastq.gz", ["a", "b", "c"])
+    (sample / "qc").mkdir(parents=True, exist_ok=True)
+    (sample / "qc" / "fastp.json").write_text(
+        json.dumps(
+            {
+                "summary": {
+                    "before_filtering": {"total_reads": 2000},
+                    "after_filtering": {"total_reads": 1800},
+                }
+            }
+        )
+    )
+    pipeline.Stage(sample, "redaction").finish({"redacted_pairs": 40})
+    if capped:
+        pipeline.Stage(sample, "cap").finish({"capped_pairs": 700, "fraction": 0.7})
+    pipeline.Stage(sample, "counts").finish({"nonhost_pairs": 650})
+    pipeline.Stage(sample, "pruned").finish(
+        {
+            "freed_bytes": 1234,
+            "source": "sra-odp",
+            "files": {"raw_1": {"path": "gone", "sha256": "abc", "bytes": 10}},
+        }
+    )
+    return config, sample
+
+
+class _FakeRun:
+    study = "PRJNA1"
+    sample = "SAMN1"
+    library_strategy = "RNA-Seq"
+    library_layout = "PAIRED"
+    instrument_model = "Illumina"
+    read_count = 1000
+    base_count = 100000
+    collection_date = "missing"
+    layout = "paired"
+    files = ()
+
+
+def test_a_pruned_sample_is_rebuilt_from_its_markers(tmp_path):
+    """Re-running a finished sample must not re-fetch what pruning deleted on purpose.
+
+    The fetch stage looks at files rather than markers, so a pruned negative used to
+    re-download and re-convert a 1.5 GB container to rebuild files nothing reads and
+    the next prune deletes again.
+    """
+    config, _ = _pruned_sample(tmp_path)
+    spec = registry.SampleSpec(accession="SRRN", role="negative", notes="")
+    result = pipeline._rebuild_pruned_record(spec, config, run=_FakeRun(), log=lambda m: None)
+
+    assert result is not None
+    assert (result.raw_pairs, result.qc_pairs) == (1000, 900)
+    assert result.redacted_pairs == 40 and result.non_redacted_pairs == 960
+    assert result.capped_pairs == 700 and result.cap_fraction == 0.7
+    assert result.nonhost_pairs == 650
+    assert result.host_pairs == 50, "host count is against the capped input, not the QC one"
+    assert result.pruned_bytes == 1234
+    assert result.source == "sra-odp"
+    # The deleted files keep their recorded digests; the surviving ones are measured.
+    assert result.files["raw_1"]["sha256"] == "abc"
+    assert result.files["nonhost_1"]["sha256"] != "abc"
+
+
+def test_rebuilding_is_refused_when_the_evidence_is_incomplete(tmp_path):
+    config, sample = _pruned_sample(tmp_path, accession="SRRM")
+    spec = registry.SampleSpec(accession="SRRM", role="negative", notes="")
+    (sample / "qc" / "fastp.json").unlink()
+    assert pipeline._rebuild_pruned_record(spec, config, run=_FakeRun(), log=lambda m: None) is None
+
+    config2, sample2 = _pruned_sample(tmp_path / "other", accession="SRRO")
+    spec2 = registry.SampleSpec(accession="SRRO", role="negative", notes="")
+    (sample2 / "nonhost" / "SRRO_nonhost_2.fastq.gz").unlink()
+    assert (
+        pipeline._rebuild_pruned_record(spec2, config2, run=_FakeRun(), log=lambda m: None) is None
+    )
