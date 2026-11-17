@@ -29,13 +29,22 @@ manifest = "negatives-PRJNA699976.tsv"
 # Depth cap per negative, in read pairs after QC, applied by a seeded streaming hash
 # (see reads.keeps_fragment).
 #
-# 0, meaning no cap: the false-alarm threshold Day 5 draws from these samples is
-# exactly the number a cap degrades, so the negatives run at the depth they were
-# sequenced at. The cost is 18 GiB of FASTQ and 120 million read pairs of alignment,
-# which is why the cap exists at all — set it to 3000000 on a machine that cannot
-# spare that, and record in the write-up that the threshold was estimated at reduced
-# depth with each negative weighted equally.
-max_pairs = 0
+# The false-alarm threshold Day 5 draws from these samples is exactly the number a cap
+# degrades, so native depth is what this wants: 240 million read pairs and 18.5 GiB of
+# FASTQ across the 20 runs. The host-filtered output that Days 3 and 4 read is then
+# ~17 GiB, which does not fit beside the human index and the dilution series in the
+# ~21 GiB this benchmark's machine has. Measured, not estimated.
+#
+# So: 6 million pairs, uniformly. It binds on 17 of the 20 runs; the other three
+# (SRR13677777, SRR13677921, SRR13677842) were sequenced below it and run whole. A uniform cap is the point — it also equalises what
+# each negative contributes to a rate that is supposed to be per sample, where native
+# depth would let a 24-million-pair run outweigh a 2-million-pair one twelvefold.
+#
+# The honest cost, which belongs in the write-up: the cap lowers sensitivity to
+# genuinely rare background hits, which is what a false-alarm rate is about. It is
+# reversible — the seeded hash makes a deeper cap a superset of a shallower one at the
+# same seed — and lifting it is a Day 7 item, on a machine with the disk for it.
+max_pairs = 6000000
 
 # The 20 runs the seeded ranking chose, frozen here after the first selection so that
 # re-running cannot change the cohort. Comment this out to re-derive from the manifest

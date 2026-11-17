@@ -70,11 +70,17 @@ $ hindsight samples select-negatives --manifest config/negatives-PRJNA699976.tsv
 
 ### The depth cap, and why the negatives have one
 
-At native depth the 20 negatives are 18 GiB of FASTQ and 120 million read pairs of
-alignment. `config/day2.toml` caps each at 3 million pairs after QC, which also
-equalises what each negative contributes: uncapped, a 24-million-read sample would
-outweigh a 1.5-million-read one eightfold in a false-alarm rate that is supposed to be
-per sample.
+At native depth the 20 negatives are 240 million read pairs and 18.5 GiB of FASTQ, and
+the host-filtered output Days 3 and 4 read is about 17 GiB of that. The machine this
+was built on has about 21 GiB of usable disk with the human index and the dilution
+series already on it, so native depth does not fit — measured, not estimated.
+
+`config/day2.toml` therefore caps each negative at **6 million pairs after QC**. The
+cap binds on 17 of the 20 runs; the other three (`SRR13677777`, `SRR13677921` and
+`SRR13677842` — 0.15 M, 2.4 M and 3.6 M spots) were sequenced below it and run whole,
+so their records carry `capped_pairs` equal to their post-QC count. Uniformity is half the point: native depth would let a
+24-million-pair run outweigh a 2-million-pair one twelvefold in a false-alarm rate that
+is supposed to be per sample.
 
 The cap is applied by a seeded streaming hash — a fragment is kept when the leading
 bytes of `sha256("<seed>:<id>")` fall below the target fraction — so it needs one pass
@@ -88,8 +94,24 @@ removes the cap on a machine with the disk and the hours for it.
 
 Once a negative's host-filtered pair exists, its raw, QC'd and capped FASTQ are
 deleted (`prune_intermediates`). Their digests are recorded first, and the `.sra`
-container plus the pinned parameters regenerate them. The index sample is never
-pruned, because the dilution series is cut from its QC'd reads.
+container plus the pinned parameters regenerate them. The index sample is pruned the
+same way, but only once the dilution series has been frozen — the series is cut from
+its QC'd reads, so until the parts exist those files are the only copy.
+
+## For Day 7
+
+Two things this day settled for its machine rather than on the merits, both of which
+the reproducibility rerun is the natural place to lift:
+
+* **The negatives at native depth.** The 6-million-pair cap above is a disk
+  constraint, and the seeded hash makes a deeper cap a superset of a shallower one, so
+  a rerun with `max_pairs = 0` extends this cohort rather than replacing it.
+* **bwa-mem instead of bowtie2 for host filtering.** bwa-mem is usually the faster of
+  the two on 150 bp reads. bowtie2 is used here because the index sample had already
+  been filtered with it by the time the question came up, and because the prebuilt
+  human bowtie2 index is a download while a bwa index is an hour of CPU. Whether the
+  choice moves the non-host count at all is a one-sample experiment and worth
+  recording, since the host filter is the dominant cost of this day.
 
 ## The dilution series
 

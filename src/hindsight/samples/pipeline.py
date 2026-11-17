@@ -527,9 +527,19 @@ def process_sample(
             if path.exists():
                 freed += path.stat().st_size
                 path.unlink()
-        for extra in (sample_dir / "capped").glob("*.fastq.gz"):
-            freed += extra.stat().st_size
-            extra.unlink()
+        # Everything else the fetch and QC stages left behind: fastp's own copies, the
+        # orphan single-end FASTQ `fasterq-dump --split-3` writes for reads whose mate
+        # was technical or empty (150 MB a sample, which is 2.5 GB across the cohort),
+        # and the conversion's scratch directory.
+        leftovers = [
+            *(sample_dir / "capped").glob("*.fastq*"),
+            *(sample_dir / "raw").glob("*.fastq*"),
+            *(sample_dir / "tmp").glob("*"),
+        ]
+        for extra in leftovers:
+            if extra.is_file():
+                freed += extra.stat().st_size
+                extra.unlink()
         if freed:
             log(f"{spec.accession}: pruned {freed / 2**30:.2f} GiB of intermediates")
             result.pruned_bytes = freed
