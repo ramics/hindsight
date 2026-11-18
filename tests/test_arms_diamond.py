@@ -14,8 +14,6 @@ lets into the decision.
 
 from __future__ import annotations
 
-import gzip
-
 import pytest
 
 from hindsight.arms import day4, diamond
@@ -72,34 +70,6 @@ def clades(taxonomy):
     return taxa_mod.clade_sets(taxonomy)
 
 
-def _hit_row(contig, subject, taxid, bitscore, *, pident=90.0, length=100, qlen=30000):
-    values = {
-        "qseqid": contig,
-        "sseqid": subject,
-        "staxids": str(taxid),
-        "pident": f"{pident}",
-        "length": str(length),
-        "mismatch": "0",
-        "gapopen": "0",
-        "qstart": "1",
-        "qend": "300",
-        "sstart": "1",
-        "send": "100",
-        "evalue": "1e-50",
-        "bitscore": f"{bitscore}",
-        "qlen": str(qlen),
-        "slen": "1000",
-    }
-    return "\t".join(values[field] for field in diamond.BLAST_FIELDS)
-
-
-def _write_hits(path, rows):
-    with gzip.open(path, "wt") as handle:
-        for row in rows:
-            handle.write(row + "\n")
-    return path
-
-
 # ------------------------------------------------------------------------------- LCA
 
 
@@ -136,18 +106,20 @@ def test_lca_across_superkingdoms_is_the_root(taxonomy):
 # ------------------------------------------------------------------- contig assignment
 
 
-def test_assignment_separates_the_best_hit_from_the_lca(tmp_path, taxonomy, clades):
+def test_assignment_separates_the_best_hit_from_the_lca(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
     """The two answers disagree, and the arm has to record both.
 
     The best hit says "this is SARS-CoV", which is wrong: the contig is a virus nobody
     had sequenced. The LCA over the near-ties says "a coronavirus", which is what a
     human reading the table would have concluded and is true.
     """
-    hits = _write_hits(
+    hits = write_blast_hits(
         tmp_path / "hits.tsv.gz",
         [
-            _hit_row("k141_1", "YP_009724390.1", 694009, 900.0, pident=79.0),
-            _hit_row("k141_1", "YP_003858584.1", 864596, 880.0, pident=78.0),
+            blast_row("k141_1", "YP_009724390.1", 694009, 900.0, pident=79.0),
+            blast_row("k141_1", "YP_003858584.1", 864596, 880.0, pident=78.0),
         ],
     )
     calls = diamond.assign_contigs(hits, {"k141_1": 29800}, taxonomy, clades)
@@ -160,16 +132,18 @@ def test_assignment_separates_the_best_hit_from_the_lca(tmp_path, taxonomy, clad
     assert call.length == 29800
 
 
-def test_a_hit_outside_the_bitscore_band_does_not_widen_the_lca(tmp_path, taxonomy, clades):
+def test_a_hit_outside_the_bitscore_band_does_not_widen_the_lca(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
     """The band is what stops one weak, distant hit dragging the answer up to Viruses."""
-    hits = _write_hits(
+    hits = write_blast_hits(
         tmp_path / "hits.tsv.gz",
         [
-            _hit_row("k141_1", "YP_sars", 694009, 900.0),
-            _hit_row("k141_1", "YP_oc43", 31631, 880.0),
+            blast_row("k141_1", "YP_sars", 694009, 900.0),
+            blast_row("k141_1", "YP_oc43", 31631, 880.0),
             # 100.0 is far below 90% of 900, so it is evidence about the database, not
             # about this contig.
-            _hit_row("k141_1", "YP_ecoli", 562, 100.0),
+            blast_row("k141_1", "YP_ecoli", 562, 100.0),
         ],
     )
     calls = diamond.assign_contigs(hits, {"k141_1": 1200}, taxonomy, clades)
@@ -178,13 +152,15 @@ def test_a_hit_outside_the_bitscore_band_does_not_widen_the_lca(tmp_path, taxono
     assert calls["k141_1"].hits_total == 3
 
 
-def test_widening_the_band_widens_the_answer(tmp_path, taxonomy, clades):
+def test_widening_the_band_widens_the_answer(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
     """``lca_top_percent`` is a real knob, and the record says what it was set to."""
-    hits = _write_hits(
+    hits = write_blast_hits(
         tmp_path / "hits.tsv.gz",
         [
-            _hit_row("k141_1", "YP_sars", 694009, 900.0),
-            _hit_row("k141_1", "YP_ecoli", 562, 100.0),
+            blast_row("k141_1", "YP_sars", 694009, 900.0),
+            blast_row("k141_1", "YP_ecoli", 562, 100.0),
         ],
     )
     narrow = diamond.assign_contigs(hits, {"k141_1": 1200}, taxonomy, clades)
@@ -193,13 +169,15 @@ def test_widening_the_band_widens_the_answer(tmp_path, taxonomy, clades):
     assert wide["k141_1"].lca == 1
 
 
-def test_clade_contigs_can_be_selected_either_way(tmp_path, taxonomy, clades):
-    hits = _write_hits(
+def test_clade_contigs_can_be_selected_either_way(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
+    hits = write_blast_hits(
         tmp_path / "hits.tsv.gz",
         [
-            _hit_row("long", "YP_sars", 694009, 900.0),
-            _hit_row("long", "YP_bm48", 864596, 890.0),
-            _hit_row("short", "YP_ecoli", 562, 200.0),
+            blast_row("long", "YP_sars", 694009, 900.0),
+            blast_row("long", "YP_bm48", 864596, 890.0),
+            blast_row("short", "YP_ecoli", 562, 200.0),
         ],
     )
     calls = diamond.assign_contigs(hits, {"long": 29800, "short": 300}, taxonomy, clades)
@@ -211,14 +189,16 @@ def test_clade_contigs_can_be_selected_either_way(tmp_path, taxonomy, clades):
     assert diamond.clade_contigs(calls, "betacoronavirus", by="lca") == []
 
 
-def test_summary_counts_contigs_and_keeps_the_evidence(tmp_path, taxonomy, clades):
-    hits = _write_hits(
+def test_summary_counts_contigs_and_keeps_the_evidence(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
+    hits = write_blast_hits(
         tmp_path / "hits.tsv.gz",
         [
-            _hit_row("long", "YP_sars", 694009, 900.0, pident=79.5),
-            _hit_row("long", "YP_bm48", 864596, 890.0, pident=78.0),
-            _hit_row("other", "YP_oc43", 31631, 400.0, pident=99.0, qlen=800),
-            _hit_row("bug", "YP_ecoli", 562, 300.0, qlen=500),
+            blast_row("long", "YP_sars", 694009, 900.0, pident=79.5),
+            blast_row("long", "YP_bm48", 864596, 890.0, pident=78.0),
+            blast_row("other", "YP_oc43", 31631, 400.0, pident=99.0, qlen=800),
+            blast_row("bug", "YP_ecoli", 562, 300.0, qlen=500),
         ],
     )
     calls = diamond.assign_contigs(
@@ -237,15 +217,15 @@ def test_summary_counts_contigs_and_keeps_the_evidence(tmp_path, taxonomy, clade
 
 
 def test_a_contig_whose_lca_left_the_family_still_appears_in_the_evidence(
-    tmp_path, taxonomy, clades
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
 ):
     """Borderline calls are exactly what a reader needs to see, so they are not hidden."""
-    hits = _write_hits(
+    hits = write_blast_hits(
         tmp_path / "hits.tsv.gz",
         [
             # Best hit is a coronavirus; a near-tied bacterial hit pushes the LCA to root.
-            _hit_row("ambiguous", "YP_sars", 694009, 400.0),
-            _hit_row("ambiguous", "YP_ecoli", 562, 395.0),
+            blast_row("ambiguous", "YP_sars", 694009, 400.0),
+            blast_row("ambiguous", "YP_ecoli", 562, 395.0),
         ],
     )
     calls = diamond.assign_contigs(hits, {"ambiguous": 600}, taxonomy, clades)
@@ -308,7 +288,7 @@ def test_contig_lengths_of_an_empty_assembly(tmp_path):
     assert diamond._n50([]) == 0
 
 
-def test_contig_subset_keeps_only_the_named_contigs(tmp_path):
+def test_contig_subset_keeps_only_the_named_contigs(tmp_path, blast_row):
     fasta = tmp_path / "c.fa"
     fasta.write_text(">keep me\nACGTACGT\n>drop\nTTTT\n>keep2\nGG\n")
     dest = tmp_path / "subset.fa"
@@ -321,18 +301,16 @@ def test_contig_subset_keeps_only_the_named_contigs(tmp_path):
 # ------------------------------------------------------------------- the read half
 
 
-def _read_hit_row(fragment, mate, subject, taxid, bitscore):
-    return _hit_row(f"{fragment}/{mate}", subject, taxid, bitscore, qlen=150)
-
-
-def test_read_hits_are_pooled_across_mates_into_one_fragment(tmp_path, taxonomy, clades):
+def test_read_hits_are_pooled_across_mates_into_one_fragment(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
     """Arm A counts a pair as one fragment, so Arm B must too, or the table lies."""
-    hits = _write_hits(
+    hits = write_blast_hits(
         tmp_path / "reads.tsv.gz",
         [
-            _read_hit_row("FRAG1", 1, "YP_sars", 694009, 90.0),
-            _read_hit_row("FRAG1", 2, "YP_sars", 694009, 85.0),
-            _read_hit_row("FRAG2", 1, "YP_oc43", 31631, 70.0),
+            blast_row("FRAG1/1", "YP_sars", 694009, 90.0, qlen=150),
+            blast_row("FRAG1/2", "YP_sars", 694009, 85.0, qlen=150),
+            blast_row("FRAG2/1", "YP_oc43", 31631, 70.0, qlen=150),
         ],
     )
     record = day4._score_read_hits(hits, taxonomy, clades)
@@ -343,13 +321,13 @@ def test_read_hits_are_pooled_across_mates_into_one_fragment(tmp_path, taxonomy,
 
 
 def test_read_hits_scored_against_truth_split_detection_from_false_positives(
-    tmp_path, taxonomy, clades
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
 ):
-    hits = _write_hits(
+    hits = write_blast_hits(
         tmp_path / "reads.tsv.gz",
         [
-            _read_hit_row("REAL", 1, "YP_sars", 694009, 90.0),
-            _read_hit_row("NOISE", 1, "YP_oc43", 31631, 60.0),
+            blast_row("REAL/1", "YP_sars", 694009, 90.0, qlen=150),
+            blast_row("NOISE/1", "YP_oc43", 31631, 60.0, qlen=150),
         ],
     )
     record = day4._score_read_hits(hits, taxonomy, clades, truth_ids={"REAL", "UNSEEN"})
@@ -395,18 +373,20 @@ def test_read_level_composition_adds_the_background_to_the_viral_part(clades):
 # -------------------------------------------------------------------------- scoring
 
 
-def test_score_sample_alarms_only_on_a_clade_contig(tmp_path, taxonomy, clades):
+def test_score_sample_alarms_only_on_a_clade_contig(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
     assembly = diamond.Assembly(
         name="s", contigs=tmp_path / "c.fa", contig_count=12, longest=900, n50=400
     )
     quiet = diamond.assign_contigs(
-        _write_hits(tmp_path / "a.tsv.gz", [_hit_row("c1", "YP_ecoli", 562, 300.0)]),
+        write_blast_hits(tmp_path / "a.tsv.gz", [blast_row("c1", "YP_ecoli", 562, 300.0)]),
         {"c1": 900},
         taxonomy,
         clades,
     )
     loud = diamond.assign_contigs(
-        _write_hits(tmp_path / "b.tsv.gz", [_hit_row("c1", "YP_sars", 694009, 900.0)]),
+        write_blast_hits(tmp_path / "b.tsv.gz", [blast_row("c1", "YP_sars", 694009, 900.0)]),
         {"c1": 900},
         taxonomy,
         clades,

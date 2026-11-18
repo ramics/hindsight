@@ -1,0 +1,840 @@
+{
+  "tool": {
+    "name": "hindsight arm-b",
+    "version": "0.1.0"
+  },
+  "generated_at": "2026-11-18T12:45:34+00:00",
+  "stages": [
+    "index"
+  ],
+  "machine": {
+    "platform": "Linux-6.18.44-fc-v595-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "cpu_count": 4,
+    "memory_gib": 15.7,
+    "instance_type": null,
+    "work_dir_disk": {
+      "total_gib": 252.0,
+      "used_gib": 18.6,
+      "free_gib": 20.3
+    }
+  },
+  "tools": [
+    {
+      "name": "diamond",
+      "path": "/usr/bin/diamond",
+      "version": "2.1.9",
+      "raw": "diamond version 2.1.9",
+      "pinned": "2.1.9"
+    },
+    {
+      "name": "megahit",
+      "path": "/usr/bin/megahit",
+      "version": "1.2.9",
+      "raw": "MEGAHIT v1.2.9",
+      "pinned": "1.2.9"
+    },
+    {
+      "name": "bowtie2",
+      "path": "/usr/bin/bowtie2",
+      "version": "2.5.2",
+      "raw": "/usr/bin/bowtie2-align-s version 2.5.2",
+      "pinned": "2.5.2"
+    }
+  ],
+  "parameters": {
+    "cutoff": "2019-12-01",
+    "source_db": "db/nov2019",
+    "dmnd_db": "work/diamond/nov2019.dmnd",
+    "threads": 4,
+    "sensitivity": "very-sensitive",
+    "comparison_sensitivity": "default",
+    "evalue": 0.001,
+    "max_target_seqs": 25,
+    "lca_top_percent": 10.0,
+    "min_contig_len": 200,
+    "read_level": false,
+    "read_level_sensitivity": "very-sensitive",
+    "negatives_max_pairs": 0,
+    "negatives_depth": "native",
+    "negatives_read_level": false,
+    "headline_clade": "coronaviridae",
+    "day2_provenance": "work/day2-provenance.json"
+  },
+  "database": {
+    "db": "work/diamond/nov2019.dmnd",
+    "source_db": "db/nov2019",
+    "protein_records_in_source": 373129,
+    "taxonmap": {
+      "path": "work/diamond/prot.accession2taxid",
+      "reused": true
+    },
+    "reused": true,
+    "bytes": 128905601,
+    "clades": {
+      "viruses": {
+        "root_taxid": 10239,
+        "name_in_2019_tree": "Viruses",
+        "taxa_in_clade": 201891
+      },
+      "riboviria": {
+        "root_taxid": 2559587,
+        "name_in_2019_tree": "Riboviria",
+        "taxa_in_clade": 172317
+      },
+      "nidovirales": {
+        "root_taxid": 76804,
+        "name_in_2019_tree": "Nidovirales",
+        "taxa_in_clade": 1867
+      },
+      "coronaviridae": {
+        "root_taxid": 11118,
+        "name_in_2019_tree": "Coronaviridae",
+        "taxa_in_clade": 1612
+      },
+      "orthocoronavirinae": {
+        "root_taxid": 2501931,
+        "name_in_2019_tree": "Orthocoronavirinae",
+        "taxa_in_clade": 1124
+      },
+      "betacoronavirus": {
+        "root_taxid": 694002,
+        "name_in_2019_tree": "Betacoronavirus",
+        "taxa_in_clade": 569
+      },
+      "sarbecovirus": {
+        "root_taxid": 2509511,
+        "name_in_2019_tree": "Sarbecovirus",
+        "taxa_in_clade": 260
+      },
+      "sars_related_cov": {
+        "root_taxid": 694009,
+        "name_in_2019_tree": "Severe acute respiratory syndrome-related coronavirus",
+        "taxa_in_clade": 259
+      }
+    },
+    "clades_absent_from_dated_taxonomy": [],
+    "headline_clade": "coronaviridae",
+    "protein_counts_by_clade": {
+      "viruses": 373098,
+      "riboviria": 17232,
+      "nidovirales": 1098,
+      "coronaviridae": 639,
+      "orthocoronavirinae": 620,
+      "betacoronavirus": 270,
+      "sarbecovirus": 30,
+      "sars_related_cov": 30
+    },
+    "source_release": {
+      "time_control": {
+        "catalog_bytes": 1232202633,
+        "catalog_url": "https://ftp.ncbi.nlm.nih.gov/refseq/release/release-catalog/archive/RefSeq-release97.catalog.gz",
+        "cutoff_date": "2019-12-01",
+        "excluded_next_release": {
+          "release": 98,
+          "release_date": "2020-01-06"
+        },
+        "release": 97,
+        "release_date": "2019-11-04",
+        "rule": "last RefSeq release issued strictly before the cutoff date"
+      },
+      "counts": null,
+      "taxonomy": {
+        "check": {
+          "deleted_in_snapshot": [
+            10658
+          ],
+          "manifest_taxids": 9305,
+          "missing": [
+            10658
+          ],
+          "missing_count": 1,
+          "present_in_dated_nodes": 9304,
+          "resolvable_via_merged": {},
+          "unexplained": []
+        },
+        "flavour": "taxdmp",
+        "lag_days_behind_release": 3,
+        "seqid2taxid_entries": 385308,
+        "snapshot_date": "2019-11-01",
+        "url": "https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/taxdmp_2019-11-01.zip"
+      }
+    }
+  },
+  "index_sample": {
+    "assembly": {
+      "name": "SRR10971381_nonhost",
+      "contigs": "work/arm-b/index/assembly/SRR10971381_nonhost.contigs.fa",
+      "contig_count": 27732,
+      "total_bases": 13695075,
+      "longest_contig": 29809,
+      "n50": 462,
+      "seconds": 2074.4,
+      "read_pairs_in": 10921957
+    },
+    "search": {
+      "contigs_with_a_hit": 6392,
+      "clades": {
+        "viruses": {
+          "contigs": 6392,
+          "bases": 3547946,
+          "longest_contig": 29809,
+          "best_identity_percent": 97.6
+        },
+        "riboviria": {
+          "contigs": 11,
+          "bases": 35065,
+          "longest_contig": 29809,
+          "best_identity_percent": 95.7
+        },
+        "nidovirales": {
+          "contigs": 4,
+          "bases": 32056,
+          "longest_contig": 29809,
+          "best_identity_percent": 79.9
+        },
+        "coronaviridae": {
+          "contigs": 4,
+          "bases": 32056,
+          "longest_contig": 29809,
+          "best_identity_percent": 79.9
+        },
+        "orthocoronavirinae": {
+          "contigs": 3,
+          "bases": 2247,
+          "longest_contig": 975,
+          "best_identity_percent": 32.6
+        },
+        "betacoronavirus": {
+          "contigs": 1,
+          "bases": 975,
+          "longest_contig": 975,
+          "best_identity_percent": 28.4
+        },
+        "sarbecovirus": {
+          "contigs": 0,
+          "bases": 0,
+          "longest_contig": 0,
+          "best_identity_percent": null
+        },
+        "sars_related_cov": {
+          "contigs": 0,
+          "bases": 0,
+          "longest_contig": 0,
+          "best_identity_percent": null
+        }
+      },
+      "clades_by_best_hit": {
+        "viruses": {
+          "contigs": 6392,
+          "bases": 3547946,
+          "longest_contig": 29809
+        },
+        "riboviria": {
+          "contigs": 12,
+          "bases": 36321,
+          "longest_contig": 29809
+        },
+        "nidovirales": {
+          "contigs": 4,
+          "bases": 32056,
+          "longest_contig": 29809
+        },
+        "coronaviridae": {
+          "contigs": 4,
+          "bases": 32056,
+          "longest_contig": 29809
+        },
+        "orthocoronavirinae": {
+          "contigs": 4,
+          "bases": 32056,
+          "longest_contig": 29809
+        },
+        "betacoronavirus": {
+          "contigs": 2,
+          "bases": 30784,
+          "longest_contig": 29809
+        },
+        "sarbecovirus": {
+          "contigs": 1,
+          "bases": 29809,
+          "longest_contig": 29809
+        },
+        "sars_related_cov": {
+          "contigs": 1,
+          "bases": 29809,
+          "longest_contig": 29809
+        }
+      },
+      "detail_clade": "coronaviridae",
+      "contigs_in_detail_clade": 4,
+      "contig_detail": [
+        {
+          "contig": "k141_27371",
+          "length": 29809,
+          "lca_taxid": 11118,
+          "lca_taxon": "Coronaviridae",
+          "lca_rank": "family",
+          "lca_clades": [
+            "viruses",
+            "riboviria",
+            "nidovirales",
+            "coronaviridae"
+          ],
+          "best_hit": {
+            "subject": "NP_828850.1",
+            "taxid": 694009,
+            "taxon": "Severe acute respiratory syndrome-related coronavirus",
+            "identity_percent": 79.9,
+            "alignment_length_aa": 4422,
+            "bitscore": 7120.0,
+            "evalue": 0.0,
+            "clades": [
+              "viruses",
+              "riboviria",
+              "nidovirales",
+              "coronaviridae",
+              "orthocoronavirinae",
+              "betacoronavirus",
+              "sarbecovirus",
+              "sars_related_cov"
+            ]
+          },
+          "hits_in_lca_band": 3,
+          "hits_total": 25
+        },
+        {
+          "contig": "k141_6084",
+          "length": 975,
+          "lca_taxid": 694006,
+          "lca_taxon": "Rousettus bat coronavirus HKU9",
+          "lca_rank": "species",
+          "lca_clades": [
+            "viruses",
+            "riboviria",
+            "nidovirales",
+            "coronaviridae",
+            "orthocoronavirinae",
+            "betacoronavirus"
+          ],
+          "best_hit": {
+            "subject": "YP_001039970.1",
+            "taxid": 694006,
+            "taxon": "Rousettus bat coronavirus HKU9",
+            "identity_percent": 28.4,
+            "alignment_length_aa": 116,
+            "bitscore": 43.9,
+            "evalue": 0.000894,
+            "clades": [
+              "viruses",
+              "riboviria",
+              "nidovirales",
+              "coronaviridae",
+              "orthocoronavirinae",
+              "betacoronavirus"
+            ]
+          },
+          "hits_in_lca_band": 1,
+          "hits_total": 1
+        },
+        {
+          "contig": "k141_9074",
+          "length": 862,
+          "lca_taxid": 694015,
+          "lca_taxon": "Beluga whale coronavirus SW1",
+          "lca_rank": "species",
+          "lca_clades": [
+            "viruses",
+            "riboviria",
+            "nidovirales",
+            "coronaviridae",
+            "orthocoronavirinae"
+          ],
+          "best_hit": {
+            "subject": "YP_001876447.1",
+            "taxid": 694015,
+            "taxon": "Beluga whale coronavirus SW1",
+            "identity_percent": 32.6,
+            "alignment_length_aa": 178,
+            "bitscore": 57.8,
+            "evalue": 4.47e-09,
+            "clades": [
+              "viruses",
+              "riboviria",
+              "nidovirales",
+              "coronaviridae",
+              "orthocoronavirinae"
+            ]
+          },
+          "hits_in_lca_band": 1,
+          "hits_total": 1
+        },
+        {
+          "contig": "k141_2645",
+          "length": 410,
+          "lca_taxid": 694015,
+          "lca_taxon": "Beluga whale coronavirus SW1",
+          "lca_rank": "species",
+          "lca_clades": [
+            "viruses",
+            "riboviria",
+            "nidovirales",
+            "coronaviridae",
+            "orthocoronavirinae"
+          ],
+          "best_hit": {
+            "subject": "YP_001876447.1",
+            "taxid": 694015,
+            "taxon": "Beluga whale coronavirus SW1",
+            "identity_percent": 29.5,
+            "alignment_length_aa": 95,
+            "bitscore": 40.8,
+            "evalue": 0.000463,
+            "clades": [
+              "viruses",
+              "riboviria",
+              "nidovirales",
+              "coronaviridae",
+              "orthocoronavirinae"
+            ]
+          },
+          "hits_in_lca_band": 1,
+          "hits_total": 1
+        }
+      ],
+      "top_lca_taxa": [
+        {
+          "taxid": 28883,
+          "contigs": 991,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 10239,
+          "contigs": 494,
+          "taxon": "Viruses"
+        },
+        {
+          "taxid": 10699,
+          "contigs": 431,
+          "taxon": "Siphoviridae"
+        },
+        {
+          "taxid": 10744,
+          "contigs": 278,
+          "taxon": "Podoviridae"
+        },
+        {
+          "taxid": 10662,
+          "contigs": 250,
+          "taxon": "Myoviridae"
+        },
+        {
+          "taxid": 196894,
+          "contigs": 226,
+          "taxon": "unclassified Siphoviridae"
+        },
+        {
+          "taxid": 196895,
+          "contigs": 195,
+          "taxon": "unclassified Podoviridae"
+        },
+        {
+          "taxid": 196896,
+          "contigs": 132,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1084719,
+          "contigs": 82,
+          "taxon": "Bacillus virus G"
+        },
+        {
+          "taxid": 2023057,
+          "contigs": 77,
+          "taxon": "Orpheovirus IHUMI-LCC2"
+        },
+        {
+          "taxid": 1636270,
+          "contigs": 71,
+          "taxon": "Rhodoferax phage P26218"
+        },
+        {
+          "taxid": 181083,
+          "contigs": 61,
+          "taxon": "Chlorovirus"
+        },
+        {
+          "taxid": 194699,
+          "contigs": 52,
+          "taxon": "Bordetella virus BPP1"
+        },
+        {
+          "taxid": 549779,
+          "contigs": 51,
+          "taxon": "Mimiviridae"
+        },
+        {
+          "taxid": 2060084,
+          "contigs": 51,
+          "taxon": "Pandoravirus"
+        }
+      ],
+      "meta": {
+        "name": "SRR10971381_nonhost",
+        "sensitivity": "very-sensitive",
+        "evalue": 0.001,
+        "max_target_seqs": 25,
+        "fields": [
+          "qseqid",
+          "sseqid",
+          "staxids",
+          "pident",
+          "length",
+          "mismatch",
+          "gapopen",
+          "qstart",
+          "qend",
+          "sstart",
+          "send",
+          "evalue",
+          "bitscore",
+          "qlen",
+          "slen"
+        ],
+        "hit_rows": 71870,
+        "seconds": 50.9,
+        "hits": "work/arm-b/index/search/SRR10971381_nonhost.very-sensitive.blastx.tsv.gz",
+        "log": "work/arm-b/index/search/SRR10971381_nonhost.very-sensitive.diamond.log"
+      }
+    },
+    "headline_clade": "coronaviridae",
+    "alarm": true,
+    "contigs_in_headline_clade": 4,
+    "contigs_per_million": {
+      "raw_spots": 0.14142789277672596,
+      "non_redacted_spots": 0.2787846355932847,
+      "post_qc_pairs": 0.30827143114549505
+    },
+    "sensitivity": "very-sensitive",
+    "reads_on_clade_contigs": {
+      "name": "SRR10971381_nonhost",
+      "contigs_used": 4,
+      "contig_bases": 32056,
+      "seconds": 127.4,
+      "reads_aligned": 61233,
+      "mapq_distribution": {
+        "0": 2,
+        "2": 66,
+        "9": 56,
+        "11": 18,
+        "12": 30,
+        "14": 6,
+        "16": 16,
+        "17": 48,
+        "18": 36,
+        "19": 2,
+        "21": 16,
+        "22": 69,
+        "24": 89,
+        "25": 21,
+        "28": 127,
+        "36": 269,
+        "37": 9,
+        "38": 12,
+        "41": 617,
+        "42": 1869,
+        "44": 119058
+      },
+      "mate_alignments": 122436,
+      "alignment_summary": [
+        "    10860765 pairs aligned 0 times concordantly or discordantly; of these:",
+        "      21721530 mates make up the pairs; of these:",
+        "        21721478 (100.00%) aligned 0 times",
+        "        40 (0.00%) aligned exactly 1 time",
+        "        12 (0.00%) aligned >1 times",
+        "0.56% overall alignment rate"
+      ],
+      "truth_fragments": 62117,
+      "detected": 60926,
+      "false_positive": 307,
+      "sensitivity": 0.9808265048215464,
+      "per_million": {
+        "raw_spots": 2165.0135395993148,
+        "non_redacted_spots": 4267.7048978209,
+        "post_qc_pairs": 4719.096135833024
+      }
+    },
+    "accession": "SRR10971381",
+    "role": "index",
+    "truth_fragments_in_nonhost": 62117,
+    "sensitivity_comparison": {
+      "assembly": {
+        "name": "SRR10971381_nonhost",
+        "contigs": "work/arm-b/index/assembly/SRR10971381_nonhost.contigs.fa",
+        "contig_count": 27732,
+        "total_bases": 13695075,
+        "longest_contig": 29809,
+        "n50": 462,
+        "seconds": 2074.4,
+        "read_pairs_in": 10921957
+      },
+      "search": {
+        "contigs_with_a_hit": 3805,
+        "clades": {
+          "viruses": {
+            "contigs": 3805,
+            "bases": 2199860,
+            "longest_contig": 29809,
+            "best_identity_percent": 97.6
+          },
+          "riboviria": {
+            "contigs": 5,
+            "bases": 31434,
+            "longest_contig": 29809,
+            "best_identity_percent": 95.7
+          },
+          "nidovirales": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809,
+            "best_identity_percent": 79.9
+          },
+          "coronaviridae": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809,
+            "best_identity_percent": 79.9
+          },
+          "orthocoronavirinae": {
+            "contigs": 0,
+            "bases": 0,
+            "longest_contig": 0,
+            "best_identity_percent": null
+          },
+          "betacoronavirus": {
+            "contigs": 0,
+            "bases": 0,
+            "longest_contig": 0,
+            "best_identity_percent": null
+          },
+          "sarbecovirus": {
+            "contigs": 0,
+            "bases": 0,
+            "longest_contig": 0,
+            "best_identity_percent": null
+          },
+          "sars_related_cov": {
+            "contigs": 0,
+            "bases": 0,
+            "longest_contig": 0,
+            "best_identity_percent": null
+          }
+        },
+        "clades_by_best_hit": {
+          "viruses": {
+            "contigs": 3805,
+            "bases": 2199860,
+            "longest_contig": 29809
+          },
+          "riboviria": {
+            "contigs": 5,
+            "bases": 31434,
+            "longest_contig": 29809
+          },
+          "nidovirales": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809
+          },
+          "coronaviridae": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809
+          },
+          "orthocoronavirinae": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809
+          },
+          "betacoronavirus": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809
+          },
+          "sarbecovirus": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809
+          },
+          "sars_related_cov": {
+            "contigs": 1,
+            "bases": 29809,
+            "longest_contig": 29809
+          }
+        },
+        "detail_clade": "coronaviridae",
+        "contigs_in_detail_clade": 1,
+        "contig_detail": [
+          {
+            "contig": "k141_27371",
+            "length": 29809,
+            "lca_taxid": 11118,
+            "lca_taxon": "Coronaviridae",
+            "lca_rank": "family",
+            "lca_clades": [
+              "viruses",
+              "riboviria",
+              "nidovirales",
+              "coronaviridae"
+            ],
+            "best_hit": {
+              "subject": "NP_828850.1",
+              "taxid": 694009,
+              "taxon": "Severe acute respiratory syndrome-related coronavirus",
+              "identity_percent": 79.9,
+              "alignment_length_aa": 4422,
+              "bitscore": 7120.0,
+              "evalue": 0.0,
+              "clades": [
+                "viruses",
+                "riboviria",
+                "nidovirales",
+                "coronaviridae",
+                "orthocoronavirinae",
+                "betacoronavirus",
+                "sarbecovirus",
+                "sars_related_cov"
+              ]
+            },
+            "hits_in_lca_band": 3,
+            "hits_total": 25
+          }
+        ],
+        "top_lca_taxa": [
+          {
+            "taxid": 28883,
+            "contigs": 508,
+            "taxon": "Caudovirales"
+          },
+          {
+            "taxid": 10699,
+            "contigs": 246,
+            "taxon": "Siphoviridae"
+          },
+          {
+            "taxid": 10239,
+            "contigs": 217,
+            "taxon": "Viruses"
+          },
+          {
+            "taxid": 10744,
+            "contigs": 141,
+            "taxon": "Podoviridae"
+          },
+          {
+            "taxid": 10662,
+            "contigs": 136,
+            "taxon": "Myoviridae"
+          },
+          {
+            "taxid": 196894,
+            "contigs": 122,
+            "taxon": "unclassified Siphoviridae"
+          },
+          {
+            "taxid": 196896,
+            "contigs": 88,
+            "taxon": "unclassified Myoviridae"
+          },
+          {
+            "taxid": 196895,
+            "contigs": 83,
+            "taxon": "unclassified Podoviridae"
+          },
+          {
+            "taxid": 1084719,
+            "contigs": 51,
+            "taxon": "Bacillus virus G"
+          },
+          {
+            "taxid": 2023057,
+            "contigs": 47,
+            "taxon": "Orpheovirus IHUMI-LCC2"
+          },
+          {
+            "taxid": 194699,
+            "contigs": 42,
+            "taxon": "Bordetella virus BPP1"
+          },
+          {
+            "taxid": 181083,
+            "contigs": 40,
+            "taxon": "Chlorovirus"
+          },
+          {
+            "taxid": 1636270,
+            "contigs": 37,
+            "taxon": "Rhodoferax phage P26218"
+          },
+          {
+            "taxid": 693272,
+            "contigs": 34,
+            "taxon": "Cafeteria roenbergensis virus BV-PW1"
+          },
+          {
+            "taxid": 549779,
+            "contigs": 33,
+            "taxon": "Mimiviridae"
+          }
+        ],
+        "meta": {
+          "name": "SRR10971381_nonhost",
+          "sensitivity": "default",
+          "evalue": 0.001,
+          "max_target_seqs": 25,
+          "fields": [
+            "qseqid",
+            "sseqid",
+            "staxids",
+            "pident",
+            "length",
+            "mismatch",
+            "gapopen",
+            "qstart",
+            "qend",
+            "sstart",
+            "send",
+            "evalue",
+            "bitscore",
+            "qlen",
+            "slen"
+          ],
+          "hit_rows": 31119,
+          "seconds": 8.6,
+          "hits": "work/arm-b/index/search/SRR10971381_nonhost.default.blastx.tsv.gz",
+          "log": "work/arm-b/index/search/SRR10971381_nonhost.default.diamond.log"
+        }
+      },
+      "headline_clade": "coronaviridae",
+      "alarm": true,
+      "contigs_in_headline_clade": 1,
+      "contigs_per_million": {
+        "raw_spots": 0.03535697319418149,
+        "non_redacted_spots": 0.06969615889832118,
+        "post_qc_pairs": 0.07706785778637376
+      },
+      "sensitivity": "default"
+    }
+  },
+  "wall_clock_seconds": 2276.1,
+  "runs": [
+    {
+      "generated_at": "2026-11-18T12:45:34+00:00",
+      "stages": [
+        "index"
+      ],
+      "wall_clock_seconds": 2276.1,
+      "negatives": []
+    }
+  ]
+}

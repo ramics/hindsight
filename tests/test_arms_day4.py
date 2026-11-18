@@ -42,7 +42,12 @@ def test_the_repo_config_is_what_the_write_up_describes():
     assert arm.negatives_max_pairs == 0
     assert arm.negatives_read_level is False
     assert arm.prune_after_search is True
-    assert arm.tool_pins == {"diamond": "2.1.9", "megahit": "1.2.9", "bowtie2": "2.5.2"}
+    assert arm.tool_pins == {
+        "diamond": "2.1.9",
+        "megahit": "1.2.9",
+        "bowtie2": "2.5.2",
+        "minimap2": "2.26",
+    }
 
 
 def test_a_blank_comparison_sensitivity_means_no_comparison_run(tmp_path):

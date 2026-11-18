@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import subprocess
 import time
 import tomllib
 from collections.abc import Sequence
@@ -62,6 +63,9 @@ DEFAULT_TOOL_PINS = {
     "diamond": "2.1.9",
     "megahit": "1.2.9",
     "bowtie2": "2.5.2",
+    # Diagnostics only: it aligns the arm's contigs to the modern reference *after* the
+    # arm has finished, to say how good the reconstruction was. No score depends on it.
+    "minimap2": "2.26",
 }
 
 # Arm B's headline is drawn at the family rather than the genus, on Day 3's finding:
@@ -581,6 +585,164 @@ def _index_read_level(
     return composed
 
 
+def diagnose_contigs(
+    arm: ArmConfig,
+    samples_config: registry.Config,
+    taxonomy,
+    clades,
+    *,
+    clade: str = HEADLINE_CLADE,
+    log=print,
+) -> dict:
+    """Ask what the arm's clade contigs actually are, by aligning them to the virus.
+
+    The arm itself is scored entirely on what it could have known in November 2019, and
+    a contig placed in Coronaviridae at 79.9% amino acid identity to SARS-CoV's replicase
+    is the arm's honest output: "something coronavirus-shaped that is not in the
+    database". It does not say how good the reconstruction was, and that is the number a
+    reader wants — Wu et al.'s result was a genome, not a classification.
+
+    So this aligns those contigs to the modern SARS-CoV-2 reference and reports, per
+    contig, the nucleotide identity and how much of the genome it covers. It is the
+    counterpart to Day 3's ``diagnose-background``: the one place in the day that
+    touches a post-2019 sequence, after the arm has finished, and only to interpret
+    what the arm produced. Nothing it computes feeds back into the arm's score.
+
+    A clade contig that does *not* align is just as informative, and is reported as
+    such: it is a genuine false positive rather than a fragment of the virus.
+    """
+    out_dir = arm.out_dir / "diagnostics"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    accession = samples_config.index_run
+    name = f"{accession}_nonhost"
+    contigs = arm.out_dir / "index" / "assembly" / f"{name}.contigs.fa"
+    hits = arm.out_dir / "index" / "search" / f"{name}.{arm.sensitivity}.blastx.tsv.gz"
+    for required in (contigs, hits):
+        if not required.exists():
+            raise diamond.DiamondError(f"{required} is missing; run the index stage first")
+    reference = arm.work_dir / "ref" / "truth" / f"{samples_config.truth_reference}.fna"
+    if not reference.exists():
+        raise diamond.DiamondError(f"{reference} is missing; re-run the Day 2 pipeline")
+
+    lengths = diamond.contig_lengths(contigs)
+    calls = diamond.assign_contigs(
+        hits, lengths, taxonomy, clades, lca_top_percent=arm.lca_top_percent
+    )
+    chosen = diamond.clade_contigs(calls, clade, by="lca")
+    # A contig whose LCA climbed out of the clade but whose best hit is in it is exactly
+    # the borderline case worth diagnosing, so it is included here too.
+    seen = {c.contig for c in chosen}
+    chosen += [
+        c for c in diamond.clade_contigs(calls, clade, by="best_hit") if c.contig not in seen
+    ]
+    record: dict = {
+        "clade": clade,
+        "truth_reference": samples_config.truth_reference,
+        "contigs_examined": len(chosen),
+        "note": (
+            "post-2019 reference, consulted after the arm finished and only to describe "
+            "what it produced; nothing here feeds back into the arm's score"
+        ),
+    }
+    if not chosen:
+        record["conclusion"] = f"the arm placed no contig in {clade}; nothing to align"
+        return record
+
+    subset = out_dir / f"{clade}-contigs.fa"
+    diamond._write_contig_subset(contigs, {c.contig for c in chosen}, subset)
+    log(f"aligning {len(chosen)} {clade} contigs to {samples_config.truth_reference}")
+    paf = out_dir / f"{clade}-contigs.paf"
+    with paf.open("wb") as out:
+        completed = subprocess.run(  # noqa: S603
+            [
+                "minimap2",
+                "-c",
+                # asm20 tolerates up to ~20% divergence, which is the right setting for a
+                # query that might be a diverged relative rather than the virus itself.
+                "-x",
+                "asm20",
+                "--secondary=no",
+                str(reference),
+                str(subset),
+            ],
+            stdout=out,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    if completed.returncode != 0:
+        raise diamond.DiamondError(f"minimap2 failed ({completed.returncode})")
+
+    aligned: dict[str, dict] = {}
+    for line in paf.read_text().splitlines():
+        fields = line.split("\t")
+        if len(fields) < 11:
+            continue
+        query, qlen = fields[0], int(fields[1])
+        ref_len, ref_start, ref_end = int(fields[6]), int(fields[7]), int(fields[8])
+        matches, aln_len = int(fields[9]), int(fields[10])
+        previous = aligned.get(query)
+        if previous and previous["alignment_length"] >= aln_len:
+            continue
+        aligned[query] = {
+            "contig": query,
+            "contig_length": qlen,
+            "alignment_length": aln_len,
+            "matching_bases": matches,
+            "nucleotide_identity_percent": round(100 * matches / aln_len, 2) if aln_len else None,
+            "reference_length": ref_len,
+            "reference_span": [ref_start, ref_end],
+            "reference_covered_percent": round(100 * (ref_end - ref_start) / ref_len, 2),
+        }
+
+    rows = []
+    for call in sorted(chosen, key=lambda c: -c.length):
+        entry = {
+            "contig": call.contig,
+            "length": call.length,
+            "lca_taxon": taxonomy.names.get(call.lca) if call.lca else None,
+            "best_hit_taxon": taxonomy.names.get(call.best_taxid) if call.best_taxid else None,
+            "best_hit_identity_percent": call.best_pident,
+            "aligns_to_the_virus": call.contig in aligned,
+            **({"alignment": aligned[call.contig]} if call.contig in aligned else {}),
+        }
+        rows.append(entry)
+    record["contigs"] = rows
+
+    best = max(
+        (r for r in rows if r["aligns_to_the_virus"]),
+        key=lambda r: r["alignment"]["reference_covered_percent"],
+        default=None,
+    )
+    record["contigs_aligning"] = sum(1 for r in rows if r["aligns_to_the_virus"])
+    record["contigs_not_aligning"] = sum(1 for r in rows if not r["aligns_to_the_virus"])
+    if best:
+        aln = best["alignment"]
+        record["best_reconstruction"] = {
+            "contig": best["contig"],
+            "contig_length": best["length"],
+            "nucleotide_identity_percent": aln["nucleotide_identity_percent"],
+            "reference_covered_percent": aln["reference_covered_percent"],
+            "best_hit_in_the_dated_database": best["best_hit_taxon"],
+            "best_hit_identity_percent": best["best_hit_identity_percent"],
+        }
+        record["conclusion"] = (
+            f"{best['contig']} is {best['length']:,} bp and covers "
+            f"{aln['reference_covered_percent']}% of {samples_config.truth_reference} at "
+            f"{aln['nucleotide_identity_percent']}% nucleotide identity. The arm therefore "
+            f"recovered the genome, not merely a signal — from a database whose closest "
+            f"relative matched it at {best['best_hit_identity_percent']}% amino acid "
+            f"identity. The other {record['contigs_not_aligning']} contig(s) placed in "
+            f"{clade} do not align to the virus at all and are genuine false positives."
+        )
+    else:
+        record["conclusion"] = (
+            f"none of the {len(rows)} contigs the arm placed in {clade} align to "
+            f"{samples_config.truth_reference}: every one is a false positive."
+        )
+    log(record["conclusion"])
+    return record
+
+
 def _truth_ids(sample_dir: Path) -> set[str]:
     path = Path(sample_dir) / "truth" / "viral_fragment_ids.txt"
     if not path.exists():
@@ -1000,6 +1162,17 @@ def run_day4(
 
     if "index" in stages:
         record["index_sample"] = run_index(arm, samples_config, day2, taxonomy, clades, log=log)
+        # What the arm's clade contigs actually are. Recorded as part of the stage
+        # because a reconstruction is the result a reader wants and an unrecorded
+        # diagnostic is one nobody re-runs. A missing minimap2 is noted rather than
+        # fatal: the arm's own numbers do not depend on it.
+        try:
+            record["contig_diagnosis"] = diagnose_contigs(
+                arm, samples_config, taxonomy, clades, log=log
+            )
+        except (diamond.DiamondError, FileNotFoundError, OSError) as exc:
+            log(f"contig diagnosis skipped: {exc}")
+            record["contig_diagnosis"] = {"error": str(exc)}
     if "series" in stages:
         record["series"] = run_series(arm, day2, taxonomy, clades, levels=only_levels, log=log)
     if "negatives" in stages:

@@ -601,11 +601,24 @@ def arm_b_build_db_cmd(config_path: Path) -> None:
     multiple=True,
     help="Assemble only these dilution levels (repeatable). Implies --stage series.",
 )
+@click.option(
+    "--read-level/--no-read-level",
+    "read_level",
+    default=None,
+    help=(
+        "Override the config's read_level setting for this run. --no-read-level does "
+        "the contig half only, which is how to get the assembly results before paying "
+        "for the read half's one expensive pass; re-run with it on afterwards and every "
+        "assembly and search is reused from its marker. The recorded parameters say "
+        "what actually ran, not what the config asked for."
+    ),
+)
 def arm_b_run_cmd(
     config_path: Path,
     stages: tuple[str, ...],
     only_negatives: tuple[str, ...],
     only_levels: tuple[str, ...],
+    read_level: bool | None,
 ):
     """Run Arm B: the index sample, the dilution series, and the negatives.
 
@@ -613,9 +626,13 @@ def arm_b_run_cmd(
     it did for Arm A: a dilution level is a full MEGAHIT run and there are six of them
     before the negatives start.
     """
+    import dataclasses
+
     from .arms.day4 import run_day4
 
     arm = _arm_b_config(config_path)
+    if read_level is not None:
+        arm = dataclasses.replace(arm, read_level=read_level)
     chosen = list(stages)
     if not chosen:
         if only_negatives:
@@ -669,6 +686,40 @@ def _arm_b_echo_summary(record: dict) -> None:
             f"({alarms['contigs_total']} contigs, "
             f"{alarms['non_host_pairs_total']:,} non-host pairs)"
         )
+
+
+@arm_b_grp.command("diagnose-contigs")
+@_ARM_B_CONFIG_OPTION
+@click.option(
+    "--clade",
+    default="coronaviridae",
+    show_default=True,
+    help="Which clade's contigs to describe.",
+)
+def arm_b_diagnose_cmd(config_path: Path, clade: str) -> None:
+    """Say what the arm's clade contigs actually are, by aligning them to the virus.
+
+    The arm scores itself on a November 2019 database and reports "something
+    coronavirus-shaped that is not in it". That is the honest output and it does not say
+    how good the reconstruction was, which is the number a reader wants, since Wu et
+    al.'s result was a genome rather than a classification. This aligns those contigs to
+    the modern reference afterwards and reports the identity and the genome coverage.
+    Nothing it computes feeds back into the arm's score.
+    """
+    from .arms.day4 import diagnose_contigs, prepare_database
+
+    arm = _arm_b_config(config_path)
+    samples_config = _samples_config(arm.samples_config)
+    _, taxonomy, clades = prepare_database(arm, log=lambda msg: click.echo(msg, err=True))
+    record = diagnose_contigs(
+        arm,
+        samples_config,
+        taxonomy,
+        clades,
+        clade=clade,
+        log=lambda msg: click.echo(msg, err=True),
+    )
+    click.echo(json.dumps(record, indent=2))
 
 
 @arm_b_grp.command("report")

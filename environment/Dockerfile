@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       kraken2=2.1.3-1 \
       megahit=1.2.9-5 \
       diamond-aligner=2.1.9-1 \
+      minimap2=2.26+dfsg-1build1 \
       pigz=2.8-1 \
       python3 \
       python3-pip \
@@ -46,7 +47,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && fastp --version && bowtie2 --version | head -1 && samtools --version | head -1 \
     && kraken2 --version | head -1 \
-    && megahit --version && diamond --version
+    && megahit --version && diamond --version && minimap2 --version
 
 # Kraken2 keeps build_db, k2mask and friends in a libexec directory that is not on
 # PATH; kraken2-build puts its own directory there before calling them, and Day 3's

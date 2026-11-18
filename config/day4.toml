@@ -104,3 +104,8 @@ read_level = false
 diamond = "2.1.9"
 megahit = "1.2.9"
 bowtie2 = "2.5.2"
+# Diagnostics only. `arm-b diagnose-contigs` aligns the arm's clade contigs to the
+# modern SARS-CoV-2 reference after the arm has finished, to report how much of the
+# genome was reconstructed and at what identity. Nothing the arm is scored on depends
+# on it, and the arm runs without minimap2 installed.
+minimap2 = "2.26"

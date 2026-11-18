@@ -14,7 +14,9 @@ Skipped where diamond is not installed, which includes CI.
 
 from __future__ import annotations
 
+import dataclasses
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -159,3 +161,130 @@ def test_an_empty_assembly_is_a_result_not_a_crash(source_db, tmp_path):
     assert meta["hit_rows"] == 0
     assert meta["skipped"] == "no contigs"
     assert list(diamond.iter_hits(hits)) == []
+
+
+# --------------------------------------------------------------- contig diagnosis
+
+
+@pytest.mark.skipif(shutil.which("minimap2") is None, reason="minimap2 is not installed")
+def test_the_contig_diagnosis_separates_the_virus_from_the_false_positives(
+    source_db, tmp_path, monkeypatch, blast_row, write_blast_hits
+):
+    """The diagnostic's own arithmetic, against real minimap2 on a known reference.
+
+    Two contigs are handed in: one that is a 2 kb slice of the "reference" with a handful
+    of substitutions, and one unrelated sequence. The first must come back as a
+    reconstruction with a plausible identity and coverage, and the second must come back
+    as a contig that does not align at all — which is the arm's false positive. Getting
+    this backwards would turn a false positive into a headline.
+    """
+    import random
+
+    from hindsight.arms import day4
+    from hindsight.samples import registry
+
+    rng = random.Random(20191201)
+    genome = "".join(rng.choice("ACGT") for _ in range(6000))
+    work = tmp_path / "work"
+    (work / "ref" / "truth").mkdir(parents=True)
+    (work / "ref" / "truth" / "NC_TEST.1.fna").write_text(f">NC_TEST.1 reference\n{genome}\n")
+
+    # A 2 kb stretch of the reference with 10 substitutions: ~99.5% identity, 33% of it.
+    piece = list(genome[1000:3000])
+    for position in rng.sample(range(len(piece)), 10):
+        piece[position] = rng.choice([b for b in "ACGT" if b != piece[position]])
+    unrelated = "".join(rng.choice("ACGT") for _ in range(1500))
+
+    out = tmp_path / "arm-b"
+    (out / "index" / "assembly").mkdir(parents=True)
+    (out / "index" / "assembly" / "SRRTEST_nonhost.contigs.fa").write_text(
+        f">k_real\n{''.join(piece)}\n>k_bogus\n{unrelated}\n"
+    )
+    dmnd = tmp_path / "db.dmnd"
+    diamond.build_database(source_db, dmnd, threads=2, log=lambda m: None)
+    # Give both contigs a coronavirus call, so the diagnosis has two candidates and has
+    # to tell them apart by alignment rather than by what the search said.
+    hits = out / "index" / "search" / "SRRTEST_nonhost.very-sensitive.blastx.tsv.gz"
+    hits.parent.mkdir(parents=True, exist_ok=True)
+    write_blast_hits(
+        hits,
+        [
+            blast_row("k_real", "YP_000001.1", 694009, 900.0, pident=79.9, qlen=2000),
+            blast_row("k_bogus", "YP_000002.1", 864596, 120.0, pident=28.4, qlen=1500),
+        ],
+    )
+
+    arm = day4.load_config(Path("config/day4.toml"))
+    arm = dataclasses.replace(arm, work_dir=work, out_dir=out, source_db=source_db, dmnd_db=dmnd)
+    samples = dataclasses.replace(
+        registry.load_config(Path("config/day2.toml")),
+        index_run="SRRTEST",
+        truth_reference="NC_TEST.1",
+    )
+    taxonomy = taxa_mod.read_taxonomy(source_db / "taxonomy")
+    clades = taxa_mod.clade_sets(taxonomy, {"coronaviridae": 11118})
+
+    record = day4.diagnose_contigs(
+        arm, samples, taxonomy, clades, clade="coronaviridae", log=lambda m: None
+    )
+    assert record["contigs_examined"] == 2
+    assert record["contigs_aligning"] == 1
+    assert record["contigs_not_aligning"] == 1
+    best = record["best_reconstruction"]
+    assert best["contig"] == "k_real"
+    assert 99.0 <= best["nucleotide_identity_percent"] <= 100.0
+    assert 30.0 <= best["reference_covered_percent"] <= 35.0
+    assert best["best_hit_identity_percent"] == 79.9
+    by_contig = {row["contig"]: row for row in record["contigs"]}
+    assert by_contig["k_real"]["aligns_to_the_virus"] is True
+    assert by_contig["k_bogus"]["aligns_to_the_virus"] is False
+    assert "genuine false positives" in record["conclusion"]
+
+
+@pytest.mark.skipif(shutil.which("minimap2") is None, reason="minimap2 is not installed")
+def test_the_diagnosis_says_so_when_nothing_aligns(
+    source_db, tmp_path, blast_row, write_blast_hits
+):
+    """Every clade contig a false positive is a result the conclusion must state."""
+    import random
+
+    from hindsight.arms import day4
+    from hindsight.samples import registry
+
+    rng = random.Random(7)
+    work = tmp_path / "work"
+    (work / "ref" / "truth").mkdir(parents=True)
+    (work / "ref" / "truth" / "NC_TEST.1.fna").write_text(
+        ">NC_TEST.1 reference\n" + "".join(rng.choice("ACGT") for _ in range(6000)) + "\n"
+    )
+    out = tmp_path / "arm-b"
+    (out / "index" / "assembly").mkdir(parents=True)
+    (out / "index" / "assembly" / "SRRTEST_nonhost.contigs.fa").write_text(
+        ">k_bogus\n" + "".join(rng.choice("ACGT") for _ in range(1500)) + "\n"
+    )
+    dmnd = tmp_path / "db.dmnd"
+    diamond.build_database(source_db, dmnd, threads=2, log=lambda m: None)
+    hits = out / "index" / "search" / "SRRTEST_nonhost.very-sensitive.blastx.tsv.gz"
+    hits.parent.mkdir(parents=True, exist_ok=True)
+    write_blast_hits(hits, [blast_row("k_bogus", "YP_000001.1", 694009, 120.0, qlen=1500)])
+
+    arm = dataclasses.replace(
+        day4.load_config(Path("config/day4.toml")),
+        work_dir=work,
+        out_dir=out,
+        source_db=source_db,
+        dmnd_db=dmnd,
+    )
+    samples = dataclasses.replace(
+        registry.load_config(Path("config/day2.toml")),
+        index_run="SRRTEST",
+        truth_reference="NC_TEST.1",
+    )
+    taxonomy = taxa_mod.read_taxonomy(source_db / "taxonomy")
+    clades = taxa_mod.clade_sets(taxonomy, {"coronaviridae": 11118})
+    record = day4.diagnose_contigs(
+        arm, samples, taxonomy, clades, clade="coronaviridae", log=lambda m: None
+    )
+    assert record["contigs_aligning"] == 0
+    assert "best_reconstruction" not in record
+    assert "every one is a false positive" in record["conclusion"]

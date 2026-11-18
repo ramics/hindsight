@@ -12,7 +12,55 @@ import subprocess
 
 import pytest
 
+from hindsight.arms import diamond
 from hindsight.samples import sra
+
+
+def _blast_row(contig, subject, taxid, bitscore, *, pident=90.0, length=100, qlen=30000):
+    values = {
+        "qseqid": contig,
+        "sseqid": subject,
+        "staxids": str(taxid),
+        "pident": f"{pident}",
+        "length": str(length),
+        "mismatch": "0",
+        "gapopen": "0",
+        "qstart": "1",
+        "qend": "300",
+        "sstart": "1",
+        "send": "100",
+        "evalue": "1e-50",
+        "bitscore": f"{bitscore}",
+        "qlen": str(qlen),
+        "slen": "1000",
+    }
+    return "\t".join(values[field] for field in diamond.BLAST_FIELDS)
+
+
+def _write_blast_hits(path, rows):
+    with gzip.open(path, "wt") as handle:
+        for row in rows:
+            handle.write(row + "\n")
+    return path
+
+
+@pytest.fixture
+def blast_row():
+    """One row of DIAMOND tabular output, in the column order the arm reads.
+
+    A fixture rather than a plain function because ``tests`` is deliberately not a
+    package, so one test module cannot import a helper from another. Built from
+    ``diamond.BLAST_FIELDS`` rather than by writing the columns out in order, so a change
+    to that constant moves the tests with it instead of silently making them assert
+    about the wrong column.
+    """
+    return _blast_row
+
+
+@pytest.fixture
+def write_blast_hits():
+    """Write hit rows to a gzipped tabular file, the way the arm keeps them."""
+    return _write_blast_hits
 
 
 @pytest.fixture
