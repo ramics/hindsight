@@ -217,6 +217,40 @@ def concatenate(parts: list[Path], dest: Path) -> None:
                     out.write(block)
 
 
+def unordered_id_digest(path: Path) -> tuple[str, int]:
+    """A digest of a FASTQ's fragment identifiers that does not depend on their order.
+
+    ``sha256_file`` answers "is this the same file"; this answers "are these the same
+    reads", which is the question a reproduction actually asks. The two differ in
+    practice: bowtie2 run with more than one thread emits alignments in whatever order
+    its workers finish in unless ``--reorder`` is given, so two runs of the same host
+    filter over the same input produce FASTQ with the same records in a different
+    order — identical content, different SHA-256.
+
+    The digest is a sum rather than a hash of a sorted list, because sorting 11 million
+    identifiers needs them all in memory and this module does not do that. Addition
+    modulo 2**128 is commutative, so the result is independent of order, and a 128-bit
+    space makes an accidental collision between two genuinely different read sets not
+    worth worrying about. It is a reproducibility check, not a security primitive:
+    anyone *trying* to forge a match can, and nothing here depends on them not.
+
+    Returns the digest and the number of fragments it covers; a count alone is not
+    evidence, and a digest without its count is not comparable.
+    """
+    total = 0
+    fragments = 0
+    with open_maybe_gzip(path) as handle:
+        for index, line in enumerate(handle):
+            if index % 4:
+                continue
+            fragments += 1
+            identifier = normalise_id(line.rstrip("\n"))
+            total = (
+                total + int.from_bytes(hashlib.sha256(identifier.encode()).digest()[:16], "big")
+            ) % (1 << 128)
+    return f"{total:032x}", fragments
+
+
 def sha256_file(path: Path, *, chunk: int = 1 << 20) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as handle:

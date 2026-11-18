@@ -1,0 +1,63 @@
+# Day 3 of the benchmark: Arm A, Kraken2 against the November 2019 database.
+#
+# This file holds only what Arm A adds. The samples, their seeds and the pinned read
+# tools stay in config/day2.toml and are read from there, so the two days cannot drift
+# apart in what they think the cohort is.
+
+[arm]
+samples_config = "config/day2.toml"
+work_dir = "work"
+out_dir = "work/arm-a"
+provenance = "results/day3-provenance.json"
+
+[database]
+# The cutoff, for the record. `hindsight build --date 2019-12-01` selects RefSeq
+# release 97 (4 November 2019); release 98 (6 January 2020) is the first excluded.
+cutoff = "2019-12-01"
+# A `hindsight build` output directory: viral.fna, seqid2taxid.map and the dated
+# taxonomy dumps. Kraken2's own `--download-library viral` would fetch today's viral
+# RefSeq, which is the leak this project exists to prevent.
+source_db = "db/nov2019"
+kraken_db = "work/kraken2/nov2019"
+# kraken2-build masks low-complexity sequence by default and this keeps that, because
+# an unmasked library inflates exactly the quantity Day 5 measures: a poly-A read
+# matching a poly-A stretch in a reference genome is a false alarm that says nothing
+# about either sequence.
+mask_low_complexity = true
+
+[classify]
+threads = 4
+# Kraken2's own defaults, deliberately. The benchmark asks what a standard pipeline
+# would have found, not what a tuned one could find, and a threshold chosen after
+# seeing the answer is not a detection limit.
+#
+# This is also the most permissive setting that remains defensible, which matters for
+# Day 5: raising --confidence can only ever unclassify a read, never classify a new
+# one, so the classified reads kept here are a superset of what any stricter
+# confidence would have produced and Day 5 can re-draw that threshold from the saved
+# output without re-running the arm. Lowering --minimum-hit-groups below its default
+# of 2 is *not* derivable that way, and would need a re-run.
+confidence = 0.0
+minimum_hit_groups = 2
+# A level of the dilution series is classified by composing the background's
+# classification with that level's viral reads', which is exact only because Kraken2
+# assigns each fragment independently of the rest of the file. This materialises one
+# level and classifies it whole to check that, at the cost of one extra full run.
+verify_composition = true
+verify_level = "viral000010"
+
+[negatives]
+# Native depth. Day 2 capped the negatives at 6,000,000 pairs because 17 GiB of
+# host-filtered FASTQ does not fit on this machine; the cap degrades precisely what a
+# false-alarm rate measures, since rare background hits are the thing being counted.
+#
+# 0 means no cap. It fits because Day 3 classifies each negative as it comes off the
+# host filter and then deletes the reads, keeping only the classifier's report and its
+# classified lines — megabytes per sample instead of gigabytes. Peak disk is one
+# negative, not twenty.
+max_pairs = 0
+prune_after_classify = true
+
+[tools]
+# apt's Ubuntu 24.04 build, which is what environment/Dockerfile installs.
+kraken2 = "2.1.3"
