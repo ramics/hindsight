@@ -375,6 +375,33 @@ def arm_a_run_cmd(config_path: Path, stages: tuple[str, ...], only_negatives: tu
         )
 
 
+@arm_a_grp.command("diagnose-background")
+@_ARM_CONFIG_OPTION
+@click.option(
+    "--taxid",
+    type=int,
+    default=694009,
+    show_default=True,
+    help="The taxon whose background hits to explain. Default: SARS-related coronavirus.",
+)
+def arm_a_diagnose_cmd(config_path: Path, taxid: int) -> None:
+    """Explain the clade hits in the index sample's own background.
+
+    The background has every ground-truth viral fragment removed, so a sarbecovirus
+    read in it is either the classifier's mistake or the label's. This re-aligns those
+    reads to the truth reference with no mapping-quality threshold and says which.
+    """
+    from .arms.day3 import diagnose_background_hits, prepare_database
+
+    arm = _arm_config(config_path)
+    samples_config = _samples_config(arm.samples_config)
+    _, clades = prepare_database(arm, log=lambda msg: click.echo(msg, err=True))
+    record = diagnose_background_hits(
+        arm, samples_config, clades, taxid=taxid, log=lambda msg: click.echo(msg, err=True)
+    )
+    click.echo(json.dumps(record, indent=2))
+
+
 @arm_a_grp.command("report")
 @click.option(
     "--provenance",

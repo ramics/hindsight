@@ -283,7 +283,62 @@ def build_database(
         if path.exists():
             record["files"][name] = {"bytes": path.stat().st_size}
     record["inspect"] = inspect_database(db_dir)
+    record["library"] = _library_audit(db_dir, taxonomy_src)
     return record
+
+
+def _library_audit(db_dir: Path, taxonomy_src: Path) -> dict:
+    """Account for every library record, including the ones Kraken2 did not index.
+
+    Kraken2 skips a sequence whose taxid is not in the taxonomy it was given, and says
+    so only as a count in its build log. A silently smaller database is the kind of
+    thing that turns up later as an unexplained miss, so the difference is reconciled
+    here against the dated tree: how many records went in, how many came out, and which
+    accessions account for the gap.
+    """
+    from .. import taxonomy as taxonomy_mod
+
+    fna = _library_fasta(db_dir)
+    audit: dict = {}
+    if fna.exists():
+        with fna.open() as handle:
+            audit["records_in_library"] = sum(1 for line in handle if line.startswith(">"))
+    log_path = db_dir / "build.log"
+    if log_path.exists():
+        for line in log_path.read_text(errors="replace").splitlines():
+            if line.startswith("Completed processing of"):
+                parts = line.split()
+                audit["sequences_indexed"] = int(parts[3])
+                audit["base_pairs_indexed"] = int(parts[5])
+
+    known = taxonomy_mod.read_taxids(taxonomy_src / "nodes.dmp")
+    unmapped: list[dict] = []
+    seqid_map = db_dir / "seqid2taxid.map"
+    nucleotide_ids: set[str] = set()
+    if fna.exists():
+        with fna.open() as handle:
+            for line in handle:
+                if line.startswith(">"):
+                    nucleotide_ids.add(line[1:].split()[0])
+    if seqid_map.exists():
+        with seqid_map.open() as handle:
+            for line in handle:
+                accession, _, taxid = line.partition("\t")
+                if accession not in nucleotide_ids:
+                    continue
+                try:
+                    value = int(taxid)
+                except ValueError:
+                    continue
+                if value not in known:
+                    unmapped.append({"accession": accession, "taxid": value})
+    audit["records_whose_taxid_is_absent_from_the_dated_tree"] = unmapped
+    indexed = audit.get("sequences_indexed")
+    in_library = audit.get("records_in_library")
+    if indexed is not None and in_library is not None:
+        audit["records_not_indexed"] = in_library - indexed
+        audit["gap_explained_by_absent_taxids"] = (in_library - indexed) == len(unmapped)
+    return audit
 
 
 def _mask_in_place(fasta: Path, *, threads: int) -> None:
@@ -314,30 +369,57 @@ def _mask_in_place(fasta: Path, *, threads: int) -> None:
 
 
 def inspect_database(db_dir: Path) -> dict:
-    """Summarise a built database: how many distinct taxa and minimizers it holds."""
+    """Summarise a built database, and record what it holds for the clades that matter.
+
+    ``kraken2-inspect --skip-counts`` prints only the header in 2.1.3, so the taxon
+    count comes from the full listing — which is also the only place the database says
+    how much distinguishing material it actually holds for a clade. "SARS-related
+    coronavirus is in the database" is weaker than it sounds if the entry is one short
+    genome; the minimizer count is the honest version of that statement, and it is
+    recorded for every clade the arm scores.
+    """
+    listing = db_dir / "inspect.txt"
     try:
-        completed = subprocess.run(  # noqa: S603
-            ["kraken2-inspect", "--db", str(db_dir), "--skip-counts"],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=600,
-        )
+        with listing.open("w") as out:
+            completed = subprocess.run(  # noqa: S603
+                ["kraken2-inspect", "--db", str(db_dir)],
+                stdout=out,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+                timeout=3600,
+            )
     except (OSError, subprocess.TimeoutExpired) as exc:  # pragma: no cover - environment
         return {"error": str(exc)}
     if completed.returncode != 0:
-        return {"error": completed.stderr.strip()[-500:]}
-    taxa = 0
+        return {"error": (completed.stderr or "").strip()[-500:]}
+
     header: dict[str, str] = {}
-    for line in completed.stdout.splitlines():
-        if line.startswith("#"):
-            if ":" in line:
-                key, _, value = line.lstrip("# ").partition(":")
-                header[key.strip()] = value.strip()
-            continue
-        if line.strip():
+    taxa = 0
+    minimizers: dict[int, int] = {}
+    with listing.open() as handle:
+        for line in handle:
+            if line.startswith("#"):
+                if ":" in line:
+                    key, _, value = line.lstrip("# ").partition(":")
+                    header[key.strip()] = value.strip()
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) < 5:
+                continue
             taxa += 1
-    return {"taxa_in_db": taxa, "header": header}
+            try:
+                minimizers[int(fields[4])] = int(fields[1])
+            except ValueError:
+                continue
+    return {
+        "taxa_in_db": taxa,
+        "header": header,
+        "clade_minimizers": {
+            name: minimizers.get(taxid) for name, taxid in CLADES.items() if taxid in minimizers
+        },
+        "listing": str(listing),
+    }
 
 
 # -------------------------------------------------------------------------- classify
@@ -439,9 +521,10 @@ def classify(
         str(minimum_hit_groups),
         "--report",
         str(report),
-        "--report-minimizer-data",
-        "--output",
-        "-",
+        # No --output: Kraken2 writes per-read output to stdout by default, and
+        # `--output -` does not mean stdout — it *suppresses* the per-read output
+        # entirely, which costs a run to discover because the report still appears and
+        # looks right. The report is a separate file and is unaffected.
         *extra,
         str(r1),
         str(r2),

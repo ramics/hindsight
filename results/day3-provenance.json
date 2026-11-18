@@ -1,0 +1,782 @@
+{
+  "tool": {
+    "name": "hindsight arm-a",
+    "version": "0.1.0"
+  },
+  "generated_at": "2026-11-18T07:48:20+00:00",
+  "stages": [
+    "index"
+  ],
+  "machine": {
+    "platform": "Linux-6.18.44-fc-v595-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "cpu_count": 4,
+    "memory_gib": 15.7,
+    "instance_type": null,
+    "work_dir_disk": {
+      "total_gib": 252.0,
+      "used_gib": 23.4,
+      "free_gib": 15.5
+    }
+  },
+  "tools": [
+    {
+      "name": "kraken2",
+      "path": "/usr/bin/kraken2",
+      "version": "2.1.3",
+      "raw": "Kraken version 2.1.3",
+      "pinned": "2.1.3"
+    }
+  ],
+  "parameters": {
+    "cutoff": "2019-12-01",
+    "source_db": "db/nov2019",
+    "kraken_db": "work/kraken2/nov2019",
+    "mask_low_complexity": true,
+    "threads": 4,
+    "confidence": 0.0,
+    "minimum_hit_groups": 2,
+    "negatives_max_pairs": 0,
+    "negatives_depth": "native",
+    "headline_clade": "betacoronavirus",
+    "day2_provenance": "work/day2-provenance.json"
+  },
+  "database": {
+    "db": "work/kraken2/nov2019",
+    "source_db": "db/nov2019",
+    "masked": true,
+    "reused": true,
+    "files": {
+      "hash.k2d": {
+        "bytes": 415539232
+      },
+      "opts.k2d": {
+        "bytes": 64
+      },
+      "taxo.k2d": {
+        "bytes": 1077205
+      }
+    },
+    "inspect": {
+      "taxa_in_db": 13120,
+      "header": {},
+      "clade_minimizers": {
+        "viruses": 72757356,
+        "riboviria": 11247644,
+        "nidovirales": 842958,
+        "coronaviridae": 481449,
+        "orthocoronavirinae": 461998,
+        "betacoronavirus": 146985,
+        "sarbecovirus": 9637,
+        "sars_related_cov": 9637
+      },
+      "listing": "work/kraken2/nov2019/inspect.txt"
+    },
+    "library": {
+      "records_in_library": 12179,
+      "sequences_indexed": 12178,
+      "base_pairs_indexed": 317685050,
+      "records_whose_taxid_is_absent_from_the_dated_tree": [
+        {
+          "accession": "NC_001421.2",
+          "taxid": 10658
+        }
+      ],
+      "records_not_indexed": 1,
+      "gap_explained_by_absent_taxids": true
+    },
+    "clades": {
+      "viruses": {
+        "root_taxid": 10239,
+        "name_in_2019_tree": "Viruses",
+        "taxa_in_clade": 201891
+      },
+      "riboviria": {
+        "root_taxid": 2559587,
+        "name_in_2019_tree": "Riboviria",
+        "taxa_in_clade": 172317
+      },
+      "nidovirales": {
+        "root_taxid": 76804,
+        "name_in_2019_tree": "Nidovirales",
+        "taxa_in_clade": 1867
+      },
+      "coronaviridae": {
+        "root_taxid": 11118,
+        "name_in_2019_tree": "Coronaviridae",
+        "taxa_in_clade": 1612
+      },
+      "orthocoronavirinae": {
+        "root_taxid": 2501931,
+        "name_in_2019_tree": "Orthocoronavirinae",
+        "taxa_in_clade": 1124
+      },
+      "betacoronavirus": {
+        "root_taxid": 694002,
+        "name_in_2019_tree": "Betacoronavirus",
+        "taxa_in_clade": 569
+      },
+      "sarbecovirus": {
+        "root_taxid": 2509511,
+        "name_in_2019_tree": "Sarbecovirus",
+        "taxa_in_clade": 260
+      },
+      "sars_related_cov": {
+        "root_taxid": 694009,
+        "name_in_2019_tree": "Severe acute respiratory syndrome-related coronavirus",
+        "taxa_in_clade": 259
+      }
+    },
+    "clades_absent_from_dated_taxonomy": [],
+    "headline_clade": "betacoronavirus",
+    "source_release": {
+      "cutoff": null,
+      "release": {},
+      "first_excluded_release": null,
+      "counts": null,
+      "taxonomy": {
+        "check": {
+          "deleted_in_snapshot": [
+            10658
+          ],
+          "manifest_taxids": 9305,
+          "missing": [
+            10658
+          ],
+          "missing_count": 1,
+          "present_in_dated_nodes": 9304,
+          "resolvable_via_merged": {},
+          "unexplained": []
+        },
+        "flavour": "taxdmp",
+        "lag_days_behind_release": 3,
+        "seqid2taxid_entries": 385308,
+        "snapshot_date": "2019-11-01",
+        "url": "https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/taxdmp_2019-11-01.zip"
+      }
+    }
+  },
+  "series": {
+    "background": {
+      "name": "background",
+      "pairs": 10860738,
+      "classified": 4120,
+      "unclassified": 10856618,
+      "seconds": 46.9,
+      "report": "work/arm-a/series/background.kreport",
+      "classified_output": "work/arm-a/series/background.classified.tsv.gz",
+      "clades": {
+        "viruses": 4120,
+        "riboviria": 332,
+        "nidovirales": 97,
+        "coronaviridae": 90,
+        "orthocoronavirinae": 84,
+        "betacoronavirus": 79,
+        "sarbecovirus": 78,
+        "sars_related_cov": 78
+      },
+      "top_taxa": [
+        {
+          "taxid": 2560112,
+          "reads": 584
+        },
+        {
+          "taxid": 2201166,
+          "reads": 203
+        },
+        {
+          "taxid": 2079426,
+          "reads": 202
+        },
+        {
+          "taxid": 1918522,
+          "reads": 155
+        },
+        {
+          "taxid": 1597976,
+          "reads": 118
+        },
+        {
+          "taxid": 1340534,
+          "reads": 117
+        },
+        {
+          "taxid": 536474,
+          "reads": 112
+        },
+        {
+          "taxid": 694009,
+          "reads": 78
+        },
+        {
+          "taxid": 644007,
+          "reads": 58
+        },
+        {
+          "taxid": 56947,
+          "reads": 51
+        },
+        {
+          "taxid": 1204516,
+          "reads": 40
+        },
+        {
+          "taxid": 1714270,
+          "reads": 40
+        },
+        {
+          "taxid": 1969841,
+          "reads": 38
+        },
+        {
+          "taxid": 1701814,
+          "reads": 31
+        },
+        {
+          "taxid": 196896,
+          "reads": 30
+        }
+      ],
+      "role": "background (viral fragments removed; any clade hit is a false positive)"
+    },
+    "levels": [
+      {
+        "name": "viral050000",
+        "viral_fragments": 50000,
+        "total_fragments": 10910738,
+        "per_million": {
+          "raw_spots": 1767.8486597090744,
+          "non_redacted_spots": 3484.807944916059,
+          "post_qc_pairs": 3853.392889318688
+        },
+        "viral_fragments_per_million": 4582.641430854632,
+        "viral_part": {
+          "name": "viral050000_viral",
+          "pairs": 50000,
+          "classified": 20896,
+          "unclassified": 29104,
+          "seconds": 0.7,
+          "report": "work/arm-a/series/viral050000_viral.kreport",
+          "classified_output": "work/arm-a/series/viral050000_viral.classified.tsv.gz",
+          "clades": {
+            "viruses": 20896,
+            "riboviria": 20892,
+            "nidovirales": 20892,
+            "coronaviridae": 20892,
+            "orthocoronavirinae": 16612,
+            "betacoronavirus": 16412,
+            "sarbecovirus": 16404,
+            "sars_related_cov": 16404
+          },
+          "top_taxa": [
+            {
+              "taxid": 694009,
+              "reads": 16404
+            },
+            {
+              "taxid": 864596,
+              "reads": 3999
+            },
+            {
+              "taxid": 11118,
+              "reads": 275
+            },
+            {
+              "taxid": 1508228,
+              "reads": 96
+            },
+            {
+              "taxid": 693996,
+              "reads": 51
+            },
+            {
+              "taxid": 2501931,
+              "reads": 27
+            },
+            {
+              "taxid": 1159907,
+              "reads": 20
+            },
+            {
+              "taxid": 1508220,
+              "reads": 6
+            },
+            {
+              "taxid": 693997,
+              "reads": 4
+            },
+            {
+              "taxid": 694002,
+              "reads": 3
+            },
+            {
+              "taxid": 1541205,
+              "reads": 3
+            },
+            {
+              "taxid": 11120,
+              "reads": 1
+            },
+            {
+              "taxid": 11149,
+              "reads": 1
+            },
+            {
+              "taxid": 67082,
+              "reads": 1
+            },
+            {
+              "taxid": 166122,
+              "reads": 1
+            }
+          ]
+        },
+        "composed": {
+          "pairs": 10910738,
+          "classified": 25016,
+          "unclassified": 10885722,
+          "clades": {
+            "viruses": 25016,
+            "riboviria": 21224,
+            "nidovirales": 20989,
+            "coronaviridae": 20982,
+            "orthocoronavirinae": 16696,
+            "betacoronavirus": 16491,
+            "sarbecovirus": 16482,
+            "sars_related_cov": 16482
+          }
+        },
+        "detected_viral_reads": 16412,
+        "false_positive_reads": 79,
+        "sensitivity": 0.32824,
+        "detected_per_million_post_qc": 1264.837681989966
+      },
+      {
+        "name": "viral010000",
+        "viral_fragments": 10000,
+        "total_fragments": 10870738,
+        "per_million": {
+          "raw_spots": 353.56973194181484,
+          "non_redacted_spots": 696.9615889832118,
+          "post_qc_pairs": 770.6785778637376
+        },
+        "viral_fragments_per_million": 919.9007463890676,
+        "viral_part": {
+          "name": "viral010000_viral",
+          "pairs": 10000,
+          "classified": 4232,
+          "unclassified": 5768,
+          "seconds": 0.4,
+          "report": "work/arm-a/series/viral010000_viral.kreport",
+          "classified_output": "work/arm-a/series/viral010000_viral.classified.tsv.gz",
+          "clades": {
+            "viruses": 4232,
+            "riboviria": 4232,
+            "nidovirales": 4232,
+            "coronaviridae": 4232,
+            "orthocoronavirinae": 3357,
+            "betacoronavirus": 3315,
+            "sarbecovirus": 3312,
+            "sars_related_cov": 3312
+          },
+          "top_taxa": [
+            {
+              "taxid": 694009,
+              "reads": 3312
+            },
+            {
+              "taxid": 864596,
+              "reads": 809
+            },
+            {
+              "taxid": 11118,
+              "reads": 64
+            },
+            {
+              "taxid": 1508228,
+              "reads": 21
+            },
+            {
+              "taxid": 693996,
+              "reads": 7
+            },
+            {
+              "taxid": 2501931,
+              "reads": 7
+            },
+            {
+              "taxid": 1159907,
+              "reads": 4
+            },
+            {
+              "taxid": 693997,
+              "reads": 2
+            },
+            {
+              "taxid": 694002,
+              "reads": 2
+            },
+            {
+              "taxid": 1508220,
+              "reads": 2
+            },
+            {
+              "taxid": 11120,
+              "reads": 1
+            },
+            {
+              "taxid": 694006,
+              "reads": 1
+            }
+          ]
+        },
+        "composed": {
+          "pairs": 10870738,
+          "classified": 8352,
+          "unclassified": 10862386,
+          "clades": {
+            "viruses": 8352,
+            "riboviria": 4564,
+            "nidovirales": 4329,
+            "coronaviridae": 4322,
+            "orthocoronavirinae": 3441,
+            "betacoronavirus": 3394,
+            "sarbecovirus": 3390,
+            "sars_related_cov": 3390
+          }
+        },
+        "detected_viral_reads": 3315,
+        "false_positive_reads": 79,
+        "sensitivity": 0.3315,
+        "detected_per_million_post_qc": 255.479948561829
+      },
+      {
+        "name": "viral001000",
+        "viral_fragments": 1000,
+        "total_fragments": 10861738,
+        "per_million": {
+          "raw_spots": 35.35697319418149,
+          "non_redacted_spots": 69.69615889832119,
+          "post_qc_pairs": 77.06785778637375
+        },
+        "viral_fragments_per_million": 92.06629730895737,
+        "viral_part": {
+          "name": "viral001000_viral",
+          "pairs": 1000,
+          "classified": 420,
+          "unclassified": 580,
+          "seconds": 0.2,
+          "report": "work/arm-a/series/viral001000_viral.kreport",
+          "classified_output": "work/arm-a/series/viral001000_viral.classified.tsv.gz",
+          "clades": {
+            "viruses": 420,
+            "riboviria": 420,
+            "nidovirales": 420,
+            "coronaviridae": 420,
+            "orthocoronavirinae": 328,
+            "betacoronavirus": 326,
+            "sarbecovirus": 326,
+            "sars_related_cov": 326
+          },
+          "top_taxa": [
+            {
+              "taxid": 694009,
+              "reads": 326
+            },
+            {
+              "taxid": 864596,
+              "reads": 87
+            },
+            {
+              "taxid": 11118,
+              "reads": 5
+            },
+            {
+              "taxid": 1508228,
+              "reads": 1
+            },
+            {
+              "taxid": 2501931,
+              "reads": 1
+            }
+          ]
+        },
+        "composed": {
+          "pairs": 10861738,
+          "classified": 4540,
+          "unclassified": 10857198,
+          "clades": {
+            "viruses": 4540,
+            "riboviria": 752,
+            "nidovirales": 517,
+            "coronaviridae": 510,
+            "orthocoronavirinae": 412,
+            "betacoronavirus": 405,
+            "sarbecovirus": 404,
+            "sars_related_cov": 404
+          }
+        },
+        "detected_viral_reads": 326,
+        "false_positive_reads": 79,
+        "sensitivity": 0.326,
+        "detected_per_million_post_qc": 25.124121638357845
+      },
+      {
+        "name": "viral000100",
+        "viral_fragments": 100,
+        "total_fragments": 10860838,
+        "per_million": {
+          "raw_spots": 3.5356973194181487,
+          "non_redacted_spots": 6.969615889832118,
+          "post_qc_pairs": 7.706785778637376
+        },
+        "viral_fragments_per_million": 9.207392652390174,
+        "viral_part": {
+          "name": "viral000100_viral",
+          "pairs": 100,
+          "classified": 39,
+          "unclassified": 61,
+          "seconds": 0.2,
+          "report": "work/arm-a/series/viral000100_viral.kreport",
+          "classified_output": "work/arm-a/series/viral000100_viral.classified.tsv.gz",
+          "clades": {
+            "viruses": 39,
+            "riboviria": 39,
+            "nidovirales": 39,
+            "coronaviridae": 39,
+            "orthocoronavirinae": 30,
+            "betacoronavirus": 30,
+            "sarbecovirus": 30,
+            "sars_related_cov": 30
+          },
+          "top_taxa": [
+            {
+              "taxid": 694009,
+              "reads": 30
+            },
+            {
+              "taxid": 864596,
+              "reads": 8
+            },
+            {
+              "taxid": 11118,
+              "reads": 1
+            }
+          ]
+        },
+        "composed": {
+          "pairs": 10860838,
+          "classified": 4159,
+          "unclassified": 10856679,
+          "clades": {
+            "viruses": 4159,
+            "riboviria": 371,
+            "nidovirales": 136,
+            "coronaviridae": 129,
+            "orthocoronavirinae": 114,
+            "betacoronavirus": 109,
+            "sarbecovirus": 108,
+            "sars_related_cov": 108
+          }
+        },
+        "detected_viral_reads": 30,
+        "false_positive_reads": 79,
+        "sensitivity": 0.3,
+        "detected_per_million_post_qc": 2.3120357335912125
+      },
+      {
+        "name": "viral000010",
+        "viral_fragments": 10,
+        "total_fragments": 10860748,
+        "per_million": {
+          "raw_spots": 0.35356973194181485,
+          "non_redacted_spots": 0.6969615889832118,
+          "post_qc_pairs": 0.7706785778637376
+        },
+        "viral_fragments_per_million": 0.9207468951493949,
+        "viral_part": {
+          "name": "viral000010_viral",
+          "pairs": 10,
+          "classified": 4,
+          "unclassified": 6,
+          "seconds": 0.2,
+          "report": "work/arm-a/series/viral000010_viral.kreport",
+          "classified_output": "work/arm-a/series/viral000010_viral.classified.tsv.gz",
+          "clades": {
+            "viruses": 4,
+            "riboviria": 4,
+            "nidovirales": 4,
+            "coronaviridae": 4,
+            "orthocoronavirinae": 3,
+            "betacoronavirus": 3,
+            "sarbecovirus": 3,
+            "sars_related_cov": 3
+          },
+          "top_taxa": [
+            {
+              "taxid": 694009,
+              "reads": 3
+            },
+            {
+              "taxid": 11118,
+              "reads": 1
+            }
+          ]
+        },
+        "composed": {
+          "pairs": 10860748,
+          "classified": 4124,
+          "unclassified": 10856624,
+          "clades": {
+            "viruses": 4124,
+            "riboviria": 336,
+            "nidovirales": 101,
+            "coronaviridae": 94,
+            "orthocoronavirinae": 87,
+            "betacoronavirus": 82,
+            "sarbecovirus": 81,
+            "sars_related_cov": 81
+          }
+        },
+        "detected_viral_reads": 3,
+        "false_positive_reads": 79,
+        "sensitivity": 0.3,
+        "detected_per_million_post_qc": 0.23120357335912126
+      }
+    ],
+    "composition_check": {
+      "level": "viral000010_direct",
+      "pairs_composed": 10860748,
+      "pairs_direct": 10860748,
+      "classified_composed": 4124,
+      "classified_direct": 4124,
+      "taxa_disagreeing": 0,
+      "differences": {},
+      "identical": true,
+      "clades_direct": {
+        "viruses": 4124,
+        "riboviria": 336,
+        "nidovirales": 101,
+        "coronaviridae": 94,
+        "orthocoronavirinae": 87,
+        "betacoronavirus": 82,
+        "sarbecovirus": 81,
+        "sars_related_cov": 81
+      }
+    }
+  },
+  "wall_clock_seconds": 57.6,
+  "runs": [
+    {
+      "generated_at": "2026-11-18T07:45:57+00:00",
+      "stages": [
+        "series"
+      ],
+      "wall_clock_seconds": 108.3,
+      "negatives": []
+    },
+    {
+      "generated_at": "2026-11-18T07:48:20+00:00",
+      "stages": [
+        "index"
+      ],
+      "wall_clock_seconds": 57.6,
+      "negatives": []
+    }
+  ],
+  "index_sample": {
+    "name": "SRR10971381_nonhost",
+    "pairs": 10921957,
+    "classified": 30050,
+    "unclassified": 10891907,
+    "seconds": 47.4,
+    "report": "work/arm-a/index/SRR10971381_nonhost.kreport",
+    "classified_output": "work/arm-a/index/SRR10971381_nonhost.classified.tsv.gz",
+    "clades": {
+      "viruses": 30050,
+      "riboviria": 26260,
+      "nidovirales": 26025,
+      "coronaviridae": 26018,
+      "orthocoronavirinae": 20741,
+      "betacoronavirus": 20497,
+      "sarbecovirus": 20485,
+      "sars_related_cov": 20485
+    },
+    "top_taxa": [
+      {
+        "taxid": 694009,
+        "reads": 20485
+      },
+      {
+        "taxid": 864596,
+        "reads": 4922
+      },
+      {
+        "taxid": 2560112,
+        "reads": 584
+      },
+      {
+        "taxid": 11118,
+        "reads": 347
+      },
+      {
+        "taxid": 2201166,
+        "reads": 203
+      },
+      {
+        "taxid": 2079426,
+        "reads": 202
+      },
+      {
+        "taxid": 1918522,
+        "reads": 155
+      },
+      {
+        "taxid": 1508228,
+        "reads": 121
+      },
+      {
+        "taxid": 1597976,
+        "reads": 118
+      },
+      {
+        "taxid": 1340534,
+        "reads": 117
+      },
+      {
+        "taxid": 536474,
+        "reads": 112
+      },
+      {
+        "taxid": 644007,
+        "reads": 58
+      },
+      {
+        "taxid": 693996,
+        "reads": 58
+      },
+      {
+        "taxid": 56947,
+        "reads": 51
+      },
+      {
+        "taxid": 1204516,
+        "reads": 40
+      }
+    ],
+    "truth": {
+      "clade": "betacoronavirus",
+      "truth_fragments": 62117,
+      "truth_fragments_classified_anywhere": 25930,
+      "detected": 20418,
+      "false_positive": 79,
+      "sensitivity": 0.3287022876185263,
+      "truth_fragments_in_nonhost": 62117
+    },
+    "detected_per_million": {
+      "raw_spots": 721.9186786787976,
+      "non_redacted_spots": 1423.0561723859219,
+      "post_qc_pairs": 1573.5715202821793
+    }
+  }
+}

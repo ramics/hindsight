@@ -28,14 +28,16 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import subprocess
 import time
 import tomllib
+from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 from ..samples import pipeline as samples_pipeline
-from ..samples import registry
+from ..samples import reads, registry
 from . import kraken
 
 DEFAULT_TOOL_PINS = {"kraken2": "2.1.3"}
@@ -365,6 +367,138 @@ def classify_index(
     return record
 
 
+# ----------------------------------------------------------- the background's hits
+
+
+def diagnose_background_hits(
+    arm: ArmConfig,
+    samples_config: registry.Config,
+    clades: kraken.CladeSets,
+    *,
+    taxid: int = 694009,
+    log=print,
+) -> dict:
+    """Find out what the index sample's own background is actually made of.
+
+    The series' background is the non-host set with every ground-truth viral fragment
+    removed, so a read the arm places in the sarbecoviruses should not be there. Two
+    explanations fit, and they have opposite consequences: either the classifier is
+    wrong about those reads, in which case the arm has a false-positive rate on its own
+    sample, or the *label* is wrong about them, in which case the sample has more viral
+    reads than the benchmark credits it with.
+
+    So this asks the question the label was asked, with the threshold removed: take
+    those reads, align them to the same modern reference, and report the alignment rate
+    and the mapping qualities. A read that aligns but at mapping quality below the
+    label's cut-off was never a classifier error; it was a fragment the label declined
+    to count.
+
+    This is a diagnostic, not part of the arm. It is the one place in Day 3 that
+    touches the post-2019 reference, and it touches it after the arm has finished and
+    only to interpret the arm's output.
+    """
+    out_dir = arm.out_dir / "diagnostics"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    classified = arm.out_dir / "series" / "background.classified.tsv.gz"
+    if not classified.exists():
+        raise kraken.KrakenError(f"{classified} is missing; classify the series first")
+
+    wanted = {
+        fragment for fragment, assigned in kraken.iter_output(classified) if assigned == taxid
+    }
+    taxonomy = kraken.read_taxonomy(arm.source_db / "taxonomy")
+    record: dict = {
+        "taxid": taxid,
+        "taxon": taxonomy.names.get(taxid),
+        "clades": clades.which(taxid),
+        "fragments": len(wanted),
+        "truth_reference": samples_config.truth_reference,
+        "label_min_mapq": samples_config.min_truth_mapq,
+    }
+    if not wanted:
+        record["conclusion"] = "no background fragments were assigned to this taxon"
+        return record
+    (out_dir / f"background_{taxid}_ids.txt").write_text("\n".join(sorted(wanted)) + "\n")
+
+    parts = arm.work_dir / "series" / "parts"
+    extracted = []
+    for mate in (1, 2):
+        dest = out_dir / f"background_{taxid}_{mate}.fastq.gz"
+        count = reads.write_subset(parts / f"background_{mate}.fastq.gz", dest, wanted)
+        extracted.append(count)
+    record["fragments_extracted"] = extracted
+
+    index = arm.work_dir / "ref" / "truth" / samples_config.truth_reference
+    sam = out_dir / f"background_{taxid}.sam"
+    log_path = out_dir / f"background_{taxid}.bowtie2.log"
+    with open(sam, "wb") as out, open(log_path, "wb") as errlog:
+        bowtie = subprocess.Popen(  # noqa: S603
+            [
+                "bowtie2",
+                "--local",
+                "-p",
+                str(arm.threads),
+                "-x",
+                str(index),
+                "-1",
+                str(out_dir / f"background_{taxid}_1.fastq.gz"),
+                "-2",
+                str(out_dir / f"background_{taxid}_2.fastq.gz"),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=errlog,
+        )
+        view = subprocess.Popen(  # noqa: S603
+            ["samtools", "view", "-F", "2308", "-"],
+            stdin=bowtie.stdout,
+            stdout=out,
+            stderr=errlog,
+        )
+        bowtie.stdout.close()
+        codes = {"samtools": view.wait(), "bowtie2": bowtie.wait()}
+    if any(codes.values()):
+        raise kraken.KrakenError(f"diagnostic alignment failed: {codes} (see {log_path})")
+
+    mapqs: Counter[int] = Counter()
+    aligned_fragments: set[str] = set()
+    with sam.open() as handle:
+        for line in handle:
+            if line.startswith("@"):
+                continue
+            fields = line.split("\t")
+            if len(fields) < 5 or fields[2] == "*":
+                continue
+            mapqs[int(fields[4])] += 1
+            aligned_fragments.add(reads.normalise_id(fields[0]))
+    record["alignment_summary"] = log_path.read_text(errors="replace").strip().splitlines()
+    record["fragments_aligning_to_the_modern_reference"] = len(aligned_fragments)
+    record["mapq_distribution"] = dict(sorted(mapqs.items()))
+    record["max_mapq"] = max(mapqs) if mapqs else None
+    record["all_below_the_label_threshold"] = (
+        bool(mapqs) and max(mapqs) < samples_config.min_truth_mapq
+    )
+    if record["all_below_the_label_threshold"]:
+        record["conclusion"] = (
+            f"{len(aligned_fragments)} of {len(wanted)} fragments align to "
+            f"{samples_config.truth_reference}, every mate below the label's "
+            f"MAPQ >= {samples_config.min_truth_mapq} cut-off. These are viral reads the "
+            "ground-truth label declined to count, not classifier false positives, so "
+            "the sample's viral content is slightly larger than the benchmark credits "
+            "and the arm's apparent false-positive rate on its own background is not one."
+        )
+    else:
+        record["conclusion"] = (
+            f"{len(aligned_fragments)} of {len(wanted)} fragments align, with mapping "
+            f"quality up to {record['max_mapq']} — at or above the label's cut-off, so "
+            "the label and the classifier disagree for another reason. Investigate "
+            "before Day 5 uses this background for anything."
+        )
+    log(record["conclusion"])
+    for path in (sam,):
+        path.unlink(missing_ok=True)
+    return record
+
+
 # ------------------------------------------------------------------------- negatives
 
 
@@ -474,7 +608,11 @@ def _prune_sample(sample_dir: Path) -> int:
     """
     freed = 0
     patterns = ("*.fastq.gz", "*.fastq", "*.sra", "*.sra.*")
-    for sub in ("raw", "qc", "capped", "nonhost", "tmp"):
+    # "sra" holds the downloaded container, which is 1-3 GiB a sample and the single
+    # largest thing left behind. Day 2 could leave it: it pruned FASTQ and the cap
+    # meant the container was the only copy worth keeping. At native depth, twenty
+    # containers is the disk this day does not have.
+    for sub in ("raw", "qc", "capped", "nonhost", "tmp", "sra"):
         directory = sample_dir / sub
         if not directory.exists():
             continue
@@ -536,6 +674,11 @@ def run_day3(
         record["index_sample"] = classify_index(arm, samples_config, day2, clades, log=log)
     if "series" in stages:
         record["series"] = classify_series(arm, day2, clades, log=log)
+        # What the background's own clade hits are, which decides whether they are the
+        # arm's false positives or the label's false negatives.
+        record["background_diagnosis"] = diagnose_background_hits(
+            arm, samples_config, clades, log=log
+        )
     if "negatives" in stages:
         record["negatives"] = classify_negatives(
             arm, samples_config, clades, only=only_negatives, log=log
