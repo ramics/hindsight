@@ -170,3 +170,51 @@ def test_pruning_removes_reads_and_keeps_the_record(tmp_path):
 
 def test_pruning_a_sample_with_nothing_left_is_free(tmp_path):
     assert day3._prune_sample(tmp_path / "missing") == 0
+
+
+def negative_with_taxa(accession, hits, endemic, pairs):
+    return {
+        "accession": accession,
+        "false_alarm_reads": hits,
+        "false_alarm_reads_excluding_endemic": hits - endemic,
+        "endemic_human_coronavirus_reads": endemic,
+        "pairs": pairs,
+    }
+
+
+def test_false_alarm_summary_reports_both_readings():
+    """A read placed on OC43 is the arm working; one on a bat sarbecovirus is not.
+
+    Which of the two counts is "the false-alarm rate" is Day 5's decision, so the
+    summary has to carry both without picking.
+    """
+    summary = day3.summarise_false_alarms(
+        [
+            negative_with_taxa("SRR1", 11, 11, 14_000_000),  # all seasonal coronavirus
+            negative_with_taxa("SRR2", 2, 0, 10_000_000),  # neither endemic nor known
+            negative_with_taxa("SRR3", 0, 0, 10_000_000),
+        ]
+    )
+    assert summary["reads_total"] == 13
+    assert summary["samples_with_at_least_one_hit"] == 2
+    assert summary["endemic_human_coronavirus_reads_total"] == 11
+
+    novel = summary["excluding_endemic_human_coronaviruses"]
+    assert novel["reads_total"] == 2
+    assert novel["samples_with_at_least_one_hit"] == 1
+    assert list(novel["samples_with_hits"]) == ["SRR2"]
+
+
+def test_endemic_list_excludes_sars_related_coronavirus():
+    """Treating "known in 2019" as "not an alarm" would discard the benchmark's signal.
+
+    SARS-CoV was known, and the index sample's reads land on SARS-related coronavirus.
+    The endemic list is the four seasonal human coronaviruses, which are a different
+    argument: they are common, they really are in respiratory samples, and they are not
+    what a novel-pathogen alarm is about.
+    """
+    from hindsight.arms import kraken
+
+    assert 694009 not in kraken.ENDEMIC_HUMAN_CORONAVIRUSES.values()
+    assert 1335626 not in kraken.ENDEMIC_HUMAN_CORONAVIRUSES.values()  # MERS
+    assert 31631 in kraken.ENDEMIC_HUMAN_CORONAVIRUSES.values()  # OC43

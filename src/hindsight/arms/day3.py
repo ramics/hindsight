@@ -121,10 +121,11 @@ def prepare_database(arm: ArmConfig, *, log=print) -> tuple[dict, kraken.CladeSe
     source_provenance = arm.source_db / "provenance.json"
     if source_provenance.exists():
         source = json.loads(source_provenance.read_text())
+        # `hindsight build` records this under "time_control", which is the name that
+        # says what it is for: the release, the date, and the release deliberately
+        # excluded. Copied rather than referenced so this record stands alone.
         record["source_release"] = {
-            "cutoff": source.get("cutoff"),
-            "release": (source.get("release") or {}),
-            "first_excluded_release": source.get("first_excluded_release"),
+            "time_control": source.get("time_control", {}),
             "counts": source.get("counts"),
             "taxonomy": source.get("taxonomy"),
         }
@@ -545,9 +546,25 @@ def classify_negatives(
         record = _classify_one_negative(arm, spec.accession, clades, log=log)
         records.append(record)
         if arm.prune_after_classify:
-            record["pruned_bytes"] = _prune_sample(arm.work_dir / "samples" / spec.accession)
-            log(f"{spec.accession}: pruned {record['pruned_bytes'] / 2**30:.2f} GiB")
+            freed = _prune_sample(arm.work_dir / "samples" / spec.accession)
+            # Written beside the sample's reads note rather than only into the record,
+            # because re-running this stage over cached classifications would otherwise
+            # overwrite the figure with the 0 bytes a second prune frees.
+            record["pruned_bytes"] = _remember_pruned(out_dir, spec.accession, freed)
+            log(f"{spec.accession}: pruned {freed / 2**30:.2f} GiB")
     return records
+
+
+def _remember_pruned(out_dir: Path, accession: str, freed: int) -> int:
+    """Keep the largest number of bytes this sample's pruning has ever freed."""
+    marker = Path(out_dir) / f"{accession}.pruned.json"
+    previous = 0
+    if marker.exists():
+        previous = json.loads(marker.read_text()).get("freed_bytes", 0)
+    total = max(previous, freed)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(json.dumps({"freed_bytes": total}, indent=2) + "\n")
+    return total
 
 
 def _write_sample_note(out_dir: Path, accession: str, sample, prepare_seconds: float) -> None:
@@ -585,6 +602,9 @@ def _classify_one_negative(
     record = result.record(clades)
     record["accession"] = accession
     record["role"] = "negative"
+    pruned_note = out_dir / f"{accession}.pruned.json"
+    if pruned_note.exists():
+        record["pruned_bytes"] = json.loads(pruned_note.read_text()).get("freed_bytes", 0)
     reads_note = out_dir / f"{accession}.reads.json"
     if reads_note.exists():
         note = json.loads(reads_note.read_text())
@@ -604,7 +624,30 @@ def _classify_one_negative(
     hits = clades.count(result.counts, kraken.HEADLINE_CLADE)
     record["false_alarm_reads"] = hits
     record["false_alarm_per_million_nonhost"] = _per_million(hits, result.pairs)
-    log(f"{accession}: {hits:,} reads in {kraken.HEADLINE_CLADE} of {result.pairs:,} non-host")
+    # Every coronavirus taxon this sample hit, in full rather than as a top-15 slice.
+    # It is a handful of taxa, and it is the evidence for what the hits actually were.
+    family = clades.members.get("coronaviridae", set())
+    headline = clades.members.get(kraken.HEADLINE_CLADE, set())
+    record["coronavirus_taxa"] = [
+        {"taxid": taxid, "reads": n, "taxon": clades.names.get(taxid)}
+        for taxid, n in sorted(result.counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        if taxid in family
+    ]
+    record["endemic_human_coronavirus_reads"] = sum(
+        n for taxid, n in result.counts.items() if taxid in clades.endemic
+    )
+    record["false_alarm_reads_excluding_endemic"] = sum(
+        entry["reads"]
+        for entry in record["coronavirus_taxa"]
+        if entry["taxid"] not in clades.endemic and entry["taxid"] in headline
+    )
+    described = ", ".join(
+        f"{e['reads']} {e['taxon'] or e['taxid']}" for e in record["coronavirus_taxa"][:4]
+    )
+    log(
+        f"{accession}: {hits:,} reads in {kraken.HEADLINE_CLADE} of {result.pairs:,} non-host"
+        + (f" ({described})" if described else "")
+    )
     return record
 
 
@@ -706,6 +749,11 @@ def summarise_false_alarms(negatives: list[dict]) -> dict:
     hits = [n.get("false_alarm_reads", 0) for n in negatives]
     nonhost = [n.get("pairs", 0) for n in negatives]
     with_hits = [n for n, h in zip(negatives, hits, strict=False) if h]
+    novel = [
+        n.get("false_alarm_reads_excluding_endemic", n.get("false_alarm_reads", 0))
+        for n in negatives
+    ]
+    with_novel = [n for n, h in zip(negatives, novel, strict=False) if h]
     return {
         "samples": len(negatives),
         "non_host_pairs_total": sum(nonhost),
@@ -721,6 +769,28 @@ def summarise_false_alarms(negatives: list[dict]) -> dict:
             n["accession"]: n.get("false_alarm_reads", 0)
             for n in sorted(with_hits, key=lambda n: -n.get("false_alarm_reads", 0))
         },
+        # The same count with the endemic human coronaviruses removed. A read placed on
+        # OC43 in a respiratory patient is the arm working, not crying wolf, and the
+        # benchmark's question is about a *novel* pathogen — but which of these two
+        # numbers is "the false-alarm rate" is a decision rather than a fact, so both
+        # are recorded and neither is named the right one.
+        "excluding_endemic_human_coronaviruses": {
+            "reads_total": sum(novel),
+            "samples_with_at_least_one_hit": len(with_novel),
+            "reads_max_in_one_sample": max(novel) if novel else 0,
+            "reads_per_million_nonhost": (
+                sum(novel) * 1_000_000 / sum(nonhost) if sum(nonhost) else None
+            ),
+            "samples_with_hits": {
+                n["accession"]: n.get("false_alarm_reads_excluding_endemic", 0)
+                for n in sorted(
+                    with_novel, key=lambda n: -n.get("false_alarm_reads_excluding_endemic", 0)
+                )
+            },
+        },
+        "endemic_human_coronavirus_reads_total": sum(
+            n.get("endemic_human_coronavirus_reads", 0) for n in negatives
+        ),
     }
 
 

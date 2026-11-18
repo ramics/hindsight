@@ -413,18 +413,25 @@ def arm_a_report_cmd(provenance: Path) -> None:
     """Summarise Arm A: the detection curve, and the false alarms it has to beat."""
     record = json.loads(provenance.read_text())
     database = record.get("database", {})
-    release = (database.get("source_release") or {}).get("release", {})
+    release = (database.get("source_release") or {}).get("time_control") or {}
     params = record.get("parameters", {})
     machine = record.get("machine", {})
     runs = record.get("runs") or []
     total_seconds = sum(r.get("wall_clock_seconds", 0) for r in runs) or record.get(
         "wall_clock_seconds", 0
     )
+    excluded = release.get("excluded_next_release") or {}
     click.echo(
-        f"kraken2 vs release {release.get('number', '?')} "
-        f"({release.get('date', '?')}), cutoff {params.get('cutoff')}, "
+        f"kraken2 vs RefSeq release {release.get('release', '?')} "
+        f"({release.get('release_date', '?')}), cutoff {params.get('cutoff')}, "
+        f"first excluded release {excluded.get('release', '?')} "
+        f"({excluded.get('release_date', '?')})"
+    )
+    click.echo(
         f"confidence {params.get('confidence')}, "
-        f"minimum-hit-groups {params.get('minimum_hit_groups')}"
+        f"minimum-hit-groups {params.get('minimum_hit_groups')}, "
+        f"masked library: {params.get('mask_low_complexity')}, "
+        f"headline clade: {params.get('headline_clade')}"
     )
     click.echo(
         f"ran on {machine.get('cpu_count')} cores, {machine.get('memory_gib')} GiB, "
@@ -457,20 +464,37 @@ def arm_a_report_cmd(provenance: Path) -> None:
 
     levels = (record.get("series") or {}).get("levels", [])
     if levels:
+        # Both clade columns, because the dated taxonomy puts the nearest relative in
+        # the database outside Betacoronavirus and the difference is 5,000 reads.
         click.echo("")
         click.echo(
-            f"{'level':<14}{'viral':>8}{'per million':>13}{'detected':>10}"
-            f"{'sensitivity':>13}{'false pos':>11}"
+            f"{'level':<14}{'viral':>8}{'per million':>13}"
+            f"{'Coronaviridae':>15}{'Betacoronavirus':>17}{'sensitivity':>13}"
         )
         for level in levels:
             per_million = (level.get("per_million") or {}).get("post_qc_pairs")
+            by_clade = level.get("detected_by_clade") or {}
+            family = by_clade.get("coronaviridae")
+            genus = by_clade.get("betacoronavirus", level["detected_viral_reads"])
+            viral = level["viral_fragments"]
             click.echo(
-                f"{level['name']:<14}{level['viral_fragments']:>8,}"
+                f"{level['name']:<14}{viral:>8,}"
                 f"{per_million if per_million is None else round(per_million, 2):>13}"
-                f"{level['detected_viral_reads']:>10,}"
-                f"{100 * (level['sensitivity'] or 0):>12.1f}%"
-                f"{level['false_positive_reads']:>11,}"
+                f"{'-' if family is None else format(family, ',') :>15}"
+                f"{genus:>17,}"
+                f"{100 * ((family or genus) / viral if viral else 0):>12.1f}%"
             )
+        diagnosis = record.get("background_diagnosis") or {}
+        explained = (
+            "which the record explains as reads the truth label missed"
+            if diagnosis.get("all_below_the_label_threshold")
+            else "which the record does not explain"
+        )
+        background = levels[0]["false_positive_by_clade"]["coronaviridae"]
+        click.echo(
+            f"sensitivity is at family level; the series' own background contributes "
+            f"{background} Coronaviridae reads at every level, {explained}"
+        )
 
     alarms = record.get("false_alarms") or {}
     if alarms:
@@ -485,6 +509,23 @@ def arm_a_report_cmd(provenance: Path) -> None:
             f"have at least one; most in one sample: {alarms['reads_max_in_one_sample']:,}; "
             f"median {alarms['reads_median_per_sample']:,}"
         )
+        novel = alarms.get("excluding_endemic_human_coronaviruses") or {}
+        if novel:
+            click.echo(
+                f"  excluding the endemic human coronaviruses "
+                f"({alarms.get('endemic_human_coronavirus_reads_total', 0):,} reads of "
+                f"HKU1, OC43, 229E, NL63): {novel['reads_total']:,} reads in "
+                f"{novel['samples_with_at_least_one_hit']} of {alarms['samples']} samples, "
+                f"{novel['reads_per_million_nonhost']:.3f} per million"
+            )
+        for negative in record.get("negatives", []):
+            taxa = negative.get("coronavirus_taxa") or []
+            if not taxa:
+                continue
+            click.echo(
+                f"  {negative['accession']}: "
+                + ", ".join(f"{t['reads']} {t['taxon'] or t['taxid']}" for t in taxa)
+            )
 
 
 @main.group("samples")

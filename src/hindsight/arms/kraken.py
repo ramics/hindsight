@@ -79,6 +79,27 @@ CLADES: dict[str, int] = {
     "sars_related_cov": 694009,
 }
 
+# The four endemic human coronaviruses, each already a named species in the November
+# 2019 tree. They are not a list of "things to ignore": a read placed on one of them is
+# the arm working, and these viruses really are in respiratory samples. They are
+# separated out because the benchmark's question is about a *novel* pathogen, and a
+# reader has to be able to see both numbers — coronavirus reads, and coronavirus reads
+# that are not somebody's cold. Which one is the false-alarm rate is Day 5's call.
+#
+# SARS-CoV and MERS are deliberately absent. Both were known in 2019, but neither is
+# endemic, and reads landing on SARS-related coronavirus are exactly what the index
+# sample produces: treating that taxon as "known, therefore not an alarm" would discard
+# the benchmark's own positive signal.
+ENDEMIC_HUMAN_CORONAVIRUSES: dict[str, int] = {
+    "hcov_229e": 11137,
+    "hcov_nl63": 277944,
+    "hcov_oc43": 31631,
+    "hcov_hku1": 290028,
+    # The species OC43 and HKU1 sit under in the 2019 tree; a read assigned to the
+    # species rather than the strain lands here.
+    "betacoronavirus_1": 694003,
+}
+
 # The narrowest clade whose membership counts as a detection for the headline number.
 # A read placed anywhere in Betacoronavirus is a read that would have made an analyst
 # look; a read placed in Coronaviridae but no deeper is reported too, and Day 5 can
@@ -178,6 +199,7 @@ class CladeSets:
     members: dict[str, set[int]]
     missing: list[str] = field(default_factory=list)
     roots: dict[str, int] = field(default_factory=dict)
+    endemic: set[int] = field(default_factory=set)
     # The dated tree's names, carried along so a record can say "Enterovirus D68"
     # rather than "1 taxid 42789". The name is the 2019 one, which is the point: a
     # report written against a dated tree should be read in that tree's words.
@@ -191,6 +213,14 @@ class CladeSets:
         return sum(n for taxid, n in counts.items() if taxid in members)
 
 
+def endemic_taxids(taxonomy: Taxonomy) -> set[int]:
+    """Every taxid at or below one of the endemic human coronaviruses."""
+    out: set[int] = set()
+    for root in ENDEMIC_HUMAN_CORONAVIRUSES.values():
+        out |= taxonomy.descendants(root)
+    return out
+
+
 def clade_sets(taxonomy: Taxonomy, clades: dict[str, int] | None = None) -> CladeSets:
     wanted = dict(clades or CLADES)
     members: dict[str, set[int]] = {}
@@ -201,7 +231,13 @@ def clade_sets(taxonomy: Taxonomy, clades: dict[str, int] | None = None) -> Clad
             missing.append(f"{name} (taxid {root})")
             continue
         members[name] = found
-    return CladeSets(members=members, missing=missing, roots=wanted, names=taxonomy.names)
+    return CladeSets(
+        members=members,
+        missing=missing,
+        roots=wanted,
+        names=taxonomy.names,
+        endemic=endemic_taxids(taxonomy),
+    )
 
 
 # --------------------------------------------------------------------------- database

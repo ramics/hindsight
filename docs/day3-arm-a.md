@@ -83,7 +83,92 @@ taxa move. Day 5 should draw its threshold at Coronaviridae, and say why.
 
 ## The false-alarm rate, at native depth
 
-<!-- negatives -->
+20 pre-COVID BALF samples from the same hospital, **228,407,636 non-host pairs, no
+depth cap**. What the arm said about them:
+
+| | reads | samples | per million non-host |
+| --- | --- | --- | --- |
+| Sarbecovirus, or below | **0** | 0 of 20 | 0 |
+| Betacoronavirus, excluding the endemic human coronaviruses | **7** | 1 of 20 | 0.031 |
+| Coronaviridae, excluding the endemic human coronaviruses | 35 | 6 of 20 | 0.153 |
+| Betacoronavirus, all | 2,420 | 4 of 20 | 10.6 |
+| Coronaviridae, all | 2,495 | 8 of 20 | 10.9 |
+
+**Not one read in 228 million was placed in Sarbecovirus**, which is where the index
+sample's reads go — 20,407 of them. That is the number the detection limit is built
+against, and it is zero at the depth twenty samples can measure.
+
+The 2,420 betacoronavirus reads are almost entirely two patients' real infections:
+
+| sample | reads | what they were called |
+| --- | --- | --- |
+| SRR13677922 | 2,407 | 2,399 Human coronavirus HKU1, 1 Betacoronavirus 1; then 5 Betacoronavirus HKU24, 1 Rabbit coronavirus HKU14, 1 Rat coronavirus Parker |
+| SRR13677878 | 11 | 9 Human coronavirus OC43, 2 Betacoronavirus 1 |
+| SRR13677740 | 1 | 1 Human coronavirus HKU1 (plus 2 Infectious bronchitis virus, a gammacoronavirus) |
+| SRR13677977 | 1 | 1 Human coronavirus HKU1 |
+
+HKU1 and OC43 are endemic human coronaviruses that cause colds, both named species in
+the November 2019 tree, both genuinely present in respiratory patients. A read placed
+on one of them is the arm working.
+
+That leaves **seven reads** in the whole cohort that are betacoronaviral and not
+endemic human coronavirus — and all seven are in `SRR13677922`, the sample with the
+2,399-read HKU1 infection, spread across HKU24, rabbit coronavirus HKU14 and rat
+coronavirus Parker. All three are embecoviruses, HKU1's nearest neighbours in the
+reference set. These are that infection's reads landing one taxon over, not alarms
+about anything.
+
+Widen the net to the whole family and there are 35 non-endemic reads across six
+samples, which are the arm's only unexplained calls in the cohort:
+
+| reads | called | sample |
+| --- | --- | --- |
+| 11 | Sparrow coronavirus HKU17 | SRR13677700 |
+| 11 | Sparrow coronavirus HKU17 | SRR13677975 |
+| 5 | Betacoronavirus HKU24 | SRR13677922 |
+| 2 | Rousettus bat coronavirus HKU10 | SRR13677589 |
+| 2 | Infectious bronchitis virus | SRR13677740 |
+| 1 each | Camel alphacoronavirus, Rat coronavirus Parker, Rabbit coronavirus HKU14, Coronavirus AcCoV-JC34 | SRR13677744, SRR13677922 ×3 |
+
+Avian, bat and camel coronaviruses in human lung fluid are false alarms by any
+reading, and 35 reads in 228 million — 0.153 per million — is the honest family-level
+figure. *Sparrow coronavirus HKU17 at exactly 11 reads in two unrelated samples* is
+odd enough to be worth someone's attention: equal counts in independent samples
+suggest one conserved or low-complexity stretch of that genome rather than eleven
+independent coincidences. It is 22 reads out of 228 million and it does not move any
+number here, but it is the kind of thing that becomes a figure in somebody's paper
+about classifier artefacts.
+
+So the rate depends on a decision rather than a measurement, and both numbers are in
+the record rather than one being called correct:
+
+* **10.6 reads per million** if any betacoronavirus read counts as an alarm. Dominated
+  by two real infections, and it says more about how often BALF patients have colds
+  than about the classifier.
+* **0.031 reads per million** — seven reads in 228 million — if an endemic human
+  coronavirus does not count, at genus level. Day 5 should use this one, and should say
+  that even these seven are read-level spillover from a known infection in the same
+  sample. At family level the comparable figure is 0.153 per million.
+* **Zero** at Sarbecovirus, which is the clade a SARS-CoV-2-like novelty actually lands
+  in.
+
+Set against the dilution series, the lowest rung — 10 viral fragments, 0.77 per
+million — produced 3 betacoronavirus and 4 Coronaviridae reads against a cohort
+background of zero sarbecovirus reads in 228 million pairs. Turning that into a limit
+of detection at a stated false-alarm rate is Day 5's arithmetic, not this day's claim.
+
+### What the cohort also measured
+
+* **The submitters' host depletion was thorough.** The arm's own host filter removed
+  **0.10%** of the negatives' post-QC reads (236,867 of 228,644,503), against **15.83%**
+  for the index sample after NCBI's redaction. Day 2 kept the filter over the negatives
+  as a cheap check on a depletion method the submission does not record; the answer is
+  that it worked, and the two cohorts are not comparable on host content.
+* **13.6% of the negatives' non-host reads classify as viral** — 31 million of them —
+  against 0.28% for the index sample. Nearly all of it is real infection (`SRR13677553`
+  is 39% *Enterovirus D68*) plus the fact that a viral-only database has no bacterial
+  genomes to compete for a read. Neither is a defect, and neither is a false alarm about
+  a coronavirus.
 
 ### A negative control is negative for SARS-CoV-2, not free of viruses
 
@@ -206,7 +291,29 @@ Three consequences, all of which belong in the write-up:
 
 ## Cost
 
-<!-- cost -->
+4 cores, 15.7 GiB, no GPU, nothing rented. Measured, not estimated:
+
+| | |
+| --- | --- |
+| Kraken2 database build | 19 min 33 s (12,178 sequences, 318 Mbp, 415 MB hash) |
+| Index sample, 10.9 M pairs | 48 s |
+| Background, 10.86 M pairs | 48 s |
+| All five viral parts | under 2 s combined |
+| Composition check (one extra full level) | 48 s |
+| **Classification, everything** | **24.5 min for 250 M read pairs** |
+| Negatives: fetch, QC, host filter | 163 min, median 7.7 min a sample |
+| Whole day, 5 invocations | 191 min |
+| Peak disk, largest single negative | 6.6 GiB |
+| Reads deleted after classification | 17.0 GiB |
+
+The shape of that table is the day's practical finding: **classification is not the
+cost.** 24 minutes of Kraken2 against 250 million read pairs is nothing, and the 17 GiB
+of host-filtered FASTQ that would not fit on this machine existed only to be read once
+by a classifier that took 23 minutes to read all of it. Day 2's disk ceiling was never
+a compute problem, which is why streaming past it cost an hour of fetching rather than a
+larger machine.
+
+The 17.0 GiB deleted is, to the gigabyte, the figure Day 2 predicted would not fit.
 
 ## For Day 4, Day 5 and Day 7
 

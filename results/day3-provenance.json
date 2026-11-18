@@ -3,10 +3,9 @@
     "name": "hindsight arm-a",
     "version": "0.1.0"
   },
-  "generated_at": "2026-11-18T07:54:47+00:00",
+  "generated_at": "2026-11-18T11:00:49+00:00",
   "stages": [
-    "index",
-    "series"
+    "database"
   ],
   "machine": {
     "platform": "Linux-6.18.44-fc-v595-x86_64-with-glibc2.39",
@@ -16,8 +15,8 @@
     "instance_type": null,
     "work_dir_disk": {
       "total_gib": 252.0,
-      "used_gib": 26.1,
-      "free_gib": 12.7
+      "used_gib": 23.9,
+      "free_gib": 14.9
     }
   },
   "tools": [
@@ -131,9 +130,18 @@
     "clades_absent_from_dated_taxonomy": [],
     "headline_clade": "betacoronavirus",
     "source_release": {
-      "cutoff": null,
-      "release": {},
-      "first_excluded_release": null,
+      "time_control": {
+        "catalog_bytes": 1232202633,
+        "catalog_url": "https://ftp.ncbi.nlm.nih.gov/refseq/release/release-catalog/archive/RefSeq-release97.catalog.gz",
+        "cutoff_date": "2019-12-01",
+        "excluded_next_release": {
+          "release": 98,
+          "release_date": "2020-01-06"
+        },
+        "release": 97,
+        "release_date": "2019-11-04",
+        "rule": "last RefSeq release issued strictly before the cutoff date"
+      },
       "counts": null,
       "taxonomy": {
         "check": {
@@ -766,7 +774,7 @@
       }
     }
   },
-  "wall_clock_seconds": 50.3,
+  "wall_clock_seconds": 14.7,
   "runs": [
     {
       "generated_at": "2026-11-18T07:45:57+00:00",
@@ -791,6 +799,101 @@
         "series"
       ],
       "wall_clock_seconds": 50.3,
+      "negatives": []
+    },
+    {
+      "generated_at": "2026-11-18T07:49:24+00:00",
+      "stages": [
+        "negatives"
+      ],
+      "wall_clock_seconds": 11180.1,
+      "negatives": [
+        "SRR13677553",
+        "SRR13677559",
+        "SRR13677560",
+        "SRR13677589",
+        "SRR13677700",
+        "SRR13677717",
+        "SRR13677722",
+        "SRR13677730",
+        "SRR13677740",
+        "SRR13677744",
+        "SRR13677748",
+        "SRR13677777",
+        "SRR13677842",
+        "SRR13677843",
+        "SRR13677844",
+        "SRR13677878",
+        "SRR13677921",
+        "SRR13677922",
+        "SRR13677975",
+        "SRR13677977"
+      ]
+    },
+    {
+      "generated_at": "2026-11-18T10:57:07+00:00",
+      "stages": [
+        "negatives"
+      ],
+      "wall_clock_seconds": 40.2,
+      "negatives": [
+        "SRR13677553",
+        "SRR13677559",
+        "SRR13677560",
+        "SRR13677589",
+        "SRR13677700",
+        "SRR13677717",
+        "SRR13677722",
+        "SRR13677730",
+        "SRR13677740",
+        "SRR13677744",
+        "SRR13677748",
+        "SRR13677777",
+        "SRR13677842",
+        "SRR13677843",
+        "SRR13677844",
+        "SRR13677878",
+        "SRR13677921",
+        "SRR13677922",
+        "SRR13677975",
+        "SRR13677977"
+      ]
+    },
+    {
+      "generated_at": "2026-11-18T10:58:47+00:00",
+      "stages": [
+        "negatives"
+      ],
+      "wall_clock_seconds": 38.7,
+      "negatives": [
+        "SRR13677553",
+        "SRR13677559",
+        "SRR13677560",
+        "SRR13677589",
+        "SRR13677700",
+        "SRR13677717",
+        "SRR13677722",
+        "SRR13677730",
+        "SRR13677740",
+        "SRR13677744",
+        "SRR13677748",
+        "SRR13677777",
+        "SRR13677842",
+        "SRR13677843",
+        "SRR13677844",
+        "SRR13677878",
+        "SRR13677921",
+        "SRR13677922",
+        "SRR13677975",
+        "SRR13677977"
+      ]
+    },
+    {
+      "generated_at": "2026-11-18T11:00:49+00:00",
+      "stages": [
+        "database"
+      ],
+      "wall_clock_seconds": 14.7,
       "negatives": []
     }
   ],
@@ -981,5 +1084,2406 @@
     "max_mapq": 18,
     "all_below_the_label_threshold": true,
     "conclusion": "71 of 78 fragments align to NC_045512.2, every mate below the label's MAPQ >= 20 cut-off. These are viral reads the ground-truth label declined to count, not classifier false positives, so the sample's viral content is slightly larger than the benchmark credits and the arm's apparent false-positive rate on its own background is not one."
+  },
+  "negatives": [
+    {
+      "name": "SRR13677553_nonhost",
+      "pairs": 16208470,
+      "classified": 6979162,
+      "unclassified": 9229308,
+      "seconds": 99.9,
+      "report": "work/arm-a/negatives/SRR13677553_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677553_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 6979162,
+        "riboviria": 6758689,
+        "nidovirales": 1,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 42789,
+          "reads": 6391114,
+          "taxon": "Enterovirus D68"
+        },
+        {
+          "taxid": 11665,
+          "reads": 206616,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 1330521,
+          "reads": 136443,
+          "taxon": "Enterovirus J"
+        },
+        {
+          "taxid": 12059,
+          "reads": 123357,
+          "taxon": "Enterovirus"
+        },
+        {
+          "taxid": 1604871,
+          "reads": 53012,
+          "taxon": "Yak enterovirus"
+        },
+        {
+          "taxid": 310907,
+          "reads": 28602,
+          "taxon": "Enterovirus H"
+        },
+        {
+          "taxid": 2220002,
+          "reads": 20441,
+          "taxon": "Sichuan takin enterovirus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 7802,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 335341,
+          "reads": 2090,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 138951,
+          "reads": 1812,
+          "taxon": "Enterovirus D"
+        },
+        {
+          "taxid": 482822,
+          "reads": 1265,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 10678,
+          "reads": 1086,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 838,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 866553,
+          "reads": 636,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 10662,
+          "reads": 582,
+          "taxon": "Myoviridae"
+        }
+      ],
+      "accession": "SRR13677553",
+      "role": "negative",
+      "pruned_bytes": 1331439861,
+      "reads": {
+        "raw_pairs": 16223037,
+        "qc_pairs": 16220254,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 16208470,
+        "prepare_seconds": 731.5,
+        "source": "sra-odp-chunked"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677559_nonhost",
+      "pairs": 7352366,
+      "classified": 575954,
+      "unclassified": 6776412,
+      "seconds": 36.0,
+      "report": "work/arm-a/negatives/SRR13677559_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677559_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 575954,
+        "riboviria": 45561,
+        "nidovirales": 1,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 499690,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 42789,
+          "reads": 42200,
+          "taxon": "Enterovirus D68"
+        },
+        {
+          "taxid": 56947,
+          "reads": 12494,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 6697,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 866553,
+          "reads": 2671,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 186765,
+          "reads": 2332,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 1517,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 1414655,
+          "reads": 1102,
+          "taxon": "Pepper chlorotic spot virus"
+        },
+        {
+          "taxid": 196896,
+          "reads": 987,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 10678,
+          "reads": 813,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 28883,
+          "reads": 699,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 12059,
+          "reads": 646,
+          "taxon": "Enterovirus"
+        },
+        {
+          "taxid": 1604871,
+          "reads": 440,
+          "taxon": "Yak enterovirus"
+        },
+        {
+          "taxid": 310907,
+          "reads": 420,
+          "taxon": "Enterovirus H"
+        },
+        {
+          "taxid": 1982076,
+          "reads": 382,
+          "taxon": "Korravirus"
+        }
+      ],
+      "accession": "SRR13677559",
+      "role": "negative",
+      "pruned_bytes": 676457349,
+      "reads": {
+        "raw_pairs": 7367653,
+        "qc_pairs": 7362549,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 7352366,
+        "prepare_seconds": 334.4,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677560_nonhost",
+      "pairs": 8626459,
+      "classified": 279935,
+      "unclassified": 8346524,
+      "seconds": 41.8,
+      "report": "work/arm-a/negatives/SRR13677560_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677560_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 279935,
+        "riboviria": 6149,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 251413,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 7427,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 866553,
+          "reads": 3367,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 335341,
+          "reads": 2425,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 10678,
+          "reads": 2421,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 10662,
+          "reads": 2167,
+          "taxon": "Myoviridae"
+        },
+        {
+          "taxid": 482822,
+          "reads": 1835,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 1923133,
+          "reads": 1512,
+          "taxon": "Hubei picorna-like virus 51"
+        },
+        {
+          "taxid": 42789,
+          "reads": 1401,
+          "taxon": "Enterovirus D68"
+        },
+        {
+          "taxid": 113366,
+          "reads": 805,
+          "taxon": "Heliothis virescens ascovirus 3a"
+        },
+        {
+          "taxid": 28883,
+          "reads": 796,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 1826170,
+          "reads": 418,
+          "taxon": "Tokyovirus A1"
+        },
+        {
+          "taxid": 1813771,
+          "reads": 402,
+          "taxon": "Salmonella phage 118970_sal3"
+        },
+        {
+          "taxid": 196896,
+          "reads": 325,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 467481,
+          "reads": 324,
+          "taxon": "Azospirillum phage Cd"
+        }
+      ],
+      "accession": "SRR13677560",
+      "role": "negative",
+      "pruned_bytes": 783831531,
+      "reads": {
+        "raw_pairs": 8640651,
+        "qc_pairs": 8636036,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 8626459,
+        "prepare_seconds": 359.5,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677589_nonhost",
+      "pairs": 16647038,
+      "classified": 1225223,
+      "unclassified": 15421815,
+      "seconds": 85.9,
+      "report": "work/arm-a/negatives/SRR13677589_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677589_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 1225223,
+        "riboviria": 453399,
+        "nidovirales": 5,
+        "coronaviridae": 3,
+        "orthocoronavirinae": 3,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 712900,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 12235,
+          "reads": 448844,
+          "taxon": "Cucumber green mottle mosaic virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 35283,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 4457,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 2837,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 10678,
+          "reads": 2826,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 866553,
+          "reads": 2554,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 335341,
+          "reads": 2179,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 196896,
+          "reads": 1923,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 28883,
+          "reads": 1486,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 42789,
+          "reads": 1112,
+          "taxon": "Enterovirus D68"
+        },
+        {
+          "taxid": 186765,
+          "reads": 738,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 1094892,
+          "reads": 687,
+          "taxon": "Megavirus chiliensis"
+        },
+        {
+          "taxid": 1913653,
+          "reads": 684,
+          "taxon": "Gelderlandvirus"
+        },
+        {
+          "taxid": 1542477,
+          "reads": 676,
+          "taxon": "Prochlorococcus phage P-TIM68"
+        }
+      ],
+      "accession": "SRR13677589",
+      "role": "negative",
+      "pruned_bytes": 1503238553,
+      "reads": {
+        "raw_pairs": 16704796,
+        "qc_pairs": 16693494,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 16647038,
+        "prepare_seconds": 788.7,
+        "source": "sra-odp-chunked"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [
+        {
+          "taxid": 1241933,
+          "reads": 2,
+          "taxon": "Rousettus bat coronavirus HKU10"
+        },
+        {
+          "taxid": 11137,
+          "reads": 1,
+          "taxon": "Human coronavirus 229E"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 1,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677700_nonhost",
+      "pairs": 10530048,
+      "classified": 336785,
+      "unclassified": 10193263,
+      "seconds": 53.4,
+      "report": "work/arm-a/negatives/SRR13677700_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677700_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 336785,
+        "riboviria": 6649,
+        "nidovirales": 109,
+        "coronaviridae": 57,
+        "orthocoronavirinae": 57,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 306844,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 10756,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 3724,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 660954,
+          "reads": 3134,
+          "taxon": "Oxbow virus"
+        },
+        {
+          "taxid": 12239,
+          "reads": 2958,
+          "taxon": "Pepper mild mottle virus"
+        },
+        {
+          "taxid": 1732063,
+          "reads": 1379,
+          "taxon": "Staphylococcus phage SPbeta-like"
+        },
+        {
+          "taxid": 28883,
+          "reads": 845,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 10678,
+          "reads": 842,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 711,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 10359,
+          "reads": 601,
+          "taxon": "Human betaherpesvirus 5"
+        },
+        {
+          "taxid": 196896,
+          "reads": 485,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1529605,
+          "reads": 440,
+          "taxon": "Cladosporium cladosporioides virus 1"
+        },
+        {
+          "taxid": 186765,
+          "reads": 397,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 1589733,
+          "reads": 299,
+          "taxon": "Cyanophage P-TIM40"
+        },
+        {
+          "taxid": 1293539,
+          "reads": 276,
+          "taxon": "Choristoneura rosaceana entomopoxvirus 'L'"
+        }
+      ],
+      "accession": "SRR13677700",
+      "role": "negative",
+      "pruned_bytes": 934155386,
+      "reads": {
+        "raw_pairs": 10579737,
+        "qc_pairs": 10575169,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 10530048,
+        "prepare_seconds": 443.9,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [
+        {
+          "taxid": 277944,
+          "reads": 46,
+          "taxon": "Human coronavirus NL63"
+        },
+        {
+          "taxid": 1159906,
+          "reads": 11,
+          "taxon": "Sparrow coronavirus HKU17"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 46,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677717_nonhost",
+      "pairs": 13485565,
+      "classified": 32107,
+      "unclassified": 13453458,
+      "seconds": 54.1,
+      "report": "work/arm-a/negatives/SRR13677717_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677717_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 32107,
+        "riboviria": 3120,
+        "nidovirales": 1,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 20343,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 335341,
+          "reads": 2558,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 56947,
+          "reads": 2256,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 445686,
+          "reads": 910,
+          "taxon": "Synechococcus phage S-SSM7"
+        },
+        {
+          "taxid": 196896,
+          "reads": 698,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1962671,
+          "reads": 641,
+          "taxon": "Serratia phage BF"
+        },
+        {
+          "taxid": 482822,
+          "reads": 463,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 1674927,
+          "reads": 445,
+          "taxon": "Streptomyces phage Lannister"
+        },
+        {
+          "taxid": 1132574,
+          "reads": 287,
+          "taxon": "unclassified Autographivirinae"
+        },
+        {
+          "taxid": 1414655,
+          "reads": 200,
+          "taxon": "Pepper chlorotic spot virus"
+        },
+        {
+          "taxid": 186765,
+          "reads": 178,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 28883,
+          "reads": 153,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 866553,
+          "reads": 139,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 1273711,
+          "reads": 126,
+          "taxon": "Synechococcus phage S-CBP1"
+        },
+        {
+          "taxid": 445685,
+          "reads": 113,
+          "taxon": "Synechococcus phage S-SSM5"
+        }
+      ],
+      "accession": "SRR13677717",
+      "role": "negative",
+      "pruned_bytes": 955630223,
+      "reads": {
+        "raw_pairs": 13495369,
+        "qc_pairs": 13488937,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 13485565,
+        "prepare_seconds": 497.3,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677722_nonhost",
+      "pairs": 10593553,
+      "classified": 248206,
+      "unclassified": 10345347,
+      "seconds": 50.6,
+      "report": "work/arm-a/negatives/SRR13677722_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677722_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 248206,
+        "riboviria": 1103,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 235034,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 3268,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 10699,
+          "reads": 1195,
+          "taxon": "Siphoviridae"
+        },
+        {
+          "taxid": 1430444,
+          "reads": 855,
+          "taxon": "Escherichia phage vB_EcoM_JS09"
+        },
+        {
+          "taxid": 1459044,
+          "reads": 729,
+          "taxon": "Long Island tick rhabdovirus"
+        },
+        {
+          "taxid": 866553,
+          "reads": 706,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 482822,
+          "reads": 641,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 186765,
+          "reads": 617,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 608,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 196896,
+          "reads": 588,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 382359,
+          "reads": 582,
+          "taxon": "Synechococcus phage syn9"
+        },
+        {
+          "taxid": 10678,
+          "reads": 556,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 28883,
+          "reads": 520,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 1883370,
+          "reads": 324,
+          "taxon": "Erwinia phage vB_EamM_Asesino"
+        },
+        {
+          "taxid": 444862,
+          "reads": 188,
+          "taxon": "Prochlorococcus phage P-RSM4"
+        }
+      ],
+      "accession": "SRR13677722",
+      "role": "negative",
+      "pruned_bytes": 923417968,
+      "reads": {
+        "raw_pairs": 10614023,
+        "qc_pairs": 10610341,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 10593553,
+        "prepare_seconds": 439.3,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677730_nonhost",
+      "pairs": 14405840,
+      "classified": 24891,
+      "unclassified": 14380949,
+      "seconds": 57.1,
+      "report": "work/arm-a/negatives/SRR13677730_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677730_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 24891,
+        "riboviria": 9797,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 9047,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 335341,
+          "reads": 8653,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 56947,
+          "reads": 1732,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 518987,
+          "reads": 491,
+          "taxon": "Influenza B virus (B/Lee/1940)"
+        },
+        {
+          "taxid": 1674927,
+          "reads": 473,
+          "taxon": "Streptomyces phage Lannister"
+        },
+        {
+          "taxid": 482822,
+          "reads": 430,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 1962671,
+          "reads": 391,
+          "taxon": "Serratia phage BF"
+        },
+        {
+          "taxid": 186765,
+          "reads": 303,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 445686,
+          "reads": 296,
+          "taxon": "Synechococcus phage S-SSM7"
+        },
+        {
+          "taxid": 196896,
+          "reads": 216,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 906669,
+          "reads": 186,
+          "taxon": "Escherichia phage HK639"
+        },
+        {
+          "taxid": 866553,
+          "reads": 176,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 444859,
+          "reads": 135,
+          "taxon": "Synechococcus phage S-SM1"
+        },
+        {
+          "taxid": 1196844,
+          "reads": 94,
+          "taxon": "Hpunavirus"
+        },
+        {
+          "taxid": 406340,
+          "reads": 92,
+          "taxon": "Ralstonia virus RSA1"
+        }
+      ],
+      "accession": "SRR13677730",
+      "role": "negative",
+      "pruned_bytes": 1009317314,
+      "reads": {
+        "raw_pairs": 14411213,
+        "qc_pairs": 14408057,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 14405840,
+        "prepare_seconds": 518.8,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677740_nonhost",
+      "pairs": 18327802,
+      "classified": 24155,
+      "unclassified": 18303647,
+      "seconds": 76.8,
+      "report": "work/arm-a/negatives/SRR13677740_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677740_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 24155,
+        "riboviria": 968,
+        "nidovirales": 4,
+        "coronaviridae": 3,
+        "orthocoronavirinae": 3,
+        "betacoronavirus": 1,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 12723,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 2961,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 1674927,
+          "reads": 1065,
+          "taxon": "Streptomyces phage Lannister"
+        },
+        {
+          "taxid": 445686,
+          "reads": 685,
+          "taxon": "Synechococcus phage S-SSM7"
+        },
+        {
+          "taxid": 196896,
+          "reads": 682,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1962671,
+          "reads": 619,
+          "taxon": "Serratia phage BF"
+        },
+        {
+          "taxid": 482822,
+          "reads": 490,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 573824,
+          "reads": 461,
+          "taxon": "Human rhinovirus A1"
+        },
+        {
+          "taxid": 1414655,
+          "reads": 314,
+          "taxon": "Pepper chlorotic spot virus"
+        },
+        {
+          "taxid": 866553,
+          "reads": 298,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 1147152,
+          "reads": 260,
+          "taxon": "Enterobacteria phage mEp460"
+        },
+        {
+          "taxid": 1589733,
+          "reads": 179,
+          "taxon": "Cyanophage P-TIM40"
+        },
+        {
+          "taxid": 1815968,
+          "reads": 154,
+          "taxon": "Salmonella phage SJ46"
+        },
+        {
+          "taxid": 1542477,
+          "reads": 153,
+          "taxon": "Prochlorococcus phage P-TIM68"
+        },
+        {
+          "taxid": 196242,
+          "reads": 144,
+          "taxon": "Enterobacteria phage BP-4795"
+        }
+      ],
+      "accession": "SRR13677740",
+      "role": "negative",
+      "pruned_bytes": 1256277934,
+      "reads": {
+        "raw_pairs": 18339367,
+        "qc_pairs": 18331413,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 18327802,
+        "prepare_seconds": 717.2,
+        "source": "sra-odp-chunked"
+      },
+      "false_alarm_reads": 1,
+      "false_alarm_per_million_nonhost": 0.05456191637164129,
+      "coronavirus_taxa": [
+        {
+          "taxid": 11120,
+          "reads": 2,
+          "taxon": "Infectious bronchitis virus"
+        },
+        {
+          "taxid": 290028,
+          "reads": 1,
+          "taxon": "Human coronavirus HKU1"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 1,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677744_nonhost",
+      "pairs": 18279498,
+      "classified": 34087,
+      "unclassified": 18245411,
+      "seconds": 73.2,
+      "report": "work/arm-a/negatives/SRR13677744_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677744_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 34087,
+        "riboviria": 4753,
+        "nidovirales": 3,
+        "coronaviridae": 1,
+        "orthocoronavirinae": 1,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 16309,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 5440,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 335341,
+          "reads": 4065,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 1674927,
+          "reads": 1623,
+          "taxon": "Streptomyces phage Lannister"
+        },
+        {
+          "taxid": 196896,
+          "reads": 711,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 445686,
+          "reads": 707,
+          "taxon": "Synechococcus phage S-SSM7"
+        },
+        {
+          "taxid": 1962671,
+          "reads": 677,
+          "taxon": "Serratia phage BF"
+        },
+        {
+          "taxid": 1132574,
+          "reads": 303,
+          "taxon": "unclassified Autographivirinae"
+        },
+        {
+          "taxid": 444859,
+          "reads": 302,
+          "taxon": "Synechococcus phage S-SM1"
+        },
+        {
+          "taxid": 482822,
+          "reads": 268,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 866553,
+          "reads": 262,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 518987,
+          "reads": 232,
+          "taxon": "Influenza B virus (B/Lee/1940)"
+        },
+        {
+          "taxid": 1273711,
+          "reads": 227,
+          "taxon": "Synechococcus phage S-CBP1"
+        },
+        {
+          "taxid": 1589733,
+          "reads": 211,
+          "taxon": "Cyanophage P-TIM40"
+        },
+        {
+          "taxid": 186765,
+          "reads": 169,
+          "taxon": "Lambdavirus"
+        }
+      ],
+      "accession": "SRR13677744",
+      "role": "negative",
+      "pruned_bytes": 1224065679,
+      "reads": {
+        "raw_pairs": 18289532,
+        "qc_pairs": 18283563,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 18279498,
+        "prepare_seconds": 724.5,
+        "source": "sra-odp-chunked"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [
+        {
+          "taxid": 1699095,
+          "reads": 1,
+          "taxon": "Camel alphacoronavirus"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 1,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677748_nonhost",
+      "pairs": 23767399,
+      "classified": 14820112,
+      "unclassified": 8947287,
+      "seconds": 378.7,
+      "report": "work/arm-a/negatives/SRR13677748_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677748_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 14820112,
+        "riboviria": 14812359,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 335341,
+          "reads": 14404290,
+          "taxon": "Influenza A virus (A/New York/392/2004(H3N2))"
+        },
+        {
+          "taxid": 130760,
+          "reads": 93068,
+          "taxon": "Influenza A virus (A/Hong Kong/1073/99(H9N2))"
+        },
+        {
+          "taxid": 641809,
+          "reads": 80890,
+          "taxon": "Influenza A virus (A/California/07/2009(H1N1))"
+        },
+        {
+          "taxid": 11320,
+          "reads": 73360,
+          "taxon": "Influenza A virus"
+        },
+        {
+          "taxid": 211044,
+          "reads": 61853,
+          "taxon": "Influenza A virus (A/Puerto Rico/8/1934(H1N1))"
+        },
+        {
+          "taxid": 93838,
+          "reads": 45145,
+          "taxon": "Influenza A virus (A/goose/Guangdong/1/1996(H5N1))"
+        },
+        {
+          "taxid": 488241,
+          "reads": 32900,
+          "taxon": "Influenza A virus (A/Korea/426/1968(H2N2))"
+        },
+        {
+          "taxid": 1332244,
+          "reads": 19295,
+          "taxon": "Influenza A virus (A/Shanghai/02/2013(H7N9))"
+        },
+        {
+          "taxid": 11665,
+          "reads": 3178,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 2684,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 114727,
+          "reads": 921,
+          "taxon": "H1N1 subtype"
+        },
+        {
+          "taxid": 518987,
+          "reads": 506,
+          "taxon": "Influenza B virus (B/Lee/1940)"
+        },
+        {
+          "taxid": 1674927,
+          "reads": 220,
+          "taxon": "Streptomyces phage Lannister"
+        },
+        {
+          "taxid": 1962671,
+          "reads": 207,
+          "taxon": "Serratia phage BF"
+        },
+        {
+          "taxid": 445686,
+          "reads": 192,
+          "taxon": "Synechococcus phage S-SSM7"
+        }
+      ],
+      "accession": "SRR13677748",
+      "role": "negative",
+      "pruned_bytes": 1943472701,
+      "reads": {
+        "raw_pairs": 23771369,
+        "qc_pairs": 23769003,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 23767399,
+        "prepare_seconds": 1036.0,
+        "source": "sra-odp-chunked"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677777_nonhost",
+      "pairs": 144001,
+      "classified": 404,
+      "unclassified": 143597,
+      "seconds": 0.9,
+      "report": "work/arm-a/negatives/SRR13677777_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677777_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 404,
+        "riboviria": 12,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 291,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 28,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 445686,
+          "reads": 9,
+          "taxon": "Synechococcus phage S-SSM7"
+        },
+        {
+          "taxid": 196896,
+          "reads": 7,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 186765,
+          "reads": 5,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 5,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 866553,
+          "reads": 5,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 1414655,
+          "reads": 4,
+          "taxon": "Pepper chlorotic spot virus"
+        },
+        {
+          "taxid": 1458842,
+          "reads": 4,
+          "taxon": "Geobacillus phage GBK2"
+        },
+        {
+          "taxid": 1589733,
+          "reads": 3,
+          "taxon": "Cyanophage P-TIM40"
+        },
+        {
+          "taxid": 2047869,
+          "reads": 3,
+          "taxon": "Corynebacterium phage Darwin"
+        },
+        {
+          "taxid": 12188,
+          "reads": 2,
+          "taxon": "White clover mosaic virus"
+        },
+        {
+          "taxid": 28883,
+          "reads": 2,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 48543,
+          "reads": 2,
+          "taxon": "Whataroa virus"
+        },
+        {
+          "taxid": 148943,
+          "reads": 2,
+          "taxon": "Rhodothermus phage RM378"
+        }
+      ],
+      "accession": "SRR13677777",
+      "role": "negative",
+      "pruned_bytes": 10737418,
+      "reads": {
+        "raw_pairs": 144165,
+        "qc_pairs": 144044,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 144001,
+        "prepare_seconds": 16.0,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677842_nonhost",
+      "pairs": 3144022,
+      "classified": 361058,
+      "unclassified": 2782964,
+      "seconds": 19.6,
+      "report": "work/arm-a/negatives/SRR13677842_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677842_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 361058,
+        "riboviria": 283741,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 573824,
+          "reads": 281804,
+          "taxon": "Human rhinovirus A1"
+        },
+        {
+          "taxid": 11665,
+          "reads": 62531,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 10831,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 56947,
+          "reads": 2123,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 866553,
+          "reads": 571,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 641809,
+          "reads": 538,
+          "taxon": "Influenza A virus (A/California/07/2009(H1N1))"
+        },
+        {
+          "taxid": 12064,
+          "reads": 477,
+          "taxon": "Enterovirus E"
+        },
+        {
+          "taxid": 12059,
+          "reads": 313,
+          "taxon": "Enterovirus"
+        },
+        {
+          "taxid": 929831,
+          "reads": 236,
+          "taxon": "Simian Agent 10"
+        },
+        {
+          "taxid": 268746,
+          "reads": 159,
+          "taxon": "Prochlorococcus phage P-SSM2"
+        },
+        {
+          "taxid": 10678,
+          "reads": 152,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 47681,
+          "reads": 150,
+          "taxon": "Enterovirus sp."
+        },
+        {
+          "taxid": 563769,
+          "reads": 137,
+          "taxon": "Stx2-converting phage 1717"
+        },
+        {
+          "taxid": 28883,
+          "reads": 131,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 42789,
+          "reads": 113,
+          "taxon": "Enterovirus D68"
+        }
+      ],
+      "accession": "SRR13677842",
+      "role": "negative",
+      "pruned_bytes": 289910292,
+      "reads": {
+        "raw_pairs": 3147336,
+        "qc_pairs": 3146405,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 3144022,
+        "prepare_seconds": 150.7,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677843_nonhost",
+      "pairs": 9407026,
+      "classified": 32011,
+      "unclassified": 9375015,
+      "seconds": 47.1,
+      "report": "work/arm-a/negatives/SRR13677843_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677843_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 32011,
+        "riboviria": 272,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 26551,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 947,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 1392231,
+          "reads": 804,
+          "taxon": "Streptococcus phage 20617"
+        },
+        {
+          "taxid": 196896,
+          "reads": 624,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 683735,
+          "reads": 304,
+          "taxon": "Aggregatibacter phage S1249"
+        },
+        {
+          "taxid": 1542477,
+          "reads": 210,
+          "taxon": "Prochlorococcus phage P-TIM68"
+        },
+        {
+          "taxid": 1452540,
+          "reads": 173,
+          "taxon": "Felis catus gammaherpesvirus 1"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 157,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 536466,
+          "reads": 151,
+          "taxon": "Synechococcus phage S-SSM4"
+        },
+        {
+          "taxid": 10699,
+          "reads": 103,
+          "taxon": "Siphoviridae"
+        },
+        {
+          "taxid": 186765,
+          "reads": 94,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 1969841,
+          "reads": 88,
+          "taxon": "Proteus phage VB_PmiS-Isfahan"
+        },
+        {
+          "taxid": 28883,
+          "reads": 77,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 866553,
+          "reads": 76,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 1815968,
+          "reads": 76,
+          "taxon": "Salmonella phage SJ46"
+        }
+      ],
+      "accession": "SRR13677843",
+      "role": "negative",
+      "pruned_bytes": 837518622,
+      "reads": {
+        "raw_pairs": 9411202,
+        "qc_pairs": 9410053,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 9407026,
+        "prepare_seconds": 424.3,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677844_nonhost",
+      "pairs": 6392282,
+      "classified": 242050,
+      "unclassified": 6150232,
+      "seconds": 36.4,
+      "report": "work/arm-a/negatives/SRR13677844_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677844_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 242050,
+        "riboviria": 1020,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 221631,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 6865,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 10280,
+          "reads": 2585,
+          "taxon": "Molluscum contagiosum virus subtype 1"
+        },
+        {
+          "taxid": 482822,
+          "reads": 2504,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 866553,
+          "reads": 2128,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 186765,
+          "reads": 1990,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 28883,
+          "reads": 478,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 431,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 1414655,
+          "reads": 384,
+          "taxon": "Pepper chlorotic spot virus"
+        },
+        {
+          "taxid": 10678,
+          "reads": 366,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 641809,
+          "reads": 331,
+          "taxon": "Influenza A virus (A/California/07/2009(H1N1))"
+        },
+        {
+          "taxid": 10662,
+          "reads": 274,
+          "taxon": "Myoviridae"
+        },
+        {
+          "taxid": 444859,
+          "reads": 222,
+          "taxon": "Synechococcus phage S-SM1"
+        },
+        {
+          "taxid": 929831,
+          "reads": 205,
+          "taxon": "Simian Agent 10"
+        },
+        {
+          "taxid": 268746,
+          "reads": 176,
+          "taxon": "Prochlorococcus phage P-SSM2"
+        }
+      ],
+      "accession": "SRR13677844",
+      "role": "negative",
+      "pruned_bytes": 590558003,
+      "reads": {
+        "raw_pairs": 6406587,
+        "qc_pairs": 6402747,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 6392282,
+        "prepare_seconds": 290.1,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677878_nonhost",
+      "pairs": 14773932,
+      "classified": 5044091,
+      "unclassified": 9729841,
+      "seconds": 77.4,
+      "report": "work/arm-a/negatives/SRR13677878_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677878_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 5044091,
+        "riboviria": 5027074,
+        "nidovirales": 11,
+        "coronaviridae": 11,
+        "orthocoronavirinae": 11,
+        "betacoronavirus": 11,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 42789,
+          "reads": 4812459,
+          "taxon": "Enterovirus D68"
+        },
+        {
+          "taxid": 1330521,
+          "reads": 73096,
+          "taxon": "Enterovirus J"
+        },
+        {
+          "taxid": 1604871,
+          "reads": 57695,
+          "taxon": "Yak enterovirus"
+        },
+        {
+          "taxid": 12059,
+          "reads": 43912,
+          "taxon": "Enterovirus"
+        },
+        {
+          "taxid": 310907,
+          "reads": 18295,
+          "taxon": "Enterovirus H"
+        },
+        {
+          "taxid": 138950,
+          "reads": 17731,
+          "taxon": "Enterovirus C"
+        },
+        {
+          "taxid": 11665,
+          "reads": 14119,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 138951,
+          "reads": 1913,
+          "taxon": "Enterovirus D"
+        },
+        {
+          "taxid": 56947,
+          "reads": 1003,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 1637527,
+          "reads": 929,
+          "taxon": "Dromedary camel enterovirus 19CC"
+        },
+        {
+          "taxid": 482822,
+          "reads": 519,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 1849328,
+          "reads": 322,
+          "taxon": "Enterovirus goat/JL14"
+        },
+        {
+          "taxid": 10678,
+          "reads": 306,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 1826059,
+          "reads": 205,
+          "taxon": "Enterovirus SEV-gx"
+        },
+        {
+          "taxid": 12235,
+          "reads": 155,
+          "taxon": "Cucumber green mottle mosaic virus"
+        }
+      ],
+      "accession": "SRR13677878",
+      "role": "negative",
+      "pruned_bytes": 1030792151,
+      "reads": {
+        "raw_pairs": 15639026,
+        "qc_pairs": 14776928,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 14773932,
+        "prepare_seconds": 684.7,
+        "source": "sra-odp-chunked"
+      },
+      "false_alarm_reads": 11,
+      "false_alarm_per_million_nonhost": 0.7445546656096698,
+      "coronavirus_taxa": [
+        {
+          "taxid": 31631,
+          "reads": 9,
+          "taxon": "Human coronavirus OC43"
+        },
+        {
+          "taxid": 694003,
+          "reads": 2,
+          "taxon": "Betacoronavirus 1"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 11,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677921_nonhost",
+      "pairs": 1973266,
+      "classified": 56468,
+      "unclassified": 1916798,
+      "seconds": 11.4,
+      "report": "work/arm-a/negatives/SRR13677921_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677921_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 56468,
+        "riboviria": 21,
+        "nidovirales": 0,
+        "coronaviridae": 0,
+        "orthocoronavirinae": 0,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 52953,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 1716,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 395,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 866553,
+          "reads": 391,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 186765,
+          "reads": 161,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 1049283,
+          "reads": 142,
+          "taxon": "Acinetobacter phage ZZ1"
+        },
+        {
+          "taxid": 10678,
+          "reads": 107,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 2560112,
+          "reads": 95,
+          "taxon": "Cetovirus"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 71,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 28883,
+          "reads": 65,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 196896,
+          "reads": 50,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1610836,
+          "reads": 49,
+          "taxon": "Enterobacteria phage JenK1"
+        },
+        {
+          "taxid": 1969841,
+          "reads": 31,
+          "taxon": "Proteus phage VB_PmiS-Isfahan"
+        },
+        {
+          "taxid": 1198136,
+          "reads": 22,
+          "taxon": "Tevenvirinae"
+        },
+        {
+          "taxid": 1542477,
+          "reads": 15,
+          "taxon": "Prochlorococcus phage P-TIM68"
+        }
+      ],
+      "accession": "SRR13677921",
+      "role": "negative",
+      "pruned_bytes": 182536110,
+      "reads": {
+        "raw_pairs": 1976149,
+        "qc_pairs": 1975703,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 1973266,
+        "prepare_seconds": 94.7,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677922_nonhost",
+      "pairs": 14751395,
+      "classified": 19239,
+      "unclassified": 14732156,
+      "seconds": 62.8,
+      "report": "work/arm-a/negatives/SRR13677922_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677922_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 19239,
+        "riboviria": 2849,
+        "nidovirales": 2408,
+        "coronaviridae": 2408,
+        "orthocoronavirinae": 2408,
+        "betacoronavirus": 2407,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 11227,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 290028,
+          "reads": 2399,
+          "taxon": "Human coronavirus HKU1"
+        },
+        {
+          "taxid": 1196844,
+          "reads": 1945,
+          "taxon": "Hpunavirus"
+        },
+        {
+          "taxid": 906669,
+          "reads": 724,
+          "taxon": "Escherichia phage HK639"
+        },
+        {
+          "taxid": 56947,
+          "reads": 401,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 1643326,
+          "reads": 363,
+          "taxon": "Bacillus phage phi4J1"
+        },
+        {
+          "taxid": 1273738,
+          "reads": 247,
+          "taxon": "Escherichia phage PBECO 4"
+        },
+        {
+          "taxid": 1923505,
+          "reads": 198,
+          "taxon": "Wenling narna-like virus 5"
+        },
+        {
+          "taxid": 260149,
+          "reads": 139,
+          "taxon": "Aeromonas virus 65"
+        },
+        {
+          "taxid": 1962671,
+          "reads": 127,
+          "taxon": "Serratia phage BF"
+        },
+        {
+          "taxid": 196896,
+          "reads": 124,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1923120,
+          "reads": 111,
+          "taxon": "Hubei picorna-like virus 4"
+        },
+        {
+          "taxid": 2562654,
+          "reads": 93,
+          "taxon": "unclassified Eneladusvirus"
+        },
+        {
+          "taxid": 10662,
+          "reads": 90,
+          "taxon": "Myoviridae"
+        },
+        {
+          "taxid": 693272,
+          "reads": 70,
+          "taxon": "Cafeteria roenbergensis virus BV-PW1"
+        }
+      ],
+      "accession": "SRR13677922",
+      "role": "negative",
+      "pruned_bytes": 934155386,
+      "reads": {
+        "raw_pairs": 14756419,
+        "qc_pairs": 14752099,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 14751395,
+        "prepare_seconds": 614.2,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 2407,
+      "false_alarm_per_million_nonhost": 163.1710085724096,
+      "coronavirus_taxa": [
+        {
+          "taxid": 290028,
+          "reads": 2399,
+          "taxon": "Human coronavirus HKU1"
+        },
+        {
+          "taxid": 1590370,
+          "reads": 5,
+          "taxon": "Betacoronavirus HKU24"
+        },
+        {
+          "taxid": 502102,
+          "reads": 1,
+          "taxon": "Rat coronavirus Parker"
+        },
+        {
+          "taxid": 694003,
+          "reads": 1,
+          "taxon": "Betacoronavirus 1"
+        },
+        {
+          "taxid": 1160968,
+          "reads": 1,
+          "taxon": "Rabbit coronavirus HKU14"
+        },
+        {
+          "taxid": 1964806,
+          "reads": 1,
+          "taxon": "Coronavirus AcCoV-JC34"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 2400,
+      "false_alarm_reads_excluding_endemic": 7
+    },
+    {
+      "name": "SRR13677975_nonhost",
+      "pairs": 9936172,
+      "classified": 202955,
+      "unclassified": 9733217,
+      "seconds": 56.0,
+      "report": "work/arm-a/negatives/SRR13677975_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677975_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 202955,
+        "riboviria": 5212,
+        "nidovirales": 11,
+        "coronaviridae": 11,
+        "orthocoronavirinae": 11,
+        "betacoronavirus": 0,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 172670,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 16899,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 866553,
+          "reads": 2379,
+          "taxon": "Escherichia phage vB_EcoP_24B"
+        },
+        {
+          "taxid": 929831,
+          "reads": 2150,
+          "taxon": "Simian Agent 10"
+        },
+        {
+          "taxid": 1414655,
+          "reads": 2062,
+          "taxon": "Pepper chlorotic spot virus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 1667,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 382359,
+          "reads": 935,
+          "taxon": "Synechococcus phage syn9"
+        },
+        {
+          "taxid": 196896,
+          "reads": 395,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 12305,
+          "reads": 361,
+          "taxon": "Cucumber mosaic virus"
+        },
+        {
+          "taxid": 1883370,
+          "reads": 341,
+          "taxon": "Erwinia phage vB_EamM_Asesino"
+        },
+        {
+          "taxid": 28883,
+          "reads": 286,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 275,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 10678,
+          "reads": 261,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 11216,
+          "reads": 196,
+          "taxon": "Human respirovirus 3"
+        },
+        {
+          "taxid": 1917990,
+          "reads": 168,
+          "taxon": "Bequatrovirus"
+        }
+      ],
+      "accession": "SRR13677975",
+      "role": "negative",
+      "pruned_bytes": 912680550,
+      "reads": {
+        "raw_pairs": 10016745,
+        "qc_pairs": 9971439,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 9936172,
+        "prepare_seconds": 463.8,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 0,
+      "false_alarm_per_million_nonhost": 0.0,
+      "coronavirus_taxa": [
+        {
+          "taxid": 1159906,
+          "reads": 11,
+          "taxon": "Sparrow coronavirus HKU17"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 0,
+      "false_alarm_reads_excluding_endemic": 0
+    },
+    {
+      "name": "SRR13677977_nonhost",
+      "pairs": 9661502,
+      "classified": 473632,
+      "unclassified": 9187870,
+      "seconds": 57.0,
+      "report": "work/arm-a/negatives/SRR13677977_nonhost.kreport",
+      "classified_output": "work/arm-a/negatives/SRR13677977_nonhost.classified.tsv.gz",
+      "clades": {
+        "viruses": 473632,
+        "riboviria": 124,
+        "nidovirales": 1,
+        "coronaviridae": 1,
+        "orthocoronavirinae": 1,
+        "betacoronavirus": 1,
+        "sarbecovirus": 0,
+        "sars_related_cov": 0
+      },
+      "top_taxa": [
+        {
+          "taxid": 11665,
+          "reads": 448647,
+          "taxon": "Equine infectious anemia virus"
+        },
+        {
+          "taxid": 56947,
+          "reads": 8170,
+          "taxon": "Choristoneura fumiferana granulovirus"
+        },
+        {
+          "taxid": 482822,
+          "reads": 5927,
+          "taxon": "Enterobacteria phage DE3"
+        },
+        {
+          "taxid": 186765,
+          "reads": 2099,
+          "taxon": "Lambdavirus"
+        },
+        {
+          "taxid": 196896,
+          "reads": 1196,
+          "taxon": "unclassified Myoviridae"
+        },
+        {
+          "taxid": 1269028,
+          "reads": 1193,
+          "taxon": "Acanthamoeba polyphaga moumouvirus"
+        },
+        {
+          "taxid": 1982251,
+          "reads": 846,
+          "taxon": "Pahexavirus"
+        },
+        {
+          "taxid": 1500798,
+          "reads": 801,
+          "taxon": "Propionibacterium phage PHL009M11"
+        },
+        {
+          "taxid": 1815968,
+          "reads": 598,
+          "taxon": "Salmonella phage SJ46"
+        },
+        {
+          "taxid": 28883,
+          "reads": 530,
+          "taxon": "Caudovirales"
+        },
+        {
+          "taxid": 382359,
+          "reads": 480,
+          "taxon": "Synechococcus phage syn9"
+        },
+        {
+          "taxid": 1815630,
+          "reads": 424,
+          "taxon": "Pseudomonas phage pf16"
+        },
+        {
+          "taxid": 680114,
+          "reads": 345,
+          "taxon": "Bixzunavirus"
+        },
+        {
+          "taxid": 10678,
+          "reads": 339,
+          "taxon": "Escherichia virus P1"
+        },
+        {
+          "taxid": 40631,
+          "reads": 331,
+          "taxon": "Escherichia virus N15"
+        }
+      ],
+      "accession": "SRR13677977",
+      "role": "negative",
+      "pruned_bytes": 891205713,
+      "reads": {
+        "raw_pairs": 9691484,
+        "qc_pairs": 9686269,
+        "redacted_pairs": 0,
+        "capped_pairs": 0,
+        "cap_fraction": 1.0,
+        "nonhost_pairs": 9661502,
+        "prepare_seconds": 454.4,
+        "source": "sra-odp"
+      },
+      "false_alarm_reads": 1,
+      "false_alarm_per_million_nonhost": 0.10350357532400242,
+      "coronavirus_taxa": [
+        {
+          "taxid": 290028,
+          "reads": 1,
+          "taxon": "Human coronavirus HKU1"
+        }
+      ],
+      "endemic_human_coronavirus_reads": 1,
+      "false_alarm_reads_excluding_endemic": 0
+    }
+  ],
+  "false_alarms": {
+    "samples": 20,
+    "non_host_pairs_total": 228407636,
+    "clade": "betacoronavirus",
+    "samples_with_at_least_one_hit": 4,
+    "reads_total": 2420,
+    "reads_max_in_one_sample": 2407,
+    "reads_median_per_sample": 0,
+    "reads_per_million_nonhost": 10.595092363724653,
+    "samples_with_hits": {
+      "SRR13677922": 2407,
+      "SRR13677878": 11,
+      "SRR13677740": 1,
+      "SRR13677977": 1
+    },
+    "excluding_endemic_human_coronaviruses": {
+      "reads_total": 7,
+      "samples_with_at_least_one_hit": 1,
+      "reads_max_in_one_sample": 7,
+      "reads_per_million_nonhost": 0.030646961382674615,
+      "samples_with_hits": {
+        "SRR13677922": 7
+      }
+    },
+    "endemic_human_coronavirus_reads_total": 2461
   }
 }
