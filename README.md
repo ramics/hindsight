@@ -173,6 +173,45 @@ verifiable per run. [`docs/day2-samples.md`](docs/day2-samples.md) has the full
 account, including why the levels are nested, why the negatives are chosen by a seeded
 hash rather than by eye, and what the whole thing costs in wall-clock and disk.
 
+## The arms
+
+With the database and the reads in place, an arm is a detection pipeline run against
+them and scored on what it found. The first one is Kraken2:
+
+```console
+$ scripts/day3.sh
+index sample: 25,928 of 62,117 ground-truth viral fragments in Coronaviridae (41.7%)
+  viral050000: 20,892 of 50,000 detected
+  viral010000:  4,232 of 10,000 detected
+  viral001000:    420 of  1,000 detected
+  viral000100:     39 of    100 detected
+  viral000010:      4 of     10 detected
+```
+
+**A standard read classifier, at its own default settings, against a database that had
+never seen SARS-CoV-2 or any of its relatives discovered after 4 November 2019, placed
+25,928 of the index sample's viral reads in Coronaviridae.** It could not name the
+virus — the virus had no name — and it did not need to.
+
+Down the dilution series the detection *rate* is flat at about 41%, because Kraken2
+classifies each fragment independently, so what falls is the absolute count: four
+coronavirus reads survive at 0.77 viral reads per million. Whether four reads is a
+detection depends on the false-alarm rate, which the 20 pre-COVID negatives measure.
+
+One result from that arm is the argument for this whole tool, and it was found rather
+than predicted. 4,922 of those reads were assigned to *Bat coronavirus
+BM48-31/BGR/2008*, the nearest relative the database holds — and the **November 2019
+taxonomy files that genome under "unclassified coronaviruses", not under
+Betacoronavirus**, where today's tree puts it. Detection at family level is 25,928
+reads; at genus level it is 20,418. A benchmark that dates its sequences but keeps a
+modern taxonomy cannot see that difference, because the modern tree has since moved
+BM48-31 into Sarbecovirus. A classifier's output is a taxon, and taxa move.
+
+[`docs/day3-arm-a.md`](docs/day3-arm-a.md) has the arm in full: the per-clade curve,
+why the negatives run at native depth on a machine that cannot hold them, what the
+index sample's own background turns out to contain, and the one check that the
+composition shortcut behind the series is exact.
+
 ## What this does not give you, and why it matters
 
 Stated plainly, because a benchmark whose database has unexamined properties is not a
@@ -241,7 +280,7 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 ## Development
 
 ```bash
-uv run pytest             # 213 offline tests
+uv run pytest             # 243 offline tests
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```
