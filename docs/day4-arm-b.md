@@ -101,6 +101,78 @@ survives assembly, in pieces under 600 bp. At 10 there is a single 462 bp contig
 report. It rises from 4 to 24 as the signal *falls*, because fragmenting one genome into
 twenty pieces increases the count. Bases and best bitscore both behave; the count does not.
 
+## The read half: it is the assembler that fails, not the search
+
+The table above raises a question the contig half cannot answer. When the arm stops firing
+at 10 fragments, did the **protein search** run out of homology, or did the **assembler**
+run out of coverage? Those have opposite implications — the first says translated search
+cannot see this far, the second says it can and needs more depth — so the arm runs the same
+`diamond blastx` a second way: on the individual reads, with no assembly step at all.
+
+This half is affordable for exactly Arm A's reason. A translated search scores each read
+from that read alone, so a dilution level is the shared background's hits plus that level's
+own viral reads' hits. One expensive pass over 10.86M background pairs, five trivial ones.
+
+The answer is unambiguous:
+
+| viral fragments | per million | read-level detected | read-level rate | contig rate |
+| --- | --- | --- | --- | --- |
+| 50,000 | 3,853 | 46,729 | 93.5% | 98.2% |
+| 10,000 | 771 | 9,344 | 93.4% | 98.3% |
+| 1,000 | 77 | 942 | 94.2% | 93.6% |
+| 100 | 7.7 | 92 | 92.0% | 41.0% |
+| 10 | 0.77 | 9 | **90.0%** | 10.0% |
+
+**The per-read rate is flat at about 93% all the way down to ten fragments.** Nine of the
+ten reads at 0.77 per million are individually recognisable as coronaviral by protein
+homology against a November 2019 database. The homology was there the whole way; what
+collapsed was the assembler's ability to build a contig out of too few reads. Assembly is
+not what makes this virus findable — it is what makes it *nameable*, by producing the
+29 kb object an analyst can look at.
+
+That also quantifies what assembly adds where it works: at 50,000 fragments the contig
+half recovers 98.2% against the read half's 93.5%, because a contig recruits reads whose
+own best protein hit falls below threshold.
+
+### Why a flat rate is not a lower detection limit
+
+It would be easy to stop there and declare the read half the most sensitive arm in the
+benchmark. It is not, and the reason is the same one that undercut the contig half: the
+background.
+
+The spike-free background's 10.86M fragments contain **177 that this search places in
+Coronaviridae** and 22 it places in Sarbecovirus. So a flat 93% detection rate converts
+into a detection *limit* only where the signal clears that floor:
+
+| viral fragments | detected | background floor | ratio |
+| --- | --- | --- | --- |
+| 1,000 | 942 | 177 | 5.3 : 1 |
+| 100 | 92 | 177 | 0.5 : 1 |
+| 10 | 9 | 177 | 0.05 : 1 |
+
+At a hundred fragments the read half is still detecting 92% of them and is nonetheless
+**below its own noise**. Nine true reads among 177 false ones is not a detection by any
+operational standard.
+
+Set against Arm A, this is the day's most important cross-arm observation. Kraken2 found
+**zero** sarbecovirus reads across 228 million non-host pairs from twenty pre-COVID
+negatives, and 35 non-endemic coronaviridae reads — 0.153 per million. Translated search
+at 30% identity produces four orders of magnitude more background than exact 35-mer
+matching does. **Arm B is markedly more sensitive per read and markedly less specific, and
+specificity is what sets a detection limit.**
+
+Two honest caveats on that comparison. The floor above is measured on one sample's own
+background, not on the twenty negatives, and a single library is a single observation —
+which is what the negatives are for. And Day 3 found that most of the index sample's
+apparent sarbecovirus "false positives" were real viral reads its ground-truth label had
+missed, so some of these 177 may be too. Both point the same way: the negatives settle it,
+not this table.
+
+The read half is off for the negatives (`[negatives] read_level = false`), because
+searching 228 million read pairs at `--very-sensitive` is about 49 hours. That is a
+measurement, and it is the one real gap in the day: a read-level false-alarm rate needs a
+machine with more cores, and it is a Day 7 item.
+
 ## The arm alarms on a clean background, and what to do about it
 
 The bottom row of that table is the uncomfortable one. **The spike-free background — the
@@ -162,15 +234,38 @@ so every assembly is also searched at DIAMOND's stock sensitivity. On the index 
 | stock | 1 | 29,809 | 7,120 | ~0.15 min |
 
 **Stock mode found the genome, identically, and found none of the three false positives.**
-On this sample the extra sensitivity bought nothing but noise, at six times the cost — and
-the write-up says so against its own configuration.
 
-That is not yet the whole answer, because the index sample cannot settle it: with 62,117
-viral fragments either mode finds a 29 kb contig easily. The question is whether the extra
-sensitivity buys detections at the *limit*, where the arm is choosing between 462 bases and
-nothing. The comparison therefore runs at every dilution level too, and the per-level
-numbers are in the record under `sensitivity_comparison`. If stock mode holds up at 10 and
-100 fragments, Day 7 should drop `--very-sensitive` and save six times on every search.
+One sample could not settle it, though — with 62,117 viral fragments either mode finds a
+29 kb contig easily. The question is whether the extra sensitivity buys anything at the
+*limit*, where the arm is choosing between 462 bases and nothing. So the comparison runs at
+every dilution level and on the background too:
+
+| | `--very-sensitive` contigs / bases | stock contigs / bases | best bitscore, either mode |
+| --- | --- | --- | --- |
+| background (no spike) | 3 / 2,247 | **0 / 0** | 57.8 → none |
+| 10 fragments | 4 / 2,709 | **1 / 462** | 270 |
+| 100 fragments | 17 / 8,182 | **14 / 5,935** | 319 |
+| 1,000 fragments | 24 / 28,263 | **21 / 26,016** | 2,065 |
+| 10,000 fragments | 5 / 32,437 | **2 / 30,190** | 7,120 |
+| 50,000 fragments | 4 / 32,115 | **1 / 29,868** | 7,120 |
+
+**At every level, stock mode found the same genuine signal at the same bitscore, and none of
+the background floor.** The difference is exactly three contigs everywhere: the three
+background artefacts, which only `--very-sensitive` sees. At the 10-fragment limit stock
+mode returns one contig of 462 bases — the real one — against very-sensitive's four, three
+of which are noise.
+
+So `config/day4.toml`'s argument, which this file quoted above, is wrong on this cohort, and
+the measurement says so plainly: `--very-sensitive` cost six times as much per search and
+contributed nothing but false positives, while stock mode has a **clean zero on a
+spike-free background** and still fires at ten fragments.
+
+The configuration has not been changed, because a setting edited after seeing the result is
+no longer a pre-registered choice, and because one cohort's background is thin evidence for
+a specificity claim. Instead both modes now run on every negative as well — the comparison
+is nearly free beside a 35-minute assembly — so the record carries a false-alarm rate for
+each, measured on twenty real libraries, and Day 5 chooses on that. On present evidence it
+should choose stock.
 
 ## Why every level costs a full assembly
 
@@ -230,10 +325,21 @@ refinement, because the genome contig's LCA *is* the family and a genus-level he
 report zero. And the threshold for Arm B is a bitscore, not a contig count, with the
 negatives measuring where it goes.
 
+Second, the sensitivity question is now a decision rather than an open problem. Stock mode
+matched `--very-sensitive` on genuine signal at every level and produced none of the
+background floor, at a sixth of the cost. The negatives measure both. If they agree, Arm B
+should be scored in stock mode and the tuned setting dropped.
+
+Third, and least comfortable: the read half's flat 93% is not a sensitivity result to quote
+on its own. It is a *mechanism* result — the homology is there at every level — and the
+specificity figure beside it is what turns a rate into a limit. The same discipline applies
+to the contig half's 98%.
+
 **For Day 7.**
 
-- Drop `--very-sensitive` if the per-level comparison confirms the index sample's verdict.
-  Six times faster, and on present evidence cleaner.
+- A read-level false-alarm rate, on a machine with the cores for it. 49 hours at
+  `--very-sensitive` on 4 cores is the only measurement this day wanted and could not
+  afford, and it is the number that would make the read half's 93% quotable.
 - A combined Day 3 + Day 4 runner would classify and assemble each negative in one visit and
   save a whole fetch-and-host-filter pass (163 min). Day 3 had already deleted its negatives'
   reads and ran in a different container, so Day 4 re-staged them.

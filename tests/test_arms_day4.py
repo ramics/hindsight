@@ -148,6 +148,38 @@ def test_merge_does_not_blank_an_existing_stage_with_an_empty_one(tmp_path):
     assert merged["database"]["db"] == "x"
 
 
+def test_false_alarms_carry_the_stock_sensitivity_count_beside_the_tuned_one():
+    """The arm's one tuned setting is decided here, so both rates must be in the record."""
+    negatives = [
+        {
+            "accession": "A",
+            "false_alarm_contigs": 3,
+            "nonhost_pairs": 10,
+            "sensitivity_comparison": {"sensitivity": "default", "false_alarm_contigs": 0},
+        },
+        {
+            "accession": "B",
+            "false_alarm_contigs": 2,
+            "nonhost_pairs": 10,
+            "sensitivity_comparison": {"sensitivity": "default", "false_alarm_contigs": 1},
+        },
+    ]
+    summary = day4.summarise_false_alarms(negatives)
+    assert summary["contigs_total"] == 5
+    compared = summary["at_comparison_sensitivity"]
+    assert compared["sensitivity"] == "default"
+    assert compared["samples_compared"] == 2
+    assert compared["contigs_total"] == 1
+    assert compared["samples_with_at_least_one_clade_contig"] == 1
+
+
+def test_false_alarms_omit_the_comparison_when_none_was_run():
+    summary = day4.summarise_false_alarms(
+        [{"accession": "A", "false_alarm_contigs": 0, "nonhost_pairs": 10}]
+    )
+    assert summary["at_comparison_sensitivity"] is None
+
+
 def test_pruning_keeps_the_largest_figure_across_reruns(tmp_path):
     """A second prune frees 0 bytes, and must not overwrite what the first one freed."""
     assert day4._remember_pruned(tmp_path, "SRR1", 5_000_000) == 5_000_000

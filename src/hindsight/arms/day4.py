@@ -1013,6 +1013,34 @@ def _search_one_negative(arm: ArmConfig, accession: str, taxonomy, clades, *, lo
         name=f"{accession}_nonhost",
         log=log,
     )
+    # The negatives are where sensitivity has to be compared, because they are the only
+    # samples that measure a false-alarm rate — and the series found that --very-sensitive
+    # contributes nothing but false positives there: at every dilution level and on the
+    # spike-free background, stock mode returned the same genuine contigs at the same
+    # bitscores and none of the three background artefacts. The comparison is nearly free
+    # here (the assembly is already built and dominates the cost), so both modes get a
+    # false-alarm rate and Day 5 picks between them on twenty real libraries rather than
+    # on one sample's background.
+    if arm.comparison_sensitivity and arm.comparison_sensitivity != arm.sensitivity:
+        comparison = _contig_arm(
+            arm,
+            r1,
+            r2,
+            out_dir,
+            taxonomy,
+            clades,
+            name=f"{accession}_nonhost",
+            sensitivity=arm.comparison_sensitivity,
+            map_reads_back=False,
+            log=log,
+        )
+        record["sensitivity_comparison"] = {
+            "sensitivity": arm.comparison_sensitivity,
+            "false_alarm_contigs": comparison["contigs_in_headline_clade"],
+            "evidence": comparison["evidence"],
+            "contig_detail": comparison["search"].get("contig_detail", []),
+            "search": comparison["search"].get("meta"),
+        }
     record["accession"] = accession
     record["role"] = "negative"
     nonhost_pairs = record["assembly"].get("read_pairs_in") or 0
@@ -1147,6 +1175,25 @@ def summarise_false_alarms(negatives: list[dict]) -> dict:
         "endemic_human_coronavirus_contigs_total": sum(
             n.get("endemic_human_coronavirus_contigs", 0) for n in negatives
         ),
+        # The same false-alarm rate at stock sensitivity, which is the comparison that
+        # decides the arm's one tuned setting. Only present once the negatives have been
+        # run with a comparison mode configured.
+        "at_comparison_sensitivity": _comparison_false_alarms(negatives),
+    }
+
+
+def _comparison_false_alarms(negatives: list[dict]) -> dict | None:
+    """The false-alarm count the stock-sensitivity run would have reported."""
+    compared = [n for n in negatives if n.get("sensitivity_comparison")]
+    if not compared:
+        return None
+    contigs = [n["sensitivity_comparison"].get("false_alarm_contigs", 0) for n in compared]
+    return {
+        "sensitivity": compared[0]["sensitivity_comparison"].get("sensitivity"),
+        "samples_compared": len(compared),
+        "contigs_total": sum(contigs),
+        "samples_with_at_least_one_clade_contig": sum(1 for c in contigs if c),
+        "contigs_max_in_one_sample": max(contigs) if contigs else 0,
     }
 
 
