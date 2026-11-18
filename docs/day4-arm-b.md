@@ -267,6 +267,39 @@ is nearly free beside a 35-minute assembly — so the record carries a false-ala
 each, measured on twenty real libraries, and Day 5 chooses on that. On present evidence it
 should choose stock.
 
+## A limitation in the negatives that Arm B is more exposed to than Arm A
+
+Worth stating before the false-alarm rate is quoted, because it bounds what that rate
+means. **The twenty pre-COVID negatives are almost free of human reads, and the index
+sample is not.**
+
+| | human reads removed by the host filter |
+| --- | --- |
+| index sample (SRR10971381) | **15.83%** |
+| negatives, median of 20 | **0.075%** |
+| negatives, worst of 20 | 0.43% |
+
+Two orders of magnitude apart. The negative cohort appears to have been host-depleted or
+virome-enriched before submission, so its reads reach the arms already clean, while the
+positive sample arrives 16% human even after NCBI's own redaction has stripped half the
+spots.
+
+That asymmetry costs Arm B more than Arm A. Kraken2 matches exact 35-mers against a
+viral-only database, and a human read has to share one to be miscalled. A translated
+protein search at 30% amino-acid identity over a hundred residues is a much looser
+instrument, and human transcripts contain plenty of domains distantly related to viral
+proteins. **So the false-alarm rate these negatives measure is a rate on unusually clean
+input, and it is likely optimistic for this arm in a way it is not for Arm A** — the two
+arms' specificity figures are measured on the same cohort but are not equally stressed by
+it.
+
+This is a property of the cohort chosen on Day 2 rather than anything Day 4 did, and it is
+recorded here because the write-ups should not compare the two arms' specificity without
+it. The fix is a Day 7 item: either negatives with native human content, or the index
+sample's own host-aligned reads run through both arms as a dedicated host-derived
+false-positive test. The second is nearly free — the reads are already on disk and
+labelled.
+
 ## Why every level costs a full assembly
 
 Arm A composes a dilution level from its parts: one expensive run over the shared
@@ -340,6 +373,12 @@ to the contig half's 98%.
 - A read-level false-alarm rate, on a machine with the cores for it. 49 hours at
   `--very-sensitive` on 4 cores is the only measurement this day wanted and could not
   afford, and it is the number that would make the read half's 93% quotable.
+- A host-derived false-positive test, because the negatives cannot provide one: they are
+  host-depleted and the positive is 16% human. The pipeline keeps only the non-host side,
+  so this needs one more bowtie2 pass over the index sample's QC reads — which are on
+  disk — to recover its 2,053,621 host-aligned pairs, and then both arms run on them.
+  About an hour, and it is the measurement that would say whether a translated search
+  miscalls human transcripts as viral.
 - A combined Day 3 + Day 4 runner would classify and assemble each negative in one visit and
   save a whole fetch-and-host-filter pass (163 min). Day 3 had already deleted its negatives'
   reads and ran in a different container, so Day 4 re-staged them.
