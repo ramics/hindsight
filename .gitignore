@@ -9,3 +9,5 @@ dist/
 db/
 out/
 cache/
+work/
+work

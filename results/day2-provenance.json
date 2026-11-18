@@ -1,0 +1,2325 @@
+{
+  "tool": {
+    "name": "hindsight samples",
+    "version": "0.1.0",
+    "python": "3.13.18",
+    "platform": "Linux-6.18.44-fc-v553-x86_64-with-glibc2.39"
+  },
+  "generated_at": "2026-11-17T21:40:08+00:00",
+  "command": [
+    "/home/user/hindsight/src/hindsight/cli.py",
+    "samples",
+    "run",
+    "--config",
+    "config/day2.toml",
+    "--only",
+    "SRR10971381"
+  ],
+  "wall_clock_seconds": 32.4,
+  "machine": {
+    "platform": "Linux-6.18.44-fc-v553-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "cpu_count": 4,
+    "memory_gib": 15.7,
+    "instance_type": null,
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+    "work_dir_disk": {
+      "total_gib": 252.0,
+      "used_gib": 29.9,
+      "free_gib": 8.6
+    }
+  },
+  "tools": [
+    {
+      "name": "curl",
+      "path": "/usr/bin/curl",
+      "version": "8.5.0",
+      "raw": "curl 8.5.0 (x86_64-pc-linux-gnu) libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 brotli/1.1.0 zstd/1.5.5 libidn2/2.3.7 libpsl/0.21.2 (+libidn2/2.3.7) libssh/0.10.6/openssl/zlib nghttp2/1.59.0 librtmp/2.3 OpenLDAP/2.6.10",
+      "pinned": null
+    },
+    {
+      "name": "fastp",
+      "path": "/usr/bin/fastp",
+      "version": "0.23.4",
+      "raw": "fastp 0.23.4",
+      "pinned": "0.23.4"
+    },
+    {
+      "name": "bowtie2",
+      "path": "/usr/bin/bowtie2",
+      "version": "2.5.2",
+      "raw": "/usr/bin/bowtie2-align-s version 2.5.2",
+      "pinned": "2.5.2"
+    },
+    {
+      "name": "samtools",
+      "path": "/usr/bin/samtools",
+      "version": "1.19.2",
+      "raw": "samtools 1.19.2",
+      "pinned": "1.19.2"
+    }
+  ],
+  "tool_pin_drift": [],
+  "parameters": {
+    "fastp_args": [
+      "--detect_adapter_for_pe",
+      "--cut_tail",
+      "--cut_tail_mean_quality",
+      "20",
+      "--length_required",
+      "50",
+      "--qualified_quality_phred",
+      "15",
+      "--unqualified_percent_limit",
+      "40",
+      "--n_base_limit",
+      "5"
+    ],
+    "bowtie2_host_args": [
+      "--local",
+      "--mm"
+    ],
+    "bowtie2_truth_args": [
+      "--local"
+    ],
+    "min_truth_mapq": 20,
+    "threads": 4,
+    "host_index": "work/ref/bt2/GRCh38_noalt_as",
+    "truth_reference": "NC_045512.2",
+    "dilution_levels": [
+      50000,
+      10000,
+      1000,
+      100,
+      10
+    ],
+    "dilution_seed": 20191201,
+    "negatives_seed": 20191201,
+    "negatives_count": 20,
+    "negatives_max_pairs": 6000000,
+    "prune_intermediates": true
+  },
+  "samples": [
+    {
+      "accession": "SRR10971381",
+      "role": "index",
+      "layout": "paired",
+      "source": "sra-odp-chunked",
+      "raw_bytes": 2727466813,
+      "raw_pairs": 28282964,
+      "qc_pairs": 12975578,
+      "redacted_pairs": 13934971,
+      "non_redacted_pairs": 14347993,
+      "capped_pairs": 0,
+      "pruned_bytes": 0,
+      "cap_fraction": 1.0,
+      "host_pairs": 2053621,
+      "nonhost_pairs": 10921957,
+      "viral_pairs": 62117,
+      "viral_lost_to_host": 898,
+      "background_pairs": 10860738,
+      "viral_fraction_raw": 0.0021962691039029716,
+      "viral_fraction_qc": 0.004787224122116179,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR10971381/raw/SRR10971381_1.fastq.gz",
+          "bytes": 1337054336,
+          "sha256": "e228b716a4e3cd85bf59a58fbffd84e99e6fcd639228ae22af6619e4ba473742"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR10971381/raw/SRR10971381_2.fastq.gz",
+          "bytes": 1390412477,
+          "sha256": "7eac06389bff6a96e661a5797638591725df0862eb234424961e76c8ff938047"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR10971381/qc/SRR10971381_qc_1.fastq.gz",
+          "bytes": 959528337,
+          "sha256": "d12690fea9c01166350384daa70b0616fa5b3e40daf4e62fbe2a8fd733d4c69a"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR10971381/qc/SRR10971381_qc_2.fastq.gz",
+          "bytes": 1003766301,
+          "sha256": "1610c643880eca037871f55eb0a1f7290ec6375b476d7916c84827ce5ad6fa09"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR10971381/nonhost/SRR10971381_nonhost_1.fastq.gz",
+          "bytes": 643574679,
+          "sha256": "e88686828618afea1a4631d8677b6d3661ec5455a13864eda9d3b306d008d061"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR10971381/nonhost/SRR10971381_nonhost_2.fastq.gz",
+          "bytes": 689053886,
+          "sha256": "8f96588b4d9ed096dca0be9fbc179912dccc1d3ee8ec45cbd22f1c9c888bc433"
+        },
+        "viral_fragment_ids": {
+          "path": "work/samples/SRR10971381/truth/viral_fragment_ids.txt",
+          "bytes": 1280083,
+          "sha256": "ad1d9cf8f0dfe8c01ca94fe3238994dcfaec545a3af99f543736070e154a45f7"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA603194",
+        "sample": "SAMN13922059",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina MiniSeq",
+        "ena_read_count": 28282964,
+        "ena_base_count": 8031043214,
+        "collection_date": "2020-01-02",
+        "deposit_layout": "paired",
+        "files": [
+          {
+            "name": "SRR10971381_1.fastq.gz",
+            "bytes": 1160191847,
+            "md5": "47a8f222b1c27b651ab82a8963a71830"
+          },
+          {
+            "name": "SRR10971381_2.fastq.gz",
+            "bytes": 1216048922,
+            "md5": "f9438b3e1ff1241d1b67307f3c4f2e7c"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677553",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 0,
+      "raw_pairs": 16223037,
+      "qc_pairs": 16220254,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 16223037,
+      "capped_pairs": 5997128,
+      "pruned_bytes": 0,
+      "cap_fraction": 0.3699078941673786,
+      "host_pairs": 4442,
+      "nonhost_pairs": 5992686,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677553/nonhost/SRR13677553_nonhost_1.fastq.gz",
+          "bytes": 245563171,
+          "sha256": "76b8ae19e47b811491754a20de0ce83473e4c2a949202a5ac600e3737de7e28c"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677553/nonhost/SRR13677553_nonhost_2.fastq.gz",
+          "bytes": 251254802,
+          "sha256": "1544864d7686c16d1d8511a4b4d355f4e04d8c659b8cf1b71e98a31bdc20f7d6"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817483",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 16701373,
+        "ena_base_count": 4769393261,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677553.fastq.gz",
+            "bytes": 23109827,
+            "md5": "77e6ea79430a514eba32d0dc14df66cc"
+          },
+          {
+            "name": "SRR13677553_1.fastq.gz",
+            "bytes": 696618206,
+            "md5": "adc5d259801a3222e5be5a9f74ed5012"
+          },
+          {
+            "name": "SRR13677553_2.fastq.gz",
+            "bytes": 714438445,
+            "md5": "901b35adae3dc5588f62114b8537d0a3"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677559",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 0,
+      "raw_pairs": 7367653,
+      "qc_pairs": 7362549,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 7367653,
+      "capped_pairs": 6000889,
+      "pruned_bytes": 0,
+      "cap_fraction": 0.8149351535724924,
+      "host_pairs": 8220,
+      "nonhost_pairs": 5992669,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677559/nonhost/SRR13677559_nonhost_1.fastq.gz",
+          "bytes": 275337234,
+          "sha256": "686bb488af0931b2b2144b0b1449bc5a281e7709105e2b96c02f440832af6c09"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677559/nonhost/SRR13677559_nonhost_2.fastq.gz",
+          "bytes": 277860335,
+          "sha256": "797303df9852eb20c6511d781f3e7d5387c17612844e2297a7392f428c5bebe7"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817477",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 7695714,
+        "ena_base_count": 2182103067,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677559.fastq.gz",
+            "bytes": 15836542,
+            "md5": "cfc7348e39109993ffea744e04b4c7c5"
+          },
+          {
+            "name": "SRR13677559_1.fastq.gz",
+            "bytes": 352727641,
+            "md5": "fedefe7cca5b25fa45240ef56ea53214"
+          },
+          {
+            "name": "SRR13677559_2.fastq.gz",
+            "bytes": 356448280,
+            "md5": "04cb56324788b7130bf5ea8a90aef9cd"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677560",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 0,
+      "raw_pairs": 8640651,
+      "qc_pairs": 8636036,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 8640651,
+      "capped_pairs": 5999080,
+      "pruned_bytes": 0,
+      "cap_fraction": 0.6947631992270528,
+      "host_pairs": 6713,
+      "nonhost_pairs": 5992367,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677560/nonhost/SRR13677560_nonhost_1.fastq.gz",
+          "bytes": 270117619,
+          "sha256": "629d9feade3594b6610f925c5934c552b6a471411449387fcb58d41b67c6095b"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677560/nonhost/SRR13677560_nonhost_2.fastq.gz",
+          "bytes": 272897487,
+          "sha256": "129b8235d5f94fafcd8e82987435a3a5bea2bb084fa12cc015f5b08877b59c25"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817476",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 9390228,
+        "ena_base_count": 2608462294,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677560.fastq.gz",
+            "bytes": 35216531,
+            "md5": "9a398d6745899badc87a478a72ab7077"
+          },
+          {
+            "name": "SRR13677560_1.fastq.gz",
+            "bytes": 408324670,
+            "md5": "b981646e34debe6da21ef1302a0dade9"
+          },
+          {
+            "name": "SRR13677560_2.fastq.gz",
+            "bytes": 412965301,
+            "md5": "2870b00a0e49e3674f35b4949e2eded1"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677589",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 0,
+      "raw_pairs": 16704796,
+      "qc_pairs": 16693494,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 16704796,
+      "capped_pairs": 5999204,
+      "pruned_bytes": 0,
+      "cap_fraction": 0.3594214608397739,
+      "host_pairs": 16717,
+      "nonhost_pairs": 5982487,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677589/nonhost/SRR13677589_nonhost_1.fastq.gz",
+          "bytes": 269745654,
+          "sha256": "4b94abced5fad1a9b63c80313548b214ff2aa4cd9b0779259b693f74b2235315"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677589/nonhost/SRR13677589_nonhost_2.fastq.gz",
+          "bytes": 274545643,
+          "sha256": "5e8592dd0db4e7288f6361566db1fed8b2da1a6860ae7ebee0a4c2ed3de8068d"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817468",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 17636958,
+        "ena_base_count": 4969464966,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677589.fastq.gz",
+            "bytes": 40277007,
+            "md5": "76d735abddacf4b289d6fa9bad3bf0d7"
+          },
+          {
+            "name": "SRR13677589_1.fastq.gz",
+            "bytes": 789619812,
+            "md5": "04fc5f09f0db38a81c5b5f0224224461"
+          },
+          {
+            "name": "SRR13677589_2.fastq.gz",
+            "bytes": 804595377,
+            "md5": "d4cfe3bc5b7f00936b2b518b3b9cd94a"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677700",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1176958258,
+      "raw_pairs": 10579737,
+      "qc_pairs": 10575169,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 10579737,
+      "capped_pairs": 6002730,
+      "pruned_bytes": 3398267697,
+      "cap_fraction": 0.5673668193860543,
+      "host_pairs": 25644,
+      "nonhost_pairs": 5977086,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677700/raw/SRR13677700_1.fastq.gz",
+          "bytes": 586391947,
+          "sha256": "7ad7901463f454197880d5591a88d061caf1e8891130dbfe1dc9623f1c5e3481"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677700/raw/SRR13677700_2.fastq.gz",
+          "bytes": 590566311,
+          "sha256": "0ff22ee3a117027a12913713b35d8bdcdc8e400ca217d939388cd5c3d544e7e9"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677700/qc/SRR13677700_qc_1.fastq.gz",
+          "bytes": 621080143,
+          "sha256": "83e3967c9ed110eb1a3b05ac59ffe0c678864202c17fd0b848f8ab5fbb49cbdb"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677700/qc/SRR13677700_qc_2.fastq.gz",
+          "bytes": 624511560,
+          "sha256": "f8bc54c951f64cb21a09e33e428a2eabf82a537dc158ca77210007df30387e9d"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677700/nonhost/SRR13677700_nonhost_1.fastq.gz",
+          "bytes": 266071048,
+          "sha256": "37bd733b2cc37922653e52b455f4a29eed7d1814e86bb327a944e046de1249b5"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677700/nonhost/SRR13677700_nonhost_2.fastq.gz",
+          "bytes": 268492330,
+          "sha256": "0bce6208fc703f27a56ebbd37168049539d216df56444c0a003794c8b25b461f"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 117.01245998800002,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 48.812840962999985,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 12.816895120000027,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 229.96014836199998,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 415.49926963199994,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817458",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 11415955,
+        "ena_base_count": 3184798501,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677700.fastq.gz",
+            "bytes": 39179704,
+            "md5": "5bb8fac6aafa4b20447c991c6b7dd6f5"
+          },
+          {
+            "name": "SRR13677700_1.fastq.gz",
+            "bytes": 493620639,
+            "md5": "b874a6a520abec97bc3a5ab92e49caa5"
+          },
+          {
+            "name": "SRR13677700_2.fastq.gz",
+            "bytes": 498589588,
+            "md5": "4f23a7b8fc455c3311fbc19fc0e62323"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677717",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1233709880,
+      "raw_pairs": 13495369,
+      "qc_pairs": 13488937,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 13495369,
+      "capped_pairs": 5997365,
+      "pruned_bytes": 3366066730,
+      "cap_fraction": 0.44480895714762403,
+      "host_pairs": 1488,
+      "nonhost_pairs": 5995877,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677717/raw/SRR13677717_1.fastq.gz",
+          "bytes": 585592168,
+          "sha256": "5db6ac6a166e05fb48f1e27ebdf73b4b1b3f3d107f55d772e13f7b7571f98411"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677717/raw/SRR13677717_2.fastq.gz",
+          "bytes": 648117712,
+          "sha256": "891c868d1c2ba6d06dcb301d5981a75768c6b72d861577bab3e81db35ac7dcd2"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677717/qc/SRR13677717_qc_1.fastq.gz",
+          "bytes": 671550159,
+          "sha256": "13a2a5ee0768a11296b62b5a4912e6f80fa282ae9fef2d8cc397722c57aff33f"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677717/qc/SRR13677717_qc_2.fastq.gz",
+          "bytes": 723681957,
+          "sha256": "06737de5dc7f9440dbcb9c2c301a9b7aaf826f9d303fea3cd60956f6fd589d4a"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677717/nonhost/SRR13677717_nonhost_1.fastq.gz",
+          "bytes": 200270423,
+          "sha256": "29c48fc5a1f8faccfc562b340ab489b668cc05f8bfab24f6afff34e135c1db09"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677717/nonhost/SRR13677717_nonhost_2.fastq.gz",
+          "bytes": 225919977,
+          "sha256": "5548cdb17c3df66ec0373a19c61f99e19fc4857f76c7f72a5e7668e36417220a"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 163.16389878300015,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 57.319127428,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 14.869151191000128,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 201.809956629,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 98.46359800599998,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817730",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 14009325,
+        "ena_base_count": 3981151529,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677717.fastq.gz",
+            "bytes": 26806697,
+            "md5": "2557a786a3c46c80c8f3ad0a75484e16"
+          },
+          {
+            "name": "SRR13677717_1.fastq.gz",
+            "bytes": 473797023,
+            "md5": "ed5ba7ea4f2f147f2dd64c6d1f39a2ec"
+          },
+          {
+            "name": "SRR13677717_2.fastq.gz",
+            "bytes": 537774585,
+            "md5": "13476abf80a36f74c4b3e2974b1bcff6"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677722",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1161904307,
+      "raw_pairs": 10614023,
+      "qc_pairs": 10610341,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 10614023,
+      "capped_pairs": 6001848,
+      "pruned_bytes": 3251543204,
+      "cap_fraction": 0.5654860668474274,
+      "host_pairs": 9495,
+      "nonhost_pairs": 5992353,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677722/raw/SRR13677722_1.fastq.gz",
+          "bytes": 576653928,
+          "sha256": "30e164a4594c3693bd464c673953778a389ca01eded35dfc4780efcab294bc67"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677722/raw/SRR13677722_2.fastq.gz",
+          "bytes": 585250379,
+          "sha256": "281378edcc15882c2675eef82accc7ef134a725a1151757b4e52141f8689e5b9"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677722/qc/SRR13677722_qc_1.fastq.gz",
+          "bytes": 617491649,
+          "sha256": "51f1ce5d37fbe6fe8f77a2980e5059f1343fe891725223a09e1d652419d6f30e"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677722/qc/SRR13677722_qc_2.fastq.gz",
+          "bytes": 624056748,
+          "sha256": "e85ccb00767ab75249cdc83cf3f4fa3cf736f7290a3d1289682c1d67e08713cb"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677722/nonhost/SRR13677722_nonhost_1.fastq.gz",
+          "bytes": 260310696,
+          "sha256": "e5ce8b7bb5585d6aa5d0777faa9d84bd311bb640f0bd75b08d027fbb3d294400"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677722/nonhost/SRR13677722_nonhost_2.fastq.gz",
+          "bytes": 265281975,
+          "sha256": "8e6af118621a074661ddab19112ad9ddcfb5498ce422721b332351381c53d2e1"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 128.051159289,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 49.458379281999896,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 12.978378106000036,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 225.4811469509998,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 115.20451678799986,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817456",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 11140067,
+        "ena_base_count": 3148077704,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677722.fastq.gz",
+            "bytes": 25906536,
+            "md5": "b517b573baddba42c38550435cda61d7"
+          },
+          {
+            "name": "SRR13677722_1.fastq.gz",
+            "bytes": 484008204,
+            "md5": "7b27a635c0363586e04fd32b92e5abd3"
+          },
+          {
+            "name": "SRR13677722_2.fastq.gz",
+            "bytes": 493853320,
+            "md5": "896f1738812f9251e2fa7d4763b513dd"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677730",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1312144950,
+      "raw_pairs": 14411213,
+      "qc_pairs": 14408057,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 14411213,
+      "capped_pairs": 6002802,
+      "pruned_bytes": 3504907777,
+      "cap_fraction": 0.4164336662466008,
+      "host_pairs": 902,
+      "nonhost_pairs": 6001900,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677730/raw/SRR13677730_1.fastq.gz",
+          "bytes": 635203416,
+          "sha256": "8bd3cbbc2af95b7b12b7fb672ff9264969ea8234bc32c61cd352be18af2c4b43"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677730/raw/SRR13677730_2.fastq.gz",
+          "bytes": 676941534,
+          "sha256": "c0f18ecfbfdfc42fec45df749f44d30bbb4af7f5c38eeb8a04c1d216654c958f"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677730/qc/SRR13677730_qc_1.fastq.gz",
+          "bytes": 724617203,
+          "sha256": "d4e719fe65ef071b074e5dcbe1f217ddcc8e4006053925d97a91a21331ddfdeb"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677730/qc/SRR13677730_qc_2.fastq.gz",
+          "bytes": 761104011,
+          "sha256": "572976d86ed64891e2d035d8f0b8269de238f2c245795193946231aa595476fd"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677730/nonhost/SRR13677730_nonhost_1.fastq.gz",
+          "bytes": 204082602,
+          "sha256": "1ab4af4f5552d04762a3b00b3c16645f98932b139f91b47e4a4200e0685a870c"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677730/nonhost/SRR13677730_nonhost_2.fastq.gz",
+          "bytes": 220502864,
+          "sha256": "726e898b8d807eb88e0b07877d6706d077a4f517b3c1eb3260dae333b011cf91"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 170.92170457400016,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 63.16301758700001,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 16.46338604499988,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 202.8094143649996,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 99.27667763099998,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817719",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 14852843,
+        "ena_base_count": 4233626700,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677730.fastq.gz",
+            "bytes": 22752146,
+            "md5": "3fa6922d6db3d7e0070a82d74ad60ed3"
+          },
+          {
+            "name": "SRR13677730_1.fastq.gz",
+            "bytes": 515387277,
+            "md5": "3e182cf3ee2806f1a51939fcf8da81ec"
+          },
+          {
+            "name": "SRR13677730_2.fastq.gz",
+            "bytes": 559285012,
+            "md5": "e2459947947afb6d0ec1f75a93f06eea"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677740",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp-chunked",
+      "raw_bytes": 1641454135,
+      "raw_pairs": 18339367,
+      "qc_pairs": 18331413,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 18339367,
+      "capped_pairs": 5999243,
+      "pruned_bytes": 4040713865,
+      "cap_fraction": 0.32730701119439076,
+      "host_pairs": 1206,
+      "nonhost_pairs": 5998037,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677740/raw/SRR13677740_1.fastq.gz",
+          "bytes": 798088449,
+          "sha256": "48ae737c37055924da55b9760dfbd88622b4faea4d628071b37ad33bdc279f3b"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677740/raw/SRR13677740_2.fastq.gz",
+          "bytes": 843365686,
+          "sha256": "939b92c2e25269bc98b073706d30e3afe4404ab6df434e7d9e0cc8ff5055d4e7"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677740/qc/SRR13677740_qc_1.fastq.gz",
+          "bytes": 912327347,
+          "sha256": "b1d27c074665cfe01879ed12977fea074ba23b7801065bf3ad132964b36ffaea"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677740/qc/SRR13677740_qc_2.fastq.gz",
+          "bytes": 951544730,
+          "sha256": "59764ea00ad7d0ffed4a3da5eebb6277cdbf48fef9f85a428cbe38865b2eb879"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677740/nonhost/SRR13677740_nonhost_1.fastq.gz",
+          "bytes": 201037864,
+          "sha256": "5224c2b76843b63137a80ea0c3b4bf107a19eb661e846ef6b95c7c21fa9bca57"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677740/nonhost/SRR13677740_nonhost_2.fastq.gz",
+          "bytes": 215184451,
+          "sha256": "c8b1e27972b23f8ce6df876099318a2144832145fbcbc01eb60a3537c7c9c44c"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 241.95920152500003,
+          "note": "sra-odp-chunked"
+        },
+        {
+          "stage": "qc",
+          "seconds": 80.892920624,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 21.00951253300036,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 221.43946713499963,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 100.26432574399996,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817710",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 18567060,
+        "ena_base_count": 5342582549,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677740.fastq.gz",
+            "bytes": 11051914,
+            "md5": "bd3086f9bcb5507ac95d1857c907c91b"
+          },
+          {
+            "name": "SRR13677740_1.fastq.gz",
+            "bytes": 646144077,
+            "md5": "c935027ecd42e344b5a66bc7808549d6"
+          },
+          {
+            "name": "SRR13677740_2.fastq.gz",
+            "bytes": 693543452,
+            "md5": "7c14d27c3519c01fb2d2182e3e9accc2"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677744",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp-chunked",
+      "raw_bytes": 1604427180,
+      "raw_pairs": 18289532,
+      "qc_pairs": 18283563,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 18289532,
+      "capped_pairs": 5999778,
+      "pruned_bytes": 3965967690,
+      "cap_fraction": 0.328163607935718,
+      "host_pairs": 1270,
+      "nonhost_pairs": 5998508,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677744/raw/SRR13677744_1.fastq.gz",
+          "bytes": 781409311,
+          "sha256": "2e7e63de09b8b4ddb56fcbb9f14d26d6973262ff3e680bdeb3093810ca12107b"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677744/raw/SRR13677744_2.fastq.gz",
+          "bytes": 823017869,
+          "sha256": "2fd831e4c477d230e53408528d65399708c0aac5700ea8ea6c7947fc1cc8f0e0"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677744/qc/SRR13677744_qc_1.fastq.gz",
+          "bytes": 900266124,
+          "sha256": "71313c3d7f41c0efd4d0287c22c6a192f70f2ada1e2f0c947be9a2ba80cdf892"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677744/qc/SRR13677744_qc_2.fastq.gz",
+          "bytes": 936398930,
+          "sha256": "7bc9602e8c9e738944ad2ec62fd0ecbb778906ee4e033c4d8af7bed15c494cde"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677744/nonhost/SRR13677744_nonhost_1.fastq.gz",
+          "bytes": 196488584,
+          "sha256": "1189a455a780c1a3c08443a8a07e0841b82806028c03b0cd1f91d5bf60abf262"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677744/nonhost/SRR13677744_nonhost_2.fastq.gz",
+          "bytes": 209577107,
+          "sha256": "5bbd918d4f39c4308d921b57d744f86e1c7859654f579c3b47199877a7a00034"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 247.87571558499985,
+          "note": "sra-odp-chunked"
+        },
+        {
+          "stage": "qc",
+          "seconds": 78.98510186099975,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 20.80325790300003,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 219.46685831800005,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 104.1199974000001,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817706",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 18530366,
+        "ena_base_count": 5330572753,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677744.fastq.gz",
+            "bytes": 11948511,
+            "md5": "f2969e222731060841dce7f19e07b3eb"
+          },
+          {
+            "name": "SRR13677744_1.fastq.gz",
+            "bytes": 630673716,
+            "md5": "d3054b051c89fc7d94b70e5dcb341b39"
+          },
+          {
+            "name": "SRR13677744_2.fastq.gz",
+            "bytes": 674417052,
+            "md5": "70245e435fa6169437048bec0651e906"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677748",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp-chunked",
+      "raw_bytes": 2468083156,
+      "raw_pairs": 23771369,
+      "qc_pairs": 23769003,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 23771369,
+      "capped_pairs": 6000432,
+      "pruned_bytes": 5785985487,
+      "cap_fraction": 0.2524296033788207,
+      "host_pairs": 403,
+      "nonhost_pairs": 6000029,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677748/raw/SRR13677748_1.fastq.gz",
+          "bytes": 1210719105,
+          "sha256": "cb7520aa8fc91270d9c272a9fa298a690f97ca1f7aab05194498184ae86228a9"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677748/raw/SRR13677748_2.fastq.gz",
+          "bytes": 1257364051,
+          "sha256": "a7a61e0591a79713e6dd664d84303f42083ac905a512be0b73ee18670dbfae00"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677748/qc/SRR13677748_qc_1.fastq.gz",
+          "bytes": 1328926971,
+          "sha256": "e1bb0d14db94c021aac5a8789eb3efa42429263f8fa48a4e30dc389fbbafe25a"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677748/qc/SRR13677748_qc_2.fastq.gz",
+          "bytes": 1365978096,
+          "sha256": "307fddc136a26c737daf46e844ace8959231d1d3ff056ea78c747ea610478270"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677748/nonhost/SRR13677748_nonhost_1.fastq.gz",
+          "bytes": 242600225,
+          "sha256": "81939d63107302431c1c29bbc9d1d29e6481b6e1fdd0e6d246ef928607541b09"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677748/nonhost/SRR13677748_nonhost_2.fastq.gz",
+          "bytes": 253448796,
+          "sha256": "d99cd9b11054bb06b6c1a7eea450f190e3984d5865b5cd9a195164918eb10e0e"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 346.1170905399995,
+          "note": "sra-odp-chunked"
+        },
+        {
+          "stage": "qc",
+          "seconds": 99.21190390799984,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 29.56978915199943,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 281.93382037599986,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 118.97247740600051,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817703",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 24409746,
+        "ena_base_count": 6976930249,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677748.fastq.gz",
+            "bytes": 22089567,
+            "md5": "91a5f3f4f6319c75165e1dd6534df132"
+          },
+          {
+            "name": "SRR13677748_1.fastq.gz",
+            "bytes": 994265451,
+            "md5": "802a9548378200685bf5256e1e7f9156"
+          },
+          {
+            "name": "SRR13677748_2.fastq.gz",
+            "bytes": 1045572044,
+            "md5": "dff3e60142c4d17a4513436805286c07"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677777",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "ena",
+      "raw_bytes": 0,
+      "raw_pairs": 144165,
+      "qc_pairs": 144044,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 144165,
+      "capped_pairs": 0,
+      "pruned_bytes": 0,
+      "cap_fraction": 1.0,
+      "host_pairs": 43,
+      "nonhost_pairs": 144001,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677777/nonhost/SRR13677777_nonhost_1.fastq.gz",
+          "bytes": 5221438,
+          "sha256": "d5a25bb88bdb40f98b794c069ec4cc5fe67949ff1ebd6f45473ecedf9cf8e6bd"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677777/nonhost/SRR13677777_nonhost_2.fastq.gz",
+          "bytes": 5769662,
+          "sha256": "1f669b7776aeda0a67695b37f983b392a09acc103e03562e7fc0c2471d477bdc"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817676",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 152182,
+        "ena_base_count": 42858497,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677777.fastq.gz",
+            "bytes": 465778,
+            "md5": "43cf2a366e5aa5f4b39b1bba9bce4426"
+          },
+          {
+            "name": "SRR13677777_1.fastq.gz",
+            "bytes": 6413957,
+            "md5": "e8f8c38abdebdd0c449312f31c6f8d1f"
+          },
+          {
+            "name": "SRR13677777_2.fastq.gz",
+            "bytes": 7010755,
+            "md5": "86dc1257ad3003bd2f4d6846596f6016"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677842",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 0,
+      "raw_pairs": 3147336,
+      "qc_pairs": 3146405,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 3147336,
+      "capped_pairs": 0,
+      "pruned_bytes": 0,
+      "cap_fraction": 1.0,
+      "host_pairs": 2383,
+      "nonhost_pairs": 3144022,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677842/nonhost/SRR13677842_nonhost_1.fastq.gz",
+          "bytes": 143521864,
+          "sha256": "051c5d4fcbbcafb7f07d48aa48eac442d2478e010b855ee36a9b3c855f8493f4"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677842/nonhost/SRR13677842_nonhost_2.fastq.gz",
+          "bytes": 144711359,
+          "sha256": "b131e8650053de1d3f117a74b5a9e8f0adf9e335db472e640834a10d5fb2e5e4"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817618",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 3557169,
+        "ena_base_count": 970613991,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677842.fastq.gz",
+            "bytes": 21663480,
+            "md5": "29d25ee9150baa3f1b5362e4e0274d56"
+          },
+          {
+            "name": "SRR13677842_1.fastq.gz",
+            "bytes": 150916425,
+            "md5": "89a659a029107c1539d18f064ed81c84"
+          },
+          {
+            "name": "SRR13677842_2.fastq.gz",
+            "bytes": 152287601,
+            "md5": "08e5b561e86aef39ffc938b9af47b440"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677843",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1049464423,
+      "raw_pairs": 9411202,
+      "qc_pairs": 9410053,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 9411202,
+      "capped_pairs": 5998929,
+      "pruned_bytes": 3486997620,
+      "cap_fraction": 0.6376159624180651,
+      "host_pairs": 1904,
+      "nonhost_pairs": 5997025,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677843/raw/SRR13677843_1.fastq.gz",
+          "bytes": 522828619,
+          "sha256": "60e81de3f50d823fb38357e488b2f900d38343e0bdd8ad53cbc3101d4c7e203f"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677843/raw/SRR13677843_2.fastq.gz",
+          "bytes": 526635804,
+          "sha256": "c7bfac05f6440975c70c81f0e3e49c07816f657014f8dd05a6183428f45bb3cd"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677843/qc/SRR13677843_qc_1.fastq.gz",
+          "bytes": 554721538,
+          "sha256": "a8c98856d2b757b33d2de5b4453b3a4e361dfda05c4a7966d606f07ca8f9b63a"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677843/qc/SRR13677843_qc_2.fastq.gz",
+          "bytes": 557746763,
+          "sha256": "239ba95a45dff5203fc70986346636b125ebc458a611890a301b929acfb828c8"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677843/nonhost/SRR13677843_nonhost_1.fastq.gz",
+          "bytes": 267431053,
+          "sha256": "57b90650aa3066c45c38b64512b5ff6f077eee60d3c783c40c9f11d68be75d06"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677843/nonhost/SRR13677843_nonhost_2.fastq.gz",
+          "bytes": 269888480,
+          "sha256": "4f3a4286c910f563b76c3e2ce6e8bd0ec3a222c02782eb0371f66d2a7de13e50"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 126.66580953399989,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 44.12514838300012,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 11.861742226000388,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 229.6614571400005,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 115.50815356400017,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817617",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 11179751,
+        "ena_base_count": 2983572399,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677843.fastq.gz",
+            "bytes": 82942601,
+            "md5": "5e9b985a2552f3a745418f4bae9615fa"
+          },
+          {
+            "name": "SRR13677843_1.fastq.gz",
+            "bytes": 440215560,
+            "md5": "c04ac331df03d6dcc5831acfaab107ba"
+          },
+          {
+            "name": "SRR13677843_2.fastq.gz",
+            "bytes": 444553277,
+            "md5": "7c1f8e3647c0ba3f6e3cea01bf6a2a5b"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677844",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 732605140,
+      "raw_pairs": 6406587,
+      "qc_pairs": 6402747,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 6406587,
+      "capped_pairs": 6000781,
+      "pruned_bytes": 2358124492,
+      "cap_fraction": 0.9370977800622139,
+      "host_pairs": 9804,
+      "nonhost_pairs": 5990977,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677844/raw/SRR13677844_1.fastq.gz",
+          "bytes": 364979755,
+          "sha256": "df9a066d95d3f2a9a1c5828d54fd6e0584c816b6b39bae7d0254eb225c624e8c"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677844/raw/SRR13677844_2.fastq.gz",
+          "bytes": 367625385,
+          "sha256": "fc79520cde0ebb890f1f41cbbba94deca669a0d3d7dfdddcda53714a94fe1e01"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677844/qc/SRR13677844_qc_1.fastq.gz",
+          "bytes": 383572038,
+          "sha256": "5c109661f9811eed94dc014845d3937d7b594024924857852fe398a38e52be92"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677844/qc/SRR13677844_qc_2.fastq.gz",
+          "bytes": 385607986,
+          "sha256": "7a8002717cbeb4f1035df48dfe10be7adfc7b8230262adf9732e336fa43cdcad"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677844/nonhost/SRR13677844_nonhost_1.fastq.gz",
+          "bytes": 275102627,
+          "sha256": "81350277b7c8d5b765960217f6d4546ab6e29fcadb6e935a6a7cc3cda47c0f5b"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677844/nonhost/SRR13677844_nonhost_2.fastq.gz",
+          "bytes": 277823549,
+          "sha256": "ce64aefa33afffd2bb0e80e7a0402d03b871d293b5069f0bf55950bf44dda1d6"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 84.11208387299939,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 34.63096047900035,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 7.969989820000592,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 221.19933112299987,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 119.02142216199991,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817616",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 6876152,
+        "ena_base_count": 1922038124,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677844.fastq.gz",
+            "bytes": 23688308,
+            "md5": "d32904082bb709ec0635ce9612571997"
+          },
+          {
+            "name": "SRR13677844_1.fastq.gz",
+            "bytes": 307867007,
+            "md5": "3b272ff744d476a40d794f1407e05230"
+          },
+          {
+            "name": "SRR13677844_2.fastq.gz",
+            "bytes": 311348189,
+            "md5": "80b74a7495290cefa1d46e3321cee9aa"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677878",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp-chunked",
+      "raw_bytes": 1501668132,
+      "raw_pairs": 15639026,
+      "qc_pairs": 14776928,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 15639026,
+      "capped_pairs": 5999889,
+      "pruned_bytes": 3493668096,
+      "cap_fraction": 0.40603838632765893,
+      "host_pairs": 1160,
+      "nonhost_pairs": 5998729,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677878/raw/SRR13677878_1.fastq.gz",
+          "bytes": 746133428,
+          "sha256": "86105150cda145a9c5c4e79061542400205d4879fc77ed866a195e1a57d3f1c3"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677878/raw/SRR13677878_2.fastq.gz",
+          "bytes": 755534704,
+          "sha256": "9f438ae260fabc189d76f40ed85c7f31007631f53f083895d9350df05440111d"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677878/qc/SRR13677878_qc_1.fastq.gz",
+          "bytes": 723143209,
+          "sha256": "b0bb791b0be4643101d4c55affc54526d7e36034bbd4b5cb2ef34c8afc9ddc84"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677878/qc/SRR13677878_qc_2.fastq.gz",
+          "bytes": 736459556,
+          "sha256": "d1129d284622ba2573eb283a66edea18d5908a3e4329d3db4ea7079983b6cca3"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677878/nonhost/SRR13677878_nonhost_1.fastq.gz",
+          "bytes": 208832877,
+          "sha256": "6ecc406ece5f9f16e9243c87e424a07748153e83fdbdd201762ac4c1739e2a4a"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677878/nonhost/SRR13677878_nonhost_2.fastq.gz",
+          "bytes": 214068631,
+          "sha256": "9f04930f8e0db11a76b2ad4cc5c9a92b02d3a92887136cec98780332bd3203fa"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 231.02256857599968,
+          "note": "sra-odp-chunked"
+        },
+        {
+          "stage": "qc",
+          "seconds": 147.5069317789994,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 18.68166941599975,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 206.80246705199988,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 108.29851331699956,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817442",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 15747245,
+        "ena_base_count": 4545403468,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677878.fastq.gz",
+            "bytes": 4243161,
+            "md5": "3f8c2d1d2bf8132e118abfc811efa77f"
+          },
+          {
+            "name": "SRR13677878_1.fastq.gz",
+            "bytes": 607930759,
+            "md5": "61576ef8b6840c53eedd5e2031809071"
+          },
+          {
+            "name": "SRR13677878_2.fastq.gz",
+            "bytes": 619164076,
+            "md5": "34fb16c2baa5c9d324cbfca9cd824086"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677921",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 0,
+      "raw_pairs": 1976149,
+      "qc_pairs": 1975703,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 1976149,
+      "capped_pairs": 0,
+      "pruned_bytes": 0,
+      "cap_fraction": 1.0,
+      "host_pairs": 2437,
+      "nonhost_pairs": 1973266,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "nonhost_1": {
+          "path": "work/samples/SRR13677921/nonhost/SRR13677921_nonhost_1.fastq.gz",
+          "bytes": 90148496,
+          "sha256": "85fb2fcadd30bed70a97c96e73142d863aae1f65500e00d7c09c921defd065fb"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677921/nonhost/SRR13677921_nonhost_2.fastq.gz",
+          "bytes": 90841052,
+          "sha256": "a62bda08750c6843a0adf68721c8dc3fa28f834b5b54c1dcf4a54b890cf14d6f"
+        }
+      },
+      "timings": [],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817519",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 2364551,
+        "ena_base_count": 628211954,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677921.fastq.gz",
+            "bytes": 20500212,
+            "md5": "a5575e599c9494418e143bf004a90607"
+          },
+          {
+            "name": "SRR13677921_1.fastq.gz",
+            "bytes": 94706267,
+            "md5": "56f978021c08e1801f1171d17a558c5d"
+          },
+          {
+            "name": "SRR13677921_2.fastq.gz",
+            "bytes": 95493490,
+            "md5": "fe8bd9608eb65cc04e35008de22f5caa"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677922",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1214857659,
+      "raw_pairs": 14756419,
+      "qc_pairs": 14752099,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 14756419,
+      "capped_pairs": 5998976,
+      "pruned_bytes": 3094413756,
+      "cap_fraction": 0.4067217824392312,
+      "host_pairs": 291,
+      "nonhost_pairs": 5998685,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677922/raw/SRR13677922_1.fastq.gz",
+          "bytes": 593800682,
+          "sha256": "9f9de3fd37833dd170cee1e7b78bcd58cf83a8829c7648fa4dd350e37870f173"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677922/raw/SRR13677922_2.fastq.gz",
+          "bytes": 621056977,
+          "sha256": "20852939328707c02ec39c5688a346d521a81dce790a00c196f762abaa609bf7"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677922/qc/SRR13677922_qc_1.fastq.gz",
+          "bytes": 663806356,
+          "sha256": "819d3c76c126245bd7a0c62d008f4058763f9007c3094cc79c4a1c3ae4d4608c"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677922/qc/SRR13677922_qc_2.fastq.gz",
+          "bytes": 694386799,
+          "sha256": "0b09b338e7136a5e7a3f3b679e69dc95a122d43bea7265cf36231a519d53f6c6"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677922/nonhost/SRR13677922_nonhost_1.fastq.gz",
+          "bytes": 185669404,
+          "sha256": "28582258dfa2bd0a1139c0fafc1f7303e84eb414729f4df6cce3a1d8dcfce37b"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677922/nonhost/SRR13677922_nonhost_2.fastq.gz",
+          "bytes": 195770529,
+          "sha256": "2ca1613bf66062205ffb25d743b52e44f214401633d690edc1937bce4dca2d0a"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 158.0255817139996,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 61.63901735499985,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 17.224796488999345,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 197.4002217240004,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 102.70930006400067,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817518",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 14838014,
+        "ena_base_count": 4287845595,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677922.fastq.gz",
+            "bytes": 3166184,
+            "md5": "7e67da4453bed965a492f089a56fab98"
+          },
+          {
+            "name": "SRR13677922_1.fastq.gz",
+            "bytes": 474248067,
+            "md5": "246451b9bd630204617cff8e6dc2e047"
+          },
+          {
+            "name": "SRR13677922_2.fastq.gz",
+            "bytes": 502821825,
+            "md5": "a470661371006147d47a8306a0fba9e5"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677975",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1135795292,
+      "raw_pairs": 10016745,
+      "qc_pairs": 9971439,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 10016745,
+      "capped_pairs": 6000483,
+      "pruned_bytes": 3289889171,
+      "cap_fraction": 0.6017185684032165,
+      "host_pairs": 21364,
+      "nonhost_pairs": 5979119,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677975/raw/SRR13677975_1.fastq.gz",
+          "bytes": 566359793,
+          "sha256": "141a0d81c4b2e7576f3803c205d4e7a54177403b3530b5c2c1878709e064ac48"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677975/raw/SRR13677975_2.fastq.gz",
+          "bytes": 569435499,
+          "sha256": "be2205458dd6928bab82903ec87207fb00ac4ad4866d6bd7f3b6d7f22cab22f0"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677975/qc/SRR13677975_qc_1.fastq.gz",
+          "bytes": 590890002,
+          "sha256": "1ad7df9ef09848a519c7be62e050d77ff3c676f85bf3cc1f66975c044a90f6fc"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677975/qc/SRR13677975_qc_2.fastq.gz",
+          "bytes": 593198363,
+          "sha256": "d7c22b0b99a69ca0450746e3495db227c0b563ef7d06798548b85b9678995939"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677975/nonhost/SRR13677975_nonhost_1.fastq.gz",
+          "bytes": 273991398,
+          "sha256": "fbcdacb0b791011ea43260bfb213c58623f547678851b7a058ccaee2dd7cdf38"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677975/nonhost/SRR13677975_nonhost_2.fastq.gz",
+          "bytes": 275962050,
+          "sha256": "e3a8d08c99cc8479379f163711355454e072a7681d6d72aa28af1da645034c13"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 132.29507912700046,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 51.1876236650005,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 12.758530631000212,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 237.651820907,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 123.02602437400037,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817499",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 10802563,
+        "ena_base_count": 3010314143,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677975.fastq.gz",
+            "bytes": 37565145,
+            "md5": "79190c30d47c5f14e383d2d4399c6134"
+          },
+          {
+            "name": "SRR13677975_1.fastq.gz",
+            "bytes": 478619581,
+            "md5": "c17818e4e986a9f9ed9a324d1d5ecb2d"
+          },
+          {
+            "name": "SRR13677975_2.fastq.gz",
+            "bytes": 482803237,
+            "md5": "f7cb06863c042bc71d7a0f7f0b19b50f"
+          }
+        ]
+      }
+    },
+    {
+      "accession": "SRR13677977",
+      "role": "negative",
+      "layout": "paired+orphan",
+      "source": "sra-odp",
+      "raw_bytes": 1107604631,
+      "raw_pairs": 9691484,
+      "qc_pairs": 9686269,
+      "redacted_pairs": 0,
+      "non_redacted_pairs": 9691484,
+      "capped_pairs": 6000452,
+      "pruned_bytes": 3214331604,
+      "cap_fraction": 0.6194335507304206,
+      "host_pairs": 15313,
+      "nonhost_pairs": 5985139,
+      "viral_pairs": 0,
+      "viral_lost_to_host": 0,
+      "background_pairs": 0,
+      "viral_fraction_raw": 0.0,
+      "viral_fraction_qc": 0.0,
+      "files": {
+        "raw_1": {
+          "path": "work/samples/SRR13677977/raw/SRR13677977_1.fastq.gz",
+          "bytes": 552894165,
+          "sha256": "e83951611bc3740b78405cfeb9c3e8b3b6ec6edef0bcdf832ace28f83f0d27c4"
+        },
+        "raw_2": {
+          "path": "work/samples/SRR13677977/raw/SRR13677977_2.fastq.gz",
+          "bytes": 554710466,
+          "sha256": "35030393b0eca749a5d42f034cd15304b1d298cd09c0927bbcba27142e3e3868"
+        },
+        "qc_1": {
+          "path": "work/samples/SRR13677977/qc/SRR13677977_qc_1.fastq.gz",
+          "bytes": 580606981,
+          "sha256": "8dd2f22b154906ea2967a16cf76ae55f052fae241c3a81a9d101af9dde50b1d0"
+        },
+        "qc_2": {
+          "path": "work/samples/SRR13677977/qc/SRR13677977_qc_2.fastq.gz",
+          "bytes": 582012825,
+          "sha256": "105f15904d0c7332db3da056a219433b4fa9baf90b361170e5f82c5ce9c78433"
+        },
+        "nonhost_1": {
+          "path": "work/samples/SRR13677977/nonhost/SRR13677977_nonhost_1.fastq.gz",
+          "bytes": 275925902,
+          "sha256": "695bf515f899465a70505d7276686ff720bdbd2ac9782090a698d7d2cff326e5"
+        },
+        "nonhost_2": {
+          "path": "work/samples/SRR13677977/nonhost/SRR13677977_nonhost_2.fastq.gz",
+          "bytes": 277249210,
+          "sha256": "d73edacddc125f26a28a8a871b4fddb489b804a659debd52674f43ca3bc45d5a"
+        }
+      },
+      "timings": [
+        {
+          "stage": "fetch",
+          "seconds": 123.17294989699985,
+          "note": "sra-odp"
+        },
+        {
+          "stage": "qc",
+          "seconds": 43.803138751000006,
+          "note": ""
+        },
+        {
+          "stage": "redaction",
+          "seconds": 12.151481308000257,
+          "note": ""
+        },
+        {
+          "stage": "cap",
+          "seconds": 232.97184533200107,
+          "note": ""
+        },
+        {
+          "stage": "host",
+          "seconds": 126.51844100800008,
+          "note": ""
+        }
+      ],
+      "ena_metadata": {
+        "study": "PRJNA699976",
+        "sample": "SAMN17817497",
+        "library_strategy": "RNA-Seq",
+        "library_layout": "PAIRED",
+        "instrument_model": "Illumina HiSeq 4000",
+        "ena_read_count": 10402092,
+        "ena_base_count": 2908687095,
+        "collection_date": "missing",
+        "deposit_layout": "paired+orphan",
+        "files": [
+          {
+            "name": "SRR13677977.fastq.gz",
+            "bytes": 34173847,
+            "md5": "131993ca5b7e087ac4af80bbe002fb12"
+          },
+          {
+            "name": "SRR13677977_1.fastq.gz",
+            "bytes": 467245260,
+            "md5": "ab1b84146535b2bcbdf62231097c791e"
+          },
+          {
+            "name": "SRR13677977_2.fastq.gz",
+            "bytes": 469934734,
+            "md5": "710864a42b74b7fd241390dfefe99d54"
+          }
+        ]
+      }
+    }
+  ],
+  "dilution_series": {
+    "index_run": "SRR10971381",
+    "seed": 20191201,
+    "selection_rule": "fragments ranked by sha256(f'{seed}:{fragment_id}'), ascending; levels are nested prefixes of that ranking",
+    "nested": true,
+    "storage": "parts, not materialised levels: a level is the concatenation of its parts in the listed order, which is exact because gzip is concatenable. `hindsight samples materialise` writes one out; a classifier can also read `cat part1 part2` directly.",
+    "background_fragments": 10860738,
+    "viral_fragments_available": 62117,
+    "denominators": {
+      "raw_spots": 28282964,
+      "non_redacted_spots": 14347993,
+      "post_qc_pairs": 12975578
+    },
+    "headline_denominator": "post_qc_pairs",
+    "levels": [
+      {
+        "name": "viral050000",
+        "requested_viral_fragments": 50000,
+        "viral_fragments": 50000,
+        "truncated": false,
+        "seed": 20191201,
+        "selection_sha256": "947a03565987f8db8c0e4d7036b7005d518a5b97b9f19551a1113776275b518a",
+        "background_fragments": 10860738,
+        "total_fragments": 10910738,
+        "viral_fragments_per_million": 4582.641430854632,
+        "per_million": {
+          "raw_spots": 1767.8486597090744,
+          "non_redacted_spots": 3484.807944916059,
+          "post_qc_pairs": 3853.392889318688
+        },
+        "parts": {
+          "read_1": [
+            {
+              "path": "work/series/parts/background_1.fastq.gz",
+              "bytes": 628528497,
+              "sha256": "4206519a3c4270a8527c9f7313dc9e29fee59062d1b28bd1432d31c0fbc46e0c"
+            },
+            {
+              "path": "work/series/parts/viral050000_viral_1.fastq.gz",
+              "bytes": 3579077,
+              "sha256": "4060179e7a265bc8cfd8c86c48db3bf38a2a5774fd50b03802e5e9b9a7226d91"
+            }
+          ],
+          "read_2": [
+            {
+              "path": "work/series/parts/background_2.fastq.gz",
+              "bytes": 675336029,
+              "sha256": "82df151bdf39ed848a46b539625ebb8875441df8c9fe32487bbccf9742e83a7d"
+            },
+            {
+              "path": "work/series/parts/viral050000_viral_2.fastq.gz",
+              "bytes": 3950003,
+              "sha256": "4674331dba3425b6c849e96fd96235c137430540bfe5265b08cefa689397f485"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viral010000",
+        "requested_viral_fragments": 10000,
+        "viral_fragments": 10000,
+        "truncated": false,
+        "seed": 20191201,
+        "selection_sha256": "15054129336f518cbfe92eda5f0db3fd28f3a577f0d686798dc2c16a39341e27",
+        "background_fragments": 10860738,
+        "total_fragments": 10870738,
+        "viral_fragments_per_million": 919.9007463890676,
+        "per_million": {
+          "raw_spots": 353.56973194181484,
+          "non_redacted_spots": 696.9615889832118,
+          "post_qc_pairs": 770.6785778637376
+        },
+        "parts": {
+          "read_1": [
+            {
+              "path": "work/series/parts/background_1.fastq.gz",
+              "bytes": 628528497,
+              "sha256": "4206519a3c4270a8527c9f7313dc9e29fee59062d1b28bd1432d31c0fbc46e0c"
+            },
+            {
+              "path": "work/series/parts/viral010000_viral_1.fastq.gz",
+              "bytes": 721661,
+              "sha256": "3a3aac6a1e9eddca80441865f6c8e4124dede777b16dd7815a64f5626ffad234"
+            }
+          ],
+          "read_2": [
+            {
+              "path": "work/series/parts/background_2.fastq.gz",
+              "bytes": 675336029,
+              "sha256": "82df151bdf39ed848a46b539625ebb8875441df8c9fe32487bbccf9742e83a7d"
+            },
+            {
+              "path": "work/series/parts/viral010000_viral_2.fastq.gz",
+              "bytes": 796020,
+              "sha256": "0ac7e1b451c2eefa32231fc289e2e2f658c8f528306101759c3e8f9351cc5f38"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viral001000",
+        "requested_viral_fragments": 1000,
+        "viral_fragments": 1000,
+        "truncated": false,
+        "seed": 20191201,
+        "selection_sha256": "8824f51237ff3d644c2f1945c356cdb97171662c04ef07103ee6c623bafa2dec",
+        "background_fragments": 10860738,
+        "total_fragments": 10861738,
+        "viral_fragments_per_million": 92.06629730895737,
+        "per_million": {
+          "raw_spots": 35.35697319418149,
+          "non_redacted_spots": 69.69615889832119,
+          "post_qc_pairs": 77.06785778637375
+        },
+        "parts": {
+          "read_1": [
+            {
+              "path": "work/series/parts/background_1.fastq.gz",
+              "bytes": 628528497,
+              "sha256": "4206519a3c4270a8527c9f7313dc9e29fee59062d1b28bd1432d31c0fbc46e0c"
+            },
+            {
+              "path": "work/series/parts/viral001000_viral_1.fastq.gz",
+              "bytes": 74371,
+              "sha256": "264cbba121cc63b671a4c5f84c85306cbc3d143df648c354a042c8611b5b46f3"
+            }
+          ],
+          "read_2": [
+            {
+              "path": "work/series/parts/background_2.fastq.gz",
+              "bytes": 675336029,
+              "sha256": "82df151bdf39ed848a46b539625ebb8875441df8c9fe32487bbccf9742e83a7d"
+            },
+            {
+              "path": "work/series/parts/viral001000_viral_2.fastq.gz",
+              "bytes": 82190,
+              "sha256": "27d3d0518d3be4e7d96effe9a2abcbbcfcde16eb0e5ff8b1b68438d81b77aa84"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viral000100",
+        "requested_viral_fragments": 100,
+        "viral_fragments": 100,
+        "truncated": false,
+        "seed": 20191201,
+        "selection_sha256": "d79153952ee8374ea138f117e8d9b901a24aed591d8bc6b370ef081f31da541b",
+        "background_fragments": 10860738,
+        "total_fragments": 10860838,
+        "viral_fragments_per_million": 9.207392652390174,
+        "per_million": {
+          "raw_spots": 3.5356973194181487,
+          "non_redacted_spots": 6.969615889832118,
+          "post_qc_pairs": 7.706785778637376
+        },
+        "parts": {
+          "read_1": [
+            {
+              "path": "work/series/parts/background_1.fastq.gz",
+              "bytes": 628528497,
+              "sha256": "4206519a3c4270a8527c9f7313dc9e29fee59062d1b28bd1432d31c0fbc46e0c"
+            },
+            {
+              "path": "work/series/parts/viral000100_viral_1.fastq.gz",
+              "bytes": 8310,
+              "sha256": "e80f3aa32dd4e506443815ea066a1468e63d611d6a139954d30b829cf16226cf"
+            }
+          ],
+          "read_2": [
+            {
+              "path": "work/series/parts/background_2.fastq.gz",
+              "bytes": 675336029,
+              "sha256": "82df151bdf39ed848a46b539625ebb8875441df8c9fe32487bbccf9742e83a7d"
+            },
+            {
+              "path": "work/series/parts/viral000100_viral_2.fastq.gz",
+              "bytes": 9106,
+              "sha256": "c40ba7ff973ebc189c6f588015b0e7bbce5ad03418018d92a0765baf664c86b6"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viral000010",
+        "requested_viral_fragments": 10,
+        "viral_fragments": 10,
+        "truncated": false,
+        "seed": 20191201,
+        "selection_sha256": "3d063e1d1d86fe77c11154d8b957dcad7b6313bf22f40722d4469983529a4a1a",
+        "background_fragments": 10860738,
+        "total_fragments": 10860748,
+        "viral_fragments_per_million": 0.9207468951493949,
+        "per_million": {
+          "raw_spots": 0.35356973194181485,
+          "non_redacted_spots": 0.6969615889832118,
+          "post_qc_pairs": 0.7706785778637376
+        },
+        "parts": {
+          "read_1": [
+            {
+              "path": "work/series/parts/background_1.fastq.gz",
+              "bytes": 628528497,
+              "sha256": "4206519a3c4270a8527c9f7313dc9e29fee59062d1b28bd1432d31c0fbc46e0c"
+            },
+            {
+              "path": "work/series/parts/viral000010_viral_1.fastq.gz",
+              "bytes": 1089,
+              "sha256": "d40f2e92ffb738582cbd2f404ff08a47c970a0d724444cb41d1bfc0b6370f54f"
+            }
+          ],
+          "read_2": [
+            {
+              "path": "work/series/parts/background_2.fastq.gz",
+              "bytes": 675336029,
+              "sha256": "82df151bdf39ed848a46b539625ebb8875441df8c9fe32487bbccf9742e83a7d"
+            },
+            {
+              "path": "work/series/parts/viral000010_viral_2.fastq.gz",
+              "bytes": 1114,
+              "sha256": "789132059ba777474bf874fb48ba898067fa5fe821c6ff91610384d8ae1b5d5f"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "runs": [
+    {
+      "generated_at": "2026-11-17T19:10:24+00:00",
+      "command": [
+        "/home/user/hindsight/src/hindsight/cli.py",
+        "samples",
+        "run",
+        "--config",
+        "config/day2.toml",
+        "--skip",
+        "SRR10971381",
+        "--skip-series"
+      ],
+      "wall_clock_seconds": 8212.3,
+      "samples": [
+        "SRR13677553",
+        "SRR13677559",
+        "SRR13677560",
+        "SRR13677589",
+        "SRR13677700",
+        "SRR13677717",
+        "SRR13677722",
+        "SRR13677730",
+        "SRR13677740",
+        "SRR13677744",
+        "SRR13677748",
+        "SRR13677777",
+        "SRR13677842",
+        "SRR13677843",
+        "SRR13677844",
+        "SRR13677878",
+        "SRR13677921",
+        "SRR13677922",
+        "SRR13677975",
+        "SRR13677977"
+      ],
+      "wrote_series": false
+    },
+    {
+      "generated_at": "2026-11-17T21:27:45+00:00",
+      "command": [
+        "/home/user/hindsight/src/hindsight/cli.py",
+        "samples",
+        "run",
+        "--config",
+        "config/day2.toml",
+        "--only",
+        "SRR10971381"
+      ],
+      "wall_clock_seconds": 587.9,
+      "samples": [
+        "SRR10971381"
+      ],
+      "wrote_series": true
+    },
+    {
+      "generated_at": "2026-11-17T21:40:08+00:00",
+      "command": [
+        "/home/user/hindsight/src/hindsight/cli.py",
+        "samples",
+        "run",
+        "--config",
+        "config/day2.toml",
+        "--only",
+        "SRR10971381"
+      ],
+      "wall_clock_seconds": 32.4,
+      "samples": [
+        "SRR10971381"
+      ],
+      "wrote_series": true
+    }
+  ]
+}

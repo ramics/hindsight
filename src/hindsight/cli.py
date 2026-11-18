@@ -279,5 +279,272 @@ def verify_cmd(out_dir: Path) -> None:
     )
 
 
+@main.group("samples")
+def samples_grp() -> None:
+    """Fetch, QC and host-filter the benchmark samples, and freeze the dilution series.
+
+    This is the sample side of the benchmark. It never consults the dated database, and
+    the only post-2019 reference it touches is the SARS-CoV-2 genome, used solely to
+    label which fragments are viral. The detection arms never see that label.
+    """
+
+
+def _samples_config(path: Path):
+    from .samples.registry import load_config
+
+    return load_config(path)
+
+
+@samples_grp.command("plan")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("config/day2.toml"),
+    show_default=True,
+)
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON instead of a table.")
+def samples_plan_cmd(config_path: Path, as_json: bool) -> None:
+    """Show which runs will be processed, and the dilution levels, without fetching."""
+    from .samples.registry import samples_from_config
+
+    config = _samples_config(config_path)
+    specs = samples_from_config(config)
+    if as_json:
+        click.echo(
+            json.dumps(
+                {
+                    "samples": [
+                        {"accession": s.accession, "role": s.role, "notes": s.notes} for s in specs
+                    ],
+                    "levels": list(config.levels),
+                    "dilution_seed": config.dilution_seed,
+                    "negatives_seed": config.negatives_seed,
+                },
+                indent=2,
+            )
+        )
+        return
+    index = [s for s in specs if s.is_index]
+    negatives = [s for s in specs if not s.is_index]
+    click.echo(f"index sample:   {', '.join(s.accession for s in index)}")
+    click.echo(f"negatives ({len(negatives)}):  {' '.join(s.accession for s in negatives)}")
+    if negatives:
+        click.echo(f"chosen by:      {negatives[0].notes}")
+    click.echo(f"levels:         {', '.join(str(x) for x in config.levels)} viral fragments")
+    click.echo(f"dilution seed:  {config.dilution_seed} (nested, sha256 ranking)")
+
+
+@samples_grp.command("select-negatives")
+@click.option(
+    "--manifest",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    required=True,
+    help="Annotated ENA filereport for the negatives project.",
+)
+@click.option("--count", type=int, default=20, show_default=True)
+@click.option("--seed", type=int, default=20191201, show_default=True)
+def samples_select_cmd(manifest: Path, count: int, seed: int) -> None:
+    """Re-derive the negative-control subset from the project manifest and a seed."""
+    from .samples.registry import choose_negatives, patient_rows, read_negatives_manifest
+
+    rows = read_negatives_manifest(manifest)
+    chosen = choose_negatives(rows, count=count, seed=seed)
+    click.echo(
+        f"# {len(patient_rows(rows))} patient runs in the manifest; "
+        f"{len(chosen)} chosen with seed {seed}",
+        err=True,
+    )
+    for accession in chosen:
+        click.echo(accession)
+
+
+@samples_grp.command("run")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("config/day2.toml"),
+    show_default=True,
+)
+@click.option(
+    "--only",
+    multiple=True,
+    help="Process only these run accessions (repeatable). Default: everything in the config.",
+)
+@click.option(
+    "--skip",
+    multiple=True,
+    help=(
+        "Leave these run accessions alone (repeatable). Needed once a sample's "
+        "intermediates have been pruned: its stage markers remain, but the files they "
+        "describe are gone, so re-running it re-fetches gigabytes to rebuild what "
+        "nothing downstream reads any more."
+    ),
+)
+@click.option(
+    "--skip-series",
+    is_flag=True,
+    help="Fetch, QC and filter, but do not write the dilution series.",
+)
+def samples_run_cmd(
+    config_path: Path, only: tuple[str, ...], skip: tuple[str, ...], skip_series: bool
+) -> None:
+    """Run the whole sample pipeline. Resumable: re-running finishes what was left."""
+    from .samples.pipeline import run_day2
+
+    config = _samples_config(config_path)
+    record = run_day2(
+        config,
+        only=list(only) or None,
+        skip=list(skip) or None,
+        skip_series=skip_series,
+        log=lambda msg: click.echo(msg, err=True),
+    )
+    index = next((s for s in record["samples"] if s["role"] == "index"), None)
+    if index:
+        click.echo(
+            f"{index['accession']}: {index['viral_pairs']} viral fragments of "
+            f"{index['raw_pairs']} raw ({index['viral_fraction_raw'] * 100:.3f}%)"
+        )
+    series = record.get("dilution_series")
+    if series:
+        for level in series["levels"]:
+            click.echo(
+                f"  {level['name']}: {level['viral_fragments']} viral, "
+                f"{level['viral_fragments_per_million']:.2f} per million"
+            )
+
+
+@samples_grp.command("materialise")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("work/day2-provenance.json"),
+    show_default=True,
+)
+@click.option("--level", "level_name", required=True, help="Level name, e.g. viral001000.")
+@click.option(
+    "--out",
+    "out_dir",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("work/series/materialised"),
+    show_default=True,
+)
+@click.option(
+    "--no-verify",
+    is_flag=True,
+    help="Skip re-checking each part against its recorded digest. Not recommended.",
+)
+def samples_materialise_cmd(
+    provenance: Path, level_name: str, out_dir: Path, no_verify: bool
+) -> None:
+    """Write one dilution level out as an ordinary FASTQ pair.
+
+    The series is stored as parts — the background once, the viral fragments once per
+    level — because five materialised levels are 21 GB of files that are 99.9%
+    identical. A classifier that reads stdin needs no materialisation at all:
+
+    \b
+        cat work/series/parts/background_1.fastq.gz \\
+            work/series/parts/viral001000_viral_1.fastq.gz | kraken2 --gzip-compressed ...
+    """
+    from .samples.pipeline import materialise_level
+
+    record = json.loads(provenance.read_text())
+    series = record.get("dilution_series")
+    if not series:
+        raise click.ClickException(f"{provenance} holds no dilution series")
+    r1, r2 = materialise_level(series, level_name, out_dir, verify=not no_verify)
+    for path in (r1, r2):
+        click.echo(f"{path} ({path.stat().st_size:,} bytes)")
+
+
+@samples_grp.command("report")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("work/day2-provenance.json"),
+    show_default=True,
+)
+def samples_report_cmd(provenance: Path) -> None:
+    """Summarise a completed run: counts, denominators, the series, and what it cost.
+
+    The provenance record is the authority, but it is 40 KB of JSON. This is the table
+    that goes in a methods section.
+    """
+    record = json.loads(provenance.read_text())
+    machine = record.get("machine", {})
+    # wall_clock_seconds is the last invocation only. A cohort this size is built
+    # over several invocations (a crash, a resume, a rerun of one sample), so the
+    # honest figure is the sum of the stamps, with the count said out loud.
+    runs = record.get("runs") or []
+    total_seconds = sum(r.get("wall_clock_seconds", 0) for r in runs) or record.get(
+        "wall_clock_seconds", 0
+    )
+    invocations = (
+        f" over {len(runs)} invocations" if len(runs) > 1 else " in one invocation" if runs else ""
+    )
+    click.echo(
+        f"ran on {machine.get('instance_type') or machine.get('machine', 'unknown')}, "
+        f"{machine.get('cpu_count')} cores, {machine.get('memory_gib')} GiB, "
+        f"{total_seconds / 60:.0f} min wall clock{invocations}"
+    )
+    cap = (record.get("parameters") or {}).get("negatives_max_pairs")
+    if cap:
+        capped = sum(
+            1
+            for sample in record.get("samples", [])
+            if sample.get("role") == "negative" and sample.get("cap_fraction", 1.0) < 1.0
+        )
+        click.echo(f"negatives capped at {cap:,} pairs each; the cap bound on {capped} of them")
+    drift = record.get("tool_pin_drift") or []
+    tools_line = ", ".join(f"{t['name']} {t['version']}" for t in record.get("tools", []))
+    click.echo(f"tools: {tools_line}" + (f"  [drift: {', '.join(drift)}]" if drift else ""))
+
+    click.echo("")
+    click.echo(
+        f"{'run':<14}{'role':<10}{'raw':>12}{'redacted':>12}"
+        f"{'post-QC':>12}{'non-host':>12}{'viral':>9}"
+    )
+    for sample in record.get("samples", []):
+        click.echo(
+            f"{sample['accession']:<14}{sample['role']:<10}"
+            f"{sample['raw_pairs']:>12,}{sample['redacted_pairs']:>12,}"
+            f"{sample['qc_pairs']:>12,}{sample['nonhost_pairs']:>12,}"
+            f"{sample['viral_pairs'] or '':>9}"
+        )
+
+    series = record.get("dilution_series")
+    if not series:
+        return
+    click.echo("")
+    click.echo(
+        f"dilution series: seed {series['seed']}, "
+        f"{'nested' if series['nested'] else 'independent draws'}, "
+        f"{series['background_fragments']:,} background fragments"
+    )
+    denominators = series.get("denominators", {})
+    keys = list(denominators)
+    click.echo(
+        f"{'level':<14}{'viral':>8}{'total':>12}"
+        + "".join(f"{k.replace('_', ' '):>20}" for k in keys)
+    )
+    for level in series["levels"]:
+        row = (
+            f"{level['name']:<14}{level['viral_fragments']:>8,}" f"{level['total_fragments']:>12,}"
+        )
+        for key in keys:
+            value = level.get("per_million", {}).get(key)
+            row += f"{value:>20.3f}" if value is not None else f"{'-':>20}"
+        click.echo(row)
+    click.echo("")
+    headline = series.get("headline_denominator", "post_qc_pairs")
+    click.echo(
+        "per-million columns are viral fragments per million; the headline denominator "
+        f"is {headline.replace('_', ' ')}"
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     main()
