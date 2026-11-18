@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       fastp=0.23.4+dfsg-1 \
       bowtie2=2.5.2-1 \
       samtools=1.19.2-1build2 \
+      kraken2=2.1.3-1 \
       pigz=2.8-1 \
       python3 \
       python3-pip \
@@ -41,7 +42,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       gawk \
     && rm -rf /var/lib/apt/lists/* \
-    && fastp --version && bowtie2 --version | head -1 && samtools --version | head -1
+    && fastp --version && bowtie2 --version | head -1 && samtools --version | head -1 \
+    && kraken2 --version | head -1
+
+# Kraken2 keeps build_db, k2mask and friends in a libexec directory that is not on
+# PATH; kraken2-build puts its own directory there before calling them, and Day 3's
+# arm looks for them in the same places. Nothing to install, but worth knowing when a
+# masking step cannot find k2mask on a different distribution.
 
 # sra-tools is not in the Ubuntu archive; NCBI's own build is used, by version.
 ARG SRATOOLKIT_VERSION=3.2.1
@@ -61,3 +68,8 @@ RUN pip install --break-system-packages --no-cache-dir .
 WORKDIR /work
 ENTRYPOINT ["/bin/bash", "-lc"]
 CMD ["hindsight samples plan"]
+
+# The two days this container runs:
+#
+#   docker run --rm -v "$PWD:/work" -w /work hindsight scripts/day2.sh   # the reads
+#   docker run --rm -v "$PWD:/work" -w /work hindsight scripts/day3.sh   # Arm A

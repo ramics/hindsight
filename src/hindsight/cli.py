@@ -279,6 +279,187 @@ def verify_cmd(out_dir: Path) -> None:
     )
 
 
+@main.group("arm-a")
+def arm_a_grp() -> None:
+    """Arm A: Kraken2 against the time-correct nucleotide database (Day 3).
+
+    The arm sees the reads Day 2 froze and a database `hindsight build` produced for a
+    cutoff date. It never sees the ground-truth viral labels, and it never sees a
+    post-2019 reference of any kind.
+    """
+
+
+def _arm_config(path: Path):
+    from .arms.day3 import load_config
+
+    return load_config(path)
+
+
+_ARM_CONFIG_OPTION = click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("config/day3.toml"),
+    show_default=True,
+)
+
+
+@arm_a_grp.command("build-db")
+@_ARM_CONFIG_OPTION
+def arm_a_build_db_cmd(config_path: Path) -> None:
+    """Assemble the Kraken2 database from a hindsight build directory."""
+    from .arms.day3 import prepare_database
+
+    arm = _arm_config(config_path)
+    record, clades = prepare_database(arm, log=lambda msg: click.echo(msg, err=True))
+    inspect = record.get("inspect", {})
+    click.echo(f"{record['db']}: {inspect.get('taxa_in_db', '?')} taxa in the database")
+    for name, info in record.get("clades", {}).items():
+        click.echo(f"  {name:<22}{info['taxa_in_clade']:>7} taxa  (taxid {info['root_taxid']})")
+    for absent in record.get("clades_absent_from_dated_taxonomy", []):
+        click.echo(f"  absent from the 2019 taxonomy: {absent}")
+    _ = clades
+
+
+@arm_a_grp.command("run")
+@_ARM_CONFIG_OPTION
+@click.option(
+    "--stage",
+    "stages",
+    multiple=True,
+    type=click.Choice(["database", "index", "series", "negatives"]),
+    help="Run only these stages (repeatable). Default: all of them, in order.",
+)
+@click.option(
+    "--only",
+    "only_negatives",
+    multiple=True,
+    help="Classify only these negative runs (repeatable). Implies --stage negatives.",
+)
+def arm_a_run_cmd(config_path: Path, stages: tuple[str, ...], only_negatives: tuple[str, ...]):
+    """Run Arm A: the index sample, the dilution series, and the negatives.
+
+    Resumable. A sample already classified is skipped without re-fetching it, which
+    matters because the negatives are fetched and deleted one at a time.
+    """
+    from .arms.day3 import run_day3
+
+    arm = _arm_config(config_path)
+    chosen = list(stages) or (["negatives"] if only_negatives else None)
+    record = run_day3(
+        arm,
+        stages=chosen or ("database", "index", "series", "negatives"),
+        only_negatives=list(only_negatives) or None,
+        log=lambda msg: click.echo(msg, err=True),
+    )
+    index = record.get("index_sample") or {}
+    if index.get("truth"):
+        truth = index["truth"]
+        click.echo(
+            f"index sample: {truth['detected']:,} of "
+            f"{truth.get('truth_fragments_in_nonhost') or truth['truth_fragments']:,} "
+            f"ground-truth viral fragments in {truth['clade']}"
+        )
+    for level in (record.get("series") or {}).get("levels", []):
+        click.echo(
+            f"  {level['name']}: {level['detected_viral_reads']:,} of "
+            f"{level['viral_fragments']:,} detected, "
+            f"{level['false_positive_reads']:,} background false positives"
+        )
+    alarms = record.get("false_alarms") or {}
+    if alarms:
+        click.echo(
+            f"negatives: {alarms['reads_total']:,} {alarms['clade']} reads across "
+            f"{alarms['samples']} samples ({alarms['samples_with_at_least_one_hit']} with "
+            f"at least one), {alarms['non_host_pairs_total']:,} non-host pairs"
+        )
+
+
+@arm_a_grp.command("report")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("results/day3-provenance.json"),
+    show_default=True,
+)
+def arm_a_report_cmd(provenance: Path) -> None:
+    """Summarise Arm A: the detection curve, and the false alarms it has to beat."""
+    record = json.loads(provenance.read_text())
+    database = record.get("database", {})
+    release = (database.get("source_release") or {}).get("release", {})
+    params = record.get("parameters", {})
+    machine = record.get("machine", {})
+    runs = record.get("runs") or []
+    total_seconds = sum(r.get("wall_clock_seconds", 0) for r in runs) or record.get(
+        "wall_clock_seconds", 0
+    )
+    click.echo(
+        f"kraken2 vs release {release.get('number', '?')} "
+        f"({release.get('date', '?')}), cutoff {params.get('cutoff')}, "
+        f"confidence {params.get('confidence')}, "
+        f"minimum-hit-groups {params.get('minimum_hit_groups')}"
+    )
+    click.echo(
+        f"ran on {machine.get('cpu_count')} cores, {machine.get('memory_gib')} GiB, "
+        f"{total_seconds / 60:.0f} min wall clock over {len(runs)} invocations; "
+        f"negatives at {params.get('negatives_depth')} depth"
+    )
+    check = (record.get("series") or {}).get("composition_check")
+    if check:
+        click.echo(
+            "composition check: "
+            + (
+                f"{check['level']} composed == classified whole"
+                if check.get("identical")
+                else f"MISMATCH on {check['taxa_disagreeing']} taxa"
+            )
+        )
+
+    index = record.get("index_sample") or {}
+    if index:
+        truth = index.get("truth", {})
+        click.echo("")
+        click.echo(
+            f"index sample ({index['name']}): {index['pairs']:,} non-host pairs, "
+            f"{truth.get('detected', 0):,} of "
+            f"{truth.get('truth_fragments_in_nonhost') or 0:,} ground-truth viral "
+            f"fragments in {truth.get('clade')} "
+            f"({100 * (truth.get('sensitivity') or 0):.1f}%), "
+            f"{truth.get('false_positive', 0):,} false positives"
+        )
+
+    levels = (record.get("series") or {}).get("levels", [])
+    if levels:
+        click.echo("")
+        click.echo(
+            f"{'level':<14}{'viral':>8}{'per million':>13}{'detected':>10}"
+            f"{'sensitivity':>13}{'false pos':>11}"
+        )
+        for level in levels:
+            per_million = (level.get("per_million") or {}).get("post_qc_pairs")
+            click.echo(
+                f"{level['name']:<14}{level['viral_fragments']:>8,}"
+                f"{per_million if per_million is None else round(per_million, 2):>13}"
+                f"{level['detected_viral_reads']:>10,}"
+                f"{100 * (level['sensitivity'] or 0):>12.1f}%"
+                f"{level['false_positive_reads']:>11,}"
+            )
+
+    alarms = record.get("false_alarms") or {}
+    if alarms:
+        click.echo("")
+        click.echo(
+            f"false alarms in {alarms['samples']} negatives at "
+            f"{params.get('negatives_depth')} depth: {alarms['reads_total']:,} "
+            f"{alarms['clade']} reads in {alarms['non_host_pairs_total']:,} non-host pairs"
+        )
+        click.echo(
+            f"  {alarms['samples_with_at_least_one_hit']} of {alarms['samples']} samples "
+            f"have at least one; most in one sample: {alarms['reads_max_in_one_sample']:,}; "
+            f"median {alarms['reads_median_per_sample']:,}"
+        )
+
+
 @main.group("samples")
 def samples_grp() -> None:
     """Fetch, QC and host-filter the benchmark samples, and freeze the dilution series.

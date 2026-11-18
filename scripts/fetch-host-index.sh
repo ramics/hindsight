@@ -29,5 +29,17 @@ for suffix in "${files[@]}"; do
 done
 
 if command -v md5sum >/dev/null && [[ -f "$dest/$name.md5" ]]; then
-  (cd "$dest" && md5sum -c --ignore-missing "$name.md5")
+  # The published .md5 lists the files by the absolute path they had on the machine
+  # that built them (/Users/langmead/...), so `md5sum -c` matches nothing and says
+  # "no file was verified" — which reads like a pass if you are not looking. Strip
+  # the directory, and fail loudly if nothing was checked.
+  (
+    cd "$dest"
+    sed 's#  .*/#  #' "$name.md5" > "$name.md5.local"
+    md5sum -c --ignore-missing "$name.md5.local" | tee "$name.md5.checked"
+    grep -c ': OK$' "$name.md5.checked" > /dev/null || {
+      echo "md5 check verified nothing in $dest" >&2
+      exit 1
+    }
+  )
 fi
