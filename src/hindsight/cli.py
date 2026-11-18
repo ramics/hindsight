@@ -119,9 +119,7 @@ def resolve_cmd(ctx: click.Context, cutoff: dt.datetime) -> None:
     click.echo(f"selected release:  {release.number} ({release.date.isoformat()})")
     click.echo(f"catalog:           {release.catalog_url()}")
     if following:
-        click.echo(
-            f"first excluded:    release {following.number} " f"({following.date.isoformat()})"
-        )
+        click.echo(f"first excluded:    release {following.number} ({following.date.isoformat()})")
         click.echo(
             f"blind window:      {(following.date - release.date).days} days between the "
             "selected release and the next one"
@@ -480,7 +478,7 @@ def arm_a_report_cmd(provenance: Path) -> None:
             click.echo(
                 f"{level['name']:<14}{viral:>8,}"
                 f"{per_million if per_million is None else round(per_million, 2):>13}"
-                f"{'-' if family is None else format(family, ',') :>15}"
+                f"{'-' if family is None else format(family, ','):>15}"
                 f"{genus:>17,}"
                 f"{100 * ((family or genus) / viral if viral else 0):>12.1f}%"
             )
@@ -526,6 +524,220 @@ def arm_a_report_cmd(provenance: Path) -> None:
                 f"  {negative['accession']}: "
                 + ", ".join(f"{t['reads']} {t['taxon'] or t['taxid']}" for t in taxa)
             )
+
+
+@main.group("arm-b")
+def arm_b_grp() -> None:
+    """Arm B: MEGAHIT plus DIAMOND against the time-correct protein set (Day 4).
+
+    The reference-free arm, and the one that automates what Wu et al. actually did:
+    assemble the non-host reads, then match the contigs by protein homology against
+    what was public before December 2019. Like Arm A it never sees the ground-truth
+    viral labels and never sees a post-2019 reference.
+    """
+
+
+def _arm_b_config(path: Path):
+    from .arms.day4 import load_config
+
+    return load_config(path)
+
+
+_ARM_B_CONFIG_OPTION = click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("config/day4.toml"),
+    show_default=True,
+)
+
+
+@arm_b_grp.command("build-db")
+@_ARM_B_CONFIG_OPTION
+def arm_b_build_db_cmd(config_path: Path) -> None:
+    """Assemble the DIAMOND protein database from a hindsight build directory."""
+    from .arms.day4 import prepare_database
+
+    arm = _arm_b_config(config_path)
+    record, _taxonomy, _clades = prepare_database(arm, log=lambda msg: click.echo(msg, err=True))
+    click.echo(
+        f"{record['db']}: {record.get('protein_records_in_source', '?'):,} protein records, "
+        f"{record.get('bytes', 0) / 2**20:.0f} MiB"
+    )
+    taxonmap = record.get("taxonmap") or {}
+    if "records_with_a_taxid" in taxonmap:
+        click.echo(
+            f"  taxon map: {taxonmap['records_with_a_taxid']:,} of "
+            f"{taxonmap['protein_records']:,} proteins carry a taxid"
+        )
+    proteins = record.get("protein_counts_by_clade") or {}
+    for name, info in record.get("clades", {}).items():
+        click.echo(
+            f"  {name:<22}{info['taxa_in_clade']:>7} taxa  "
+            f"{proteins.get(name, 0):>7} proteins  (taxid {info['root_taxid']})"
+        )
+    for absent in record.get("clades_absent_from_dated_taxonomy", []):
+        click.echo(f"  absent from the 2019 taxonomy: {absent}")
+
+
+@arm_b_grp.command("run")
+@_ARM_B_CONFIG_OPTION
+@click.option(
+    "--stage",
+    "stages",
+    multiple=True,
+    type=click.Choice(["database", "index", "series", "negatives"]),
+    help="Run only these stages (repeatable). Default: all of them, in order.",
+)
+@click.option(
+    "--only",
+    "only_negatives",
+    multiple=True,
+    help="Search only these negative runs (repeatable). Implies --stage negatives.",
+)
+@click.option(
+    "--level",
+    "only_levels",
+    multiple=True,
+    help="Assemble only these dilution levels (repeatable). Implies --stage series.",
+)
+def arm_b_run_cmd(
+    config_path: Path,
+    stages: tuple[str, ...],
+    only_negatives: tuple[str, ...],
+    only_levels: tuple[str, ...],
+):
+    """Run Arm B: the index sample, the dilution series, and the negatives.
+
+    Resumable at the level of one assembly and one search, which matters more here than
+    it did for Arm A: a dilution level is a full MEGAHIT run and there are six of them
+    before the negatives start.
+    """
+    from .arms.day4 import run_day4
+
+    arm = _arm_b_config(config_path)
+    chosen = list(stages)
+    if not chosen:
+        if only_negatives:
+            chosen = ["negatives"]
+        elif only_levels:
+            chosen = ["series"]
+    record = run_day4(
+        arm,
+        stages=chosen or ("database", "index", "series", "negatives"),
+        only_negatives=list(only_negatives) or None,
+        only_levels=list(only_levels) or None,
+        log=lambda msg: click.echo(msg, err=True),
+    )
+    _arm_b_echo_summary(record)
+
+
+def _arm_b_echo_summary(record: dict) -> None:
+    headline = (record.get("parameters") or {}).get("headline_clade", "coronaviridae")
+    index = record.get("index_sample") or {}
+    if index:
+        clade = (index.get("search") or {}).get("clades", {}).get(headline, {})
+        click.echo(
+            f"index sample: {index['assembly']['contig_count']:,} contigs, "
+            f"{clade.get('contigs', 0)} in {headline}, "
+            f"longest {clade.get('longest_contig', 0):,} bp"
+        )
+        readback = index.get("reads_on_clade_contigs") or {}
+        if readback:
+            click.echo(
+                f"  reads mapping back: {readback.get('detected', 0):,} of "
+                f"{readback.get('truth_fragments', 0):,} ground-truth viral fragments, "
+                f"{readback.get('false_positive', 0):,} others"
+            )
+    for level in (record.get("series") or {}).get("levels", []):
+        clade = (level.get("search") or {}).get("clades", {}).get(headline, {})
+        line = (
+            f"  {level['name']}: {level['viral_fragments']:,} viral fragments -> "
+            f"{clade.get('contigs', 0)} {headline} contigs"
+        )
+        if clade.get("longest_contig"):
+            line += f", longest {clade['longest_contig']:,} bp"
+        reads_half = level.get("read_level") or {}
+        if reads_half:
+            line += f"; reads: {reads_half.get('detected', 0):,} detected"
+        click.echo(line)
+    alarms = record.get("false_alarms") or {}
+    if alarms:
+        click.echo(
+            f"negatives: {alarms['samples_with_at_least_one_clade_contig']} of "
+            f"{alarms['samples']} samples have a {alarms['clade']} contig "
+            f"({alarms['contigs_total']} contigs, "
+            f"{alarms['non_host_pairs_total']:,} non-host pairs)"
+        )
+
+
+@arm_b_grp.command("report")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("results/day4-provenance.json"),
+    show_default=True,
+)
+def arm_b_report_cmd(provenance: Path) -> None:
+    """Summarise Arm B: the assembly-limited detection curve, and the false alarms."""
+    record = json.loads(provenance.read_text())
+    database = record.get("database", {})
+    release = (database.get("source_release") or {}).get("time_control") or {}
+    params = record.get("parameters", {})
+    machine = record.get("machine", {})
+    runs = record.get("runs") or []
+    total_seconds = sum(r.get("wall_clock_seconds", 0) for r in runs) or record.get(
+        "wall_clock_seconds", 0
+    )
+    excluded = release.get("excluded_next_release") or {}
+    headline = params.get("headline_clade", "coronaviridae")
+    click.echo(
+        f"megahit + diamond blastx vs RefSeq release {release.get('release', '?')} "
+        f"({release.get('release_date', '?')}) proteins, cutoff {params.get('cutoff')}, "
+        f"first excluded release {excluded.get('release', '?')} "
+        f"({excluded.get('release_date', '?')})"
+    )
+    click.echo(
+        f"{database.get('protein_records_in_source', 0):,} proteins; "
+        f"--{params.get('sensitivity')}, e-value {params.get('evalue')}, "
+        f"LCA over the top {params.get('lca_top_percent')}% of bitscore; "
+        f"headline clade: {headline}"
+    )
+    click.echo(
+        f"ran on {machine.get('cpu_count')} cores, {machine.get('memory_gib')} GiB, "
+        f"{total_seconds / 60:.0f} min wall clock over {len(runs)} invocations; "
+        f"negatives at {params.get('negatives_depth')} depth"
+    )
+    click.echo("")
+    _arm_b_echo_summary(record)
+
+    index = record.get("index_sample") or {}
+    comparison = index.get("sensitivity_comparison") or {}
+    if comparison:
+        theirs = (comparison.get("search") or {}).get("clades", {}).get(headline, {})
+        mine = (index.get("search") or {}).get("clades", {}).get(headline, {})
+        click.echo("")
+        click.echo(
+            f"sensitivity setting: --{index.get('sensitivity')} found "
+            f"{mine.get('contigs', 0)} {headline} contigs, "
+            f"--{comparison.get('sensitivity')} found {theirs.get('contigs', 0)}"
+        )
+    reads_half = index.get("read_level") or {}
+    if reads_half.get("truth"):
+        truth = reads_half["truth"]
+        click.echo(
+            f"read-level search on the index sample: {truth['detected']:,} of "
+            f"{truth['truth_fragments']:,} ground-truth viral fragments in {headline}, "
+            f"{truth['false_positive']:,} false positives"
+        )
+    for negative in record.get("negatives", []):
+        detail = (negative.get("search") or {}).get("contig_detail") or []
+        if not negative.get("false_alarm_contigs"):
+            continue
+        click.echo(
+            f"  {negative['accession']}: "
+            + ", ".join(f"{e['length']} bp {e['lca_taxon'] or e['lca_taxid']}" for e in detail[:4])
+        )
 
 
 @main.group("samples")
@@ -780,9 +992,7 @@ def samples_report_cmd(provenance: Path) -> None:
         + "".join(f"{k.replace('_', ' '):>20}" for k in keys)
     )
     for level in series["levels"]:
-        row = (
-            f"{level['name']:<14}{level['viral_fragments']:>8,}" f"{level['total_fragments']:>12,}"
-        )
+        row = f"{level['name']:<14}{level['viral_fragments']:>8,}{level['total_fragments']:>12,}"
         for key in keys:
             value = level.get("per_million", {}).get(key)
             row += f"{value:>20.3f}" if value is not None else f"{'-':>20}"

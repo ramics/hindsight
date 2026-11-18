@@ -22,6 +22,8 @@ VERSION_COMMANDS: dict[str, list[str]] = {
     "samtools": ["--version"],
     "pigz": ["--version"],
     "curl": ["--version"],
+    "diamond": ["--version"],
+    "megahit": ["--version"],
 }
 
 VERSION_PATTERNS: dict[str, str] = {
@@ -30,6 +32,9 @@ VERSION_PATTERNS: dict[str, str] = {
     "samtools": r"samtools\s+([0-9][0-9.]*)",
     "pigz": r"pigz\s+([0-9][0-9.]*)",
     "curl": r"curl\s+([0-9][0-9.]*)",
+    # "diamond version 2.1.9" — no leading "v", unlike megahit's "MEGAHIT v1.2.9".
+    "diamond": r"diamond version\s+([0-9][0-9.]*)",
+    "megahit": r"MEGAHIT\s+v([0-9][0-9.]*)",
 }
 
 
