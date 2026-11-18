@@ -9,7 +9,6 @@ output. The classifier itself is Kraken2's business.
 from __future__ import annotations
 
 import gzip
-import json
 
 import pytest
 
@@ -52,7 +51,17 @@ def taxonomy_dir(tmp_path):
 
 def test_lineage_and_descendants(taxonomy_dir):
     taxonomy = kraken.read_taxonomy(taxonomy_dir)
-    assert taxonomy.lineage(694009) == [694009, 2509511, 694002, 2501931, 11118, 76804, 2559587, 10239, 1]
+    assert taxonomy.lineage(694009) == [
+        694009,
+        2509511,
+        694002,
+        2501931,
+        11118,
+        76804,
+        2559587,
+        10239,
+        1,
+    ]
     assert taxonomy.descendants(694002) == {694002, 2509511, 694009, 31631}
     assert 562 not in taxonomy.descendants(10239)
 
@@ -71,9 +80,7 @@ def test_lineage_of_an_unknown_taxid_is_empty(taxonomy_dir):
 
 def test_clade_sets_report_what_the_dated_tree_lacks(taxonomy_dir):
     taxonomy = kraken.read_taxonomy(taxonomy_dir)
-    clades = kraken.clade_sets(
-        taxonomy, {"betacoronavirus": 694002, "not_yet_named": 2697049}
-    )
+    clades = kraken.clade_sets(taxonomy, {"betacoronavirus": 694002, "not_yet_named": 2697049})
     assert clades.members["betacoronavirus"] == {694002, 2509511, 694009, 31631}
     assert clades.missing == ["not_yet_named (taxid 2697049)"]
     assert "not_yet_named" not in clades.members
@@ -248,9 +255,7 @@ def test_scoring_reports_every_clade_not_only_the_headline(tmp_path, taxonomy_di
     nodes = (taxonomy_dir / "nodes.dmp").read_text() + "99999\t|\t11118\t|\tspecies\t|\n"
     (taxonomy_dir / "nodes.dmp").write_text(nodes)
     taxonomy = kraken.read_taxonomy(taxonomy_dir)
-    clades = kraken.clade_sets(
-        taxonomy, {"coronaviridae": 11118, "betacoronavirus": 694002}
-    )
+    clades = kraken.clade_sets(taxonomy, {"coronaviridae": 11118, "betacoronavirus": 694002})
     path = tmp_path / "out.tsv.gz"
     write_output(
         path,
@@ -260,9 +265,7 @@ def test_scoring_reports_every_clade_not_only_the_headline(tmp_path, taxonomy_di
             ("C", "bg1", 99999),  # a family-level false positive
         ],
     )
-    scored = kraken.score_against_truth(
-        path, {"viral1", "viral2"}, clades, clade="betacoronavirus"
-    )
+    scored = kraken.score_against_truth(path, {"viral1", "viral2"}, clades, clade="betacoronavirus")
     assert scored["detected"] == 1
     assert scored["by_clade"]["betacoronavirus"]["detected"] == 1
     assert scored["by_clade"]["coronaviridae"]["detected"] == 2

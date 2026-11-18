@@ -167,9 +167,7 @@ def classify_series(
         # Every fragment in a viral part is ground-truth viral by construction, and
         # every fragment in the background is not, so detection and false positives
         # need no labelling step here — they are the two files' own clade counts.
-        detected_by_clade = {
-            name: clades.count(viral.counts, name) for name in clades.members
-        }
+        detected_by_clade = {name: clades.count(viral.counts, name) for name in clades.members}
         false_positive_by_clade = {
             name: clades.count(background.counts, name) for name in clades.members
         }
