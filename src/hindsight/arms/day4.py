@@ -304,11 +304,22 @@ def _read_arm(
     """
     out_dir = Path(out_dir)
     fasta = out_dir / "reads" / f"{name}.reads.fa.gz"
-    fragments = _reads_to_fasta(r1, r2, fasta)
+    search_dir = out_dir / "search"
+    # Building the FASTA means reading 22 million records and writing 3 GiB, so a search
+    # that is already on disk must not pay for it. `blastx` resumes from its own marker,
+    # but it cannot do that until it has been handed a query file it no longer needs.
+    done = search_dir / f".{name}_reads.{arm.read_level_sensitivity}.searched.json"
+    counted = search_dir / f"{name}_reads.fragments.json"
+    if done.exists() and counted.exists():
+        fragments = json.loads(counted.read_text())["fragments"]
+    else:
+        fragments = _reads_to_fasta(r1, r2, fasta)
+        counted.parent.mkdir(parents=True, exist_ok=True)
+        counted.write_text(json.dumps({"fragments": fragments}, indent=2) + "\n")
     hits, meta = diamond.blastx(
         arm.dmnd_db,
         fasta,
-        out_dir / "search",
+        search_dir,
         name=f"{name}_reads",
         threads=arm.threads,
         sensitivity=arm.read_level_sensitivity,
@@ -322,7 +333,6 @@ def _read_arm(
     record["name"] = name
     record["fragments_searched"] = fragments
     record["meta"] = meta
-    record["fasta"] = str(fasta)
     # 1-3 GiB of FASTA per sample whose only consumer was the search that just finished.
     fasta.unlink(missing_ok=True)
     log(
@@ -472,18 +482,103 @@ def run_index(
             log=log,
         )
     if arm.read_level:
-        record["read_level"] = _read_arm(
-            arm,
-            r1,
-            r2,
-            arm.out_dir / "index",
-            taxonomy,
-            clades,
-            name=f"{accession}_nonhost",
-            truth_ids=truth_ids,
-            log=log,
+        record["read_level"] = _index_read_level(
+            arm, samples_config, day2, r1, r2, truth_ids, taxonomy, clades, log=log
         )
     return record
+
+
+def _index_read_level(
+    arm: ArmConfig,
+    samples_config: registry.Config,
+    day2: dict,
+    r1: Path,
+    r2: Path,
+    truth_ids: set[str],
+    taxonomy,
+    clades,
+    *,
+    log=print,
+) -> dict:
+    """The index sample's read half, composed rather than searched whole.
+
+    Searching the 10.9 million non-host pairs costs hours, and the series stage has to
+    search the background — the same reads with the 62,117 viral fragments taken out —
+    anyway. Day 2 built that background by exclusion, so the two sets are an exact
+    partition of the non-host reads, and the index sample's read half is the background's
+    hits plus the viral fragments' hits. The viral part is 61,219 fragments, which is
+    seconds.
+
+    The saving is one full read-level search, and the arithmetic is the same one Arm A
+    used for its series. The composition is not assumed: ``read_level_partition`` in the
+    record states both halves' fragment counts and the non-host total they must sum to,
+    so a reader can check it.
+    """
+    series_out = arm.out_dir / "series"
+    parts = arm.work_dir / "series" / "parts"
+    bg1, bg2 = parts / "background_1.fastq.gz", parts / "background_2.fastq.gz"
+    for path in (bg1, bg2):
+        if not path.exists():
+            raise diamond.DiamondError(f"{path} is missing; re-run the Day 2 pipeline")
+    background = _read_arm(arm, bg1, bg2, series_out, taxonomy, clades, name="background", log=log)
+
+    # Every truth fragment that survived host filtering, pulled out of the non-host set
+    # rather than taken from the label: 898 of the 62,117 align to the human genome and
+    # are not in these files, and the arm must score what it was actually given.
+    viral_dir = arm.out_dir / "index" / "viral-fragments"
+    viral_dir.mkdir(parents=True, exist_ok=True)
+    v1 = viral_dir / "index_viral_1.fastq.gz"
+    v2 = viral_dir / "index_viral_2.fastq.gz"
+    if not (v1.exists() and v2.exists()):
+        for source, dest in ((r1, v1), (r2, v2)):
+            reads.write_subset(source, dest, truth_ids)
+    viral = _read_arm(
+        arm,
+        v1,
+        v2,
+        arm.out_dir / "index",
+        taxonomy,
+        clades,
+        name="index_viral",
+        log=log,
+    )
+    for stale in (v1, v2):
+        stale.unlink(missing_ok=True)
+
+    sample = next(
+        (s for s in day2.get("samples", []) if s["accession"] == samples_config.index_run),
+        {},
+    )
+    nonhost_pairs = sample.get("nonhost_pairs")
+    composed = _compose_read_level(
+        background,
+        viral,
+        clades,
+        (day2.get("dilution_series") or {}).get("denominators", {}),
+        {"viral_fragments": viral["fragments_searched"]},
+    )
+    composed["read_level_partition"] = {
+        "background_fragments": background["fragments_searched"],
+        "viral_fragments": viral["fragments_searched"],
+        "sum": (background["fragments_searched"] or 0) + (viral["fragments_searched"] or 0),
+        "nonhost_pairs_recorded_by_day2": nonhost_pairs,
+        "partition_is_exact": (
+            (background["fragments_searched"] or 0) + (viral["fragments_searched"] or 0)
+            == nonhost_pairs
+        ),
+        "truth_fragments_in_qc_set": len(truth_ids),
+        "truth_fragments_lost_to_the_host_filter": (
+            len(truth_ids) - (viral["fragments_searched"] or 0)
+        ),
+    }
+    composed["background"] = background
+    composed["viral_part"] = viral
+    if not composed["read_level_partition"]["partition_is_exact"]:
+        log(
+            "WARNING: background + viral fragments do not sum to Day 2's non-host count; "
+            "the read half's composition is not exact and must not be quoted"
+        )
+    return composed
 
 
 def _truth_ids(sample_dir: Path) -> set[str]:
