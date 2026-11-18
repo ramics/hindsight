@@ -843,6 +843,55 @@ def _write_contig_subset(contigs: Path, names: set[str], dest: Path) -> int:
 # ------------------------------------------------------------------------- the score
 
 
+# Bitscore cuts the evidence profile is reported against. Not thresholds — the arm
+# applies none, and `alarm` below is the unfiltered rule. They are reporting bands, fixed
+# in advance at round numbers rather than chosen to fit a curve, so that Day 5 can read
+# the series and the negatives against the same ladder and place one cut itself.
+BITSCORE_BANDS = (50.0, 100.0, 250.0, 500.0, 1000.0)
+
+
+def evidence_profile(
+    calls: dict[str, ContigCall],
+    clade: str,
+    *,
+    bands: Sequence[float] = BITSCORE_BANDS,
+) -> dict:
+    """How strong the clade evidence is, not merely whether there is any.
+
+    A translated search against a database of distant relatives always finds *something*:
+    on this cohort every assembly, the spike-free background included, yields a handful of
+    short contigs whose best protein match sits near 30% identity at a bitscore in the
+    forties. They are real remote homology and the arm is right to report them, but a rule
+    that alarms on "any contig in the family" therefore alarms on a clean sample, and the
+    bare contig count cannot tell a 29 kb genome from that floor.
+
+    Worse, the count is not even monotone in dose. At high coverage the genome assembles
+    into one contig; at intermediate coverage it shatters into twenty short ones, so the
+    count *rises* as the signal falls. Bases and best bitscore both behave; the count does
+    not, and this profile records all three so the write-up cannot lean on the wrong one.
+    """
+    chosen = clade_contigs(calls, clade, by="lca")
+    scores = sorted((call.best_bitscore or 0.0) for call in chosen)
+    profile = {
+        "contigs": len(chosen),
+        "bases": sum(call.length for call in chosen),
+        "longest_contig": chosen[0].length if chosen else 0,
+        "best_bitscore": max(scores, default=None),
+        "bands": [],
+    }
+    for cut in bands:
+        above = [call for call in chosen if (call.best_bitscore or 0.0) >= cut]
+        profile["bands"].append(
+            {
+                "min_bitscore": cut,
+                "contigs": len(above),
+                "bases": sum(call.length for call in above),
+                "longest_contig": max((call.length for call in above), default=0),
+            }
+        )
+    return profile
+
+
 def score_sample(
     assembly: Assembly,
     calls: dict[str, ContigCall],
@@ -858,8 +907,12 @@ def score_sample(
         "assembly": assembly.record(),
         "search": summary,
         "headline_clade": headline_clade,
+        # The unfiltered rule, recorded as the arm actually behaves: any contig the LCA
+        # placed in the headline clade. `evidence` is what distinguishes this firing from
+        # the background floor, and `docs/day4-arm-b.md` reports both.
         "alarm": summary["clades"].get(headline_clade, {}).get("contigs", 0) > 0,
         "contigs_in_headline_clade": summary["clades"].get(headline_clade, {}).get("contigs", 0),
+        "evidence": evidence_profile(calls, headline_clade),
     }
     if denominators:
         record["contigs_per_million"] = {

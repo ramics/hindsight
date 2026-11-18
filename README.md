@@ -212,6 +212,44 @@ why the negatives run at native depth on a machine that cannot hold them, what t
 index sample's own background turns out to contain, and the one check that the
 composition shortcut behind the series is exact.
 
+The second arm is not a classifier at all. It is what the original team actually did —
+assemble de novo, then match the contigs by protein homology — run against the same
+dated database:
+
+```console
+$ scripts/day4.sh
+index sample: 99.68% of the SARS-CoV-2 genome in one 29,809 bp contig at 100.0% identity
+  viral050000: 49,078 of 50,000 detected
+  viral010000:  9,829 of 10,000 detected
+  viral001000:    936 of  1,000 detected
+  viral000100:     41 of    100 detected
+  viral000010:      1 of     10 detected
+```
+
+**The assembly recovered the genome, not merely a signal, from a database whose nearest
+relative matched it at 79.9% amino acid identity.** Its best match was the SARS-CoV
+replicase; the lowest common ancestor of everything it tied with is Coronaviridae, which
+is the correct answer and not the confident wrong one a single-best-hit rule would give.
+
+And the two arms cross. Above about 1,000 viral fragments assembly is more than twice as
+sensitive as the classifier, because a contig recruits reads that would never classify
+alone; below 100 it loses, because the assembler runs out of coverage while Kraken2's
+per-read rate stays flat. Two methods with opposite failure modes is the most useful
+thing a two-arm benchmark can find, and it is the reason Day 5 cannot draw one threshold
+across both.
+
+One result in that arm is a caution rather than a finding. **The spike-free background
+alarms too**: every assembly yields three short contigs the taxonomy places in
+Coronaviridae, whose best matches are Beluga whale coronavirus SW1 and a Rousettus bat
+coronavirus at 28–33% identity. Real remote homology, so "found a contig in the family"
+is not a detection rule. Bitscore separates it cleanly — the floor tops out at 58 and the
+weakest genuine contig scores 270 — so the arm records a signal-strength profile and
+leaves the threshold to the negatives, rather than picking one that fits the answer.
+
+[`docs/day4-arm-b.md`](docs/day4-arm-b.md) has that arm in full: the crossover, why every
+dilution level costs its own assembly, what `--very-sensitive` turns out to be worth, and
+the measurement behind every runtime decision.
+
 ## What this does not give you, and why it matters
 
 Stated plainly, because a benchmark whose database has unexamined properties is not a
@@ -280,7 +318,7 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 ## Development
 
 ```bash
-uv run pytest             # 243 offline tests
+uv run pytest             # 285 offline tests
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```

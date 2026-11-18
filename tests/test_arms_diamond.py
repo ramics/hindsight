@@ -411,6 +411,75 @@ def test_score_sample_alarms_only_on_a_clade_contig(
     assert hot["contigs_per_million"]["post_qc_pairs"] == pytest.approx(1.0)
 
 
+def test_evidence_profile_separates_the_background_floor_from_a_real_genome(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
+    """The measured shape of this cohort: three weak contigs with or without a spike.
+
+    On the real series the spike-free background yields three short coronavirus contigs at
+    bitscores of 41-58, and the 50,000-fragment level yields those same three plus a
+    29.8 kb genome at 7,120. A rule reading the contig count sees 3 against 4; the bands
+    have to make that difference impossible to miss.
+    """
+    floor = [
+        blast_row("bg1", "YP_sars", 694009, 57.8, qlen=862),
+        blast_row("bg2", "YP_sars", 694009, 43.9, qlen=975),
+        blast_row("bg3", "YP_sars", 694009, 40.8, qlen=410),
+    ]
+    lengths = {"bg1": 862, "bg2": 975, "bg3": 410}
+    background = diamond.assign_contigs(
+        write_blast_hits(tmp_path / "bg.tsv.gz", floor), lengths, taxonomy, clades
+    )
+    spiked = diamond.assign_contigs(
+        write_blast_hits(
+            tmp_path / "hi.tsv.gz",
+            [*floor, blast_row("genome", "YP_sars", 694009, 7120.0, qlen=29868)],
+        ),
+        {**lengths, "genome": 29868},
+        taxonomy,
+        clades,
+    )
+
+    quiet = diamond.evidence_profile(background, "coronaviridae")
+    loud = diamond.evidence_profile(spiked, "coronaviridae")
+
+    assert quiet["contigs"] == 3 and loud["contigs"] == 4  # nearly indistinguishable
+    assert quiet["best_bitscore"] == 57.8
+    assert loud["best_bitscore"] == 7120.0
+    # Above the first band the floor vanishes entirely and the genome stands alone.
+    by_cut = {band["min_bitscore"]: band for band in quiet["bands"]}
+    assert by_cut[100.0]["contigs"] == 0
+    assert by_cut[100.0]["bases"] == 0
+    loud_cut = {band["min_bitscore"]: band for band in loud["bands"]}
+    assert loud_cut[1000.0]["contigs"] == 1
+    assert loud_cut[1000.0]["longest_contig"] == 29868
+
+
+def test_evidence_bands_are_fixed_in_advance_not_fitted():
+    """Round numbers, ascending. A band list edited to fit a result is not a measurement."""
+    assert diamond.BITSCORE_BANDS == (50.0, 100.0, 250.0, 500.0, 1000.0)
+    assert list(diamond.BITSCORE_BANDS) == sorted(diamond.BITSCORE_BANDS)
+
+
+def test_score_sample_carries_the_evidence_profile(
+    tmp_path, taxonomy, clades, blast_row, write_blast_hits
+):
+    assembly = diamond.Assembly(
+        name="s", contigs=tmp_path / "c.fa", contig_count=1, longest=29868, n50=29868
+    )
+    calls = diamond.assign_contigs(
+        write_blast_hits(
+            tmp_path / "a.tsv.gz", [blast_row("genome", "YP_sars", 694009, 7120.0, qlen=29868)]
+        ),
+        {"genome": 29868},
+        taxonomy,
+        clades,
+    )
+    record = diamond.score_sample(assembly, calls, clades, taxonomy)
+    assert record["evidence"]["best_bitscore"] == 7120.0
+    assert record["evidence"]["bases"] == 29868
+
+
 def test_false_alarm_summary_counts_samples_not_reads():
     """An assembly arm alarms per sample; the summary has to say so and mean it."""
     negatives = [

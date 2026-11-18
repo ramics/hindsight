@@ -787,6 +787,22 @@ def run_series(
             raise diamond.DiamondError(f"{path} is missing; re-run the Day 2 pipeline")
     background = _contig_arm(arm, bg1, bg2, out_dir, taxonomy, clades, name="background", log=log)
     background["role"] = "background (viral fragments removed; any clade hit is a false positive)"
+    if arm.comparison_sensitivity and arm.comparison_sensitivity != arm.sensitivity:
+        # Worth its own run: the background's clade contigs are false positives by
+        # construction, so this says directly whether --very-sensitive manufactures them.
+        background["sensitivity_comparison"] = _contig_arm(
+            arm,
+            bg1,
+            bg2,
+            out_dir,
+            taxonomy,
+            clades,
+            name="background",
+            denominators=denominators,
+            sensitivity=arm.comparison_sensitivity,
+            map_reads_back=False,
+            log=log,
+        )
     record["background"] = background
 
     background_reads: dict | None = None
@@ -822,6 +838,28 @@ def run_series(
                 denominators=denominators,
                 log=log,
             )
+            # The same level at stock sensitivity. The index sample alone cannot settle
+            # what --very-sensitive is worth: on a sample with 62,117 viral fragments
+            # either mode finds the genome easily. The question is whether the extra
+            # sensitivity buys detections at the *limit*, where the arm is deciding
+            # between a few hundred bases and nothing, so the comparison belongs here.
+            if arm.comparison_sensitivity and arm.comparison_sensitivity != arm.sensitivity:
+                entry_comparison = _contig_arm(
+                    arm,
+                    r1,
+                    r2,
+                    out_dir,
+                    taxonomy,
+                    clades,
+                    name=name,
+                    truth_ids=level_truth,
+                    denominators=denominators,
+                    sensitivity=arm.comparison_sensitivity,
+                    map_reads_back=False,
+                    log=log,
+                )
+            else:
+                entry_comparison = None
         finally:
             for path in (r1, r2):
                 Path(path).unlink(missing_ok=True)
@@ -830,6 +868,8 @@ def run_series(
         entry["total_fragments"] = level["total_fragments"]
         entry["per_million"] = level.get("per_million", {})
         entry["viral_fragments_per_million"] = level.get("viral_fragments_per_million")
+        if entry_comparison is not None:
+            entry["sensitivity_comparison"] = entry_comparison
 
         if arm.read_level and background_reads is not None:
             viral_reads = _read_level_viral_part(
