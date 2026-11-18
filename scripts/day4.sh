@@ -25,6 +25,23 @@ python -c 'import hindsight' 2>/dev/null || {
   pip install -e . >/dev/null
 }
 
+# sra-tools is the one pinned tool that is not in the Ubuntu archive, so a container not
+# built from environment/Dockerfile tends to have everything except this. Checking here
+# rather than letting the fetcher discover it matters because the failure is silent and
+# slow: the fetcher downloads and MD5-verifies the .sra container, finds no
+# fasterq-dump, falls back to ENA's FASTQ mirror, and then stalls in a retry loop as ENA
+# resets a 700 MB transfer — which looks like a network fault and is not one.
+if ! command -v fasterq-dump >/dev/null; then
+  if [[ -x /opt/sratoolkit/bin/fasterq-dump ]]; then
+    export PATH="/opt/sratoolkit/bin:$PATH"
+  else
+    echo "fasterq-dump is not on PATH. Without it the sample fetcher silently falls" >&2
+    echo "back to ENA, which is unreliable for files this size. Install NCBI's build:" >&2
+    echo "  scripts/fetch-sra-tools.sh && export PATH=/opt/sratoolkit/bin:\$PATH" >&2
+    exit 1
+  fi
+fi
+
 read -r source_db samples_config < <(python - "$CONFIG" <<'PY'
 import sys, tomllib
 with open(sys.argv[1], "rb") as fh:
