@@ -178,6 +178,10 @@ class CladeSets:
     members: dict[str, set[int]]
     missing: list[str] = field(default_factory=list)
     roots: dict[str, int] = field(default_factory=dict)
+    # The dated tree's names, carried along so a record can say "Enterovirus D68"
+    # rather than "1 taxid 42789". The name is the 2019 one, which is the point: a
+    # report written against a dated tree should be read in that tree's words.
+    names: dict[int, str] = field(default_factory=dict)
 
     def which(self, taxid: int) -> list[str]:
         return [name for name, members in self.members.items() if taxid in members]
@@ -197,7 +201,7 @@ def clade_sets(taxonomy: Taxonomy, clades: dict[str, int] | None = None) -> Clad
             missing.append(f"{name} (taxid {root})")
             continue
         members[name] = found
-    return CladeSets(members=members, missing=missing, roots=wanted)
+    return CladeSets(members=members, missing=missing, roots=wanted, names=taxonomy.names)
 
 
 # --------------------------------------------------------------------------- database
@@ -448,13 +452,23 @@ class Classification:
             "report": str(self.report),
             "classified_output": str(self.classified_output),
             "clades": {name: clades.count(self.counts, name) for name in clades.members},
-            "top_taxa": _top_taxa(self.counts, 15),
+            "top_taxa": _top_taxa(self.counts, 15, clades.names),
         }
 
 
-def _top_taxa(counts: dict[int, int], limit: int) -> list[dict]:
+def _top_taxa(
+    counts: dict[int, int], limit: int, names: dict[int, str] | None = None
+) -> list[dict]:
+    """What a sample was called, most-assigned first.
+
+    Worth recording for every sample and not only the index one: a negative control is
+    negative for SARS-CoV-2, not free of viruses, and the only way to tell a
+    coronavirus false alarm from somebody's unrelated infection is to look at what the
+    reads were actually called.
+    """
+    names = names or {}
     return [
-        {"taxid": taxid, "reads": n}
+        {"taxid": taxid, "reads": n, "taxon": names.get(taxid)}
         for taxid, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
     ]
 

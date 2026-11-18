@@ -214,7 +214,11 @@ def test_classification_record_reports_every_clade(tmp_path, taxonomy_dir):
     result = classification("x", {694009: 5, 562: 2}, pairs=100)
     record = result.record(clades)
     assert record["clades"] == {"viruses": 5, "betacoronavirus": 5}
-    assert record["top_taxa"][0] == {"taxid": 694009, "reads": 5}
+    assert record["top_taxa"][0] == {
+        "taxid": 694009,
+        "reads": 5,
+        "taxon": "Severe acute respiratory syndrome-related coronavirus",
+    }
 
 
 def test_headline_clade_is_one_of_the_recorded_clades():

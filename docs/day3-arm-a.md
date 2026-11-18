@@ -85,6 +85,27 @@ taxa move. Day 5 should draw its threshold at Coronaviridae, and say why.
 
 <!-- negatives -->
 
+### A negative control is negative for SARS-CoV-2, not free of viruses
+
+The first negative classified, `SRR13677553`, came back with **43% of its 16.2 million
+non-host pairs classified** — 6,391,114 of them as *Enterovirus D68*. Nothing is wrong:
+EV-D68 is a respiratory pathogen that causes severe illness in children, these samples
+are patient BALF from a respiratory study, and the arm has simply found the infection
+that patient had. It was knowable in 2019 — EV-D68 has been in RefSeq for decades — and
+the arm found it at an abundance no triage would miss. As a check that the pipeline can
+detect a pathogen when the pathogen *is* in the reference set, it is a better one than
+anything deliberately constructed.
+
+It does fix what the false-alarm rate has to be a rate *of*. Counted as "reads
+classified as a virus", that one sample contributes 6.98 million false alarms and the
+cohort's number is meaningless. **The false-alarm rate is per clade**, and the clade is
+the one a SARS-CoV-2-like detection would land in: Coronaviridae, or Betacoronavirus
+for the stricter reading. `SRR13677553` contributes zero at either.
+
+Every sample's fifteen most-assigned taxa are recorded with their 2019 names for
+exactly this reason — the only way to tell a coronavirus false alarm from somebody
+else's unrelated infection is to look at what the reads were actually called.
+
 ## What the negatives cost, and why they are not capped
 
 Day 2 capped each negative at 6 million post-QC pairs because 17 GiB of host-filtered
