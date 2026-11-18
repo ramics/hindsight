@@ -3,9 +3,10 @@
     "name": "hindsight arm-a",
     "version": "0.1.0"
   },
-  "generated_at": "2026-11-18T07:48:20+00:00",
+  "generated_at": "2026-11-18T07:54:47+00:00",
   "stages": [
-    "index"
+    "index",
+    "series"
   ],
   "machine": {
     "platform": "Linux-6.18.44-fc-v595-x86_64-with-glibc2.39",
@@ -15,8 +16,8 @@
     "instance_type": null,
     "work_dir_disk": {
       "total_gib": 252.0,
-      "used_gib": 23.4,
-      "free_gib": 15.5
+      "used_gib": 26.1,
+      "free_gib": 12.7
     }
   },
   "tools": [
@@ -348,6 +349,26 @@
         },
         "detected_viral_reads": 16412,
         "false_positive_reads": 79,
+        "detected_by_clade": {
+          "viruses": 20896,
+          "riboviria": 20892,
+          "nidovirales": 20892,
+          "coronaviridae": 20892,
+          "orthocoronavirinae": 16612,
+          "betacoronavirus": 16412,
+          "sarbecovirus": 16404,
+          "sars_related_cov": 16404
+        },
+        "false_positive_by_clade": {
+          "viruses": 4120,
+          "riboviria": 332,
+          "nidovirales": 97,
+          "coronaviridae": 90,
+          "orthocoronavirinae": 84,
+          "betacoronavirus": 79,
+          "sarbecovirus": 78,
+          "sars_related_cov": 78
+        },
         "sensitivity": 0.32824,
         "detected_per_million_post_qc": 1264.837681989966
       },
@@ -447,6 +468,26 @@
         },
         "detected_viral_reads": 3315,
         "false_positive_reads": 79,
+        "detected_by_clade": {
+          "viruses": 4232,
+          "riboviria": 4232,
+          "nidovirales": 4232,
+          "coronaviridae": 4232,
+          "orthocoronavirinae": 3357,
+          "betacoronavirus": 3315,
+          "sarbecovirus": 3312,
+          "sars_related_cov": 3312
+        },
+        "false_positive_by_clade": {
+          "viruses": 4120,
+          "riboviria": 332,
+          "nidovirales": 97,
+          "coronaviridae": 90,
+          "orthocoronavirinae": 84,
+          "betacoronavirus": 79,
+          "sarbecovirus": 78,
+          "sars_related_cov": 78
+        },
         "sensitivity": 0.3315,
         "detected_per_million_post_qc": 255.479948561829
       },
@@ -518,6 +559,26 @@
         },
         "detected_viral_reads": 326,
         "false_positive_reads": 79,
+        "detected_by_clade": {
+          "viruses": 420,
+          "riboviria": 420,
+          "nidovirales": 420,
+          "coronaviridae": 420,
+          "orthocoronavirinae": 328,
+          "betacoronavirus": 326,
+          "sarbecovirus": 326,
+          "sars_related_cov": 326
+        },
+        "false_positive_by_clade": {
+          "viruses": 4120,
+          "riboviria": 332,
+          "nidovirales": 97,
+          "coronaviridae": 90,
+          "orthocoronavirinae": 84,
+          "betacoronavirus": 79,
+          "sarbecovirus": 78,
+          "sars_related_cov": 78
+        },
         "sensitivity": 0.326,
         "detected_per_million_post_qc": 25.124121638357845
       },
@@ -581,6 +642,26 @@
         },
         "detected_viral_reads": 30,
         "false_positive_reads": 79,
+        "detected_by_clade": {
+          "viruses": 39,
+          "riboviria": 39,
+          "nidovirales": 39,
+          "coronaviridae": 39,
+          "orthocoronavirinae": 30,
+          "betacoronavirus": 30,
+          "sarbecovirus": 30,
+          "sars_related_cov": 30
+        },
+        "false_positive_by_clade": {
+          "viruses": 4120,
+          "riboviria": 332,
+          "nidovirales": 97,
+          "coronaviridae": 90,
+          "orthocoronavirinae": 84,
+          "betacoronavirus": 79,
+          "sarbecovirus": 78,
+          "sars_related_cov": 78
+        },
         "sensitivity": 0.3,
         "detected_per_million_post_qc": 2.3120357335912125
       },
@@ -640,6 +721,26 @@
         },
         "detected_viral_reads": 3,
         "false_positive_reads": 79,
+        "detected_by_clade": {
+          "viruses": 4,
+          "riboviria": 4,
+          "nidovirales": 4,
+          "coronaviridae": 4,
+          "orthocoronavirinae": 3,
+          "betacoronavirus": 3,
+          "sarbecovirus": 3,
+          "sars_related_cov": 3
+        },
+        "false_positive_by_clade": {
+          "viruses": 4120,
+          "riboviria": 332,
+          "nidovirales": 97,
+          "coronaviridae": 90,
+          "orthocoronavirinae": 84,
+          "betacoronavirus": 79,
+          "sarbecovirus": 78,
+          "sars_related_cov": 78
+        },
         "sensitivity": 0.3,
         "detected_per_million_post_qc": 0.23120357335912126
       }
@@ -665,7 +766,7 @@
       }
     }
   },
-  "wall_clock_seconds": 57.6,
+  "wall_clock_seconds": 50.3,
   "runs": [
     {
       "generated_at": "2026-11-18T07:45:57+00:00",
@@ -681,6 +782,15 @@
         "index"
       ],
       "wall_clock_seconds": 57.6,
+      "negatives": []
+    },
+    {
+      "generated_at": "2026-11-18T07:54:47+00:00",
+      "stages": [
+        "index",
+        "series"
+      ],
+      "wall_clock_seconds": 50.3,
       "negatives": []
     }
   ],
@@ -771,6 +881,48 @@
       "detected": 20418,
       "false_positive": 79,
       "sensitivity": 0.3287022876185263,
+      "by_clade": {
+        "viruses": {
+          "detected": 25930,
+          "false_positive": 4120,
+          "sensitivity": 0.4174380604343416
+        },
+        "riboviria": {
+          "detected": 25928,
+          "false_positive": 332,
+          "sensitivity": 0.4174058631292561
+        },
+        "nidovirales": {
+          "detected": 25928,
+          "false_positive": 97,
+          "sensitivity": 0.4174058631292561
+        },
+        "coronaviridae": {
+          "detected": 25928,
+          "false_positive": 90,
+          "sensitivity": 0.4174058631292561
+        },
+        "orthocoronavirinae": {
+          "detected": 20657,
+          "false_positive": 84,
+          "sensitivity": 0.33254986557625127
+        },
+        "betacoronavirus": {
+          "detected": 20418,
+          "false_positive": 79,
+          "sensitivity": 0.3287022876185263
+        },
+        "sarbecovirus": {
+          "detected": 20407,
+          "false_positive": 78,
+          "sensitivity": 0.3285252024405557
+        },
+        "sars_related_cov": {
+          "detected": 20407,
+          "false_positive": 78,
+          "sensitivity": 0.3285252024405557
+        }
+      },
       "truth_fragments_in_nonhost": 62117
     },
     "detected_per_million": {
@@ -778,5 +930,56 @@
       "non_redacted_spots": 1423.0561723859219,
       "post_qc_pairs": 1573.5715202821793
     }
+  },
+  "background_diagnosis": {
+    "taxid": 694009,
+    "taxon": "Severe acute respiratory syndrome-related coronavirus",
+    "clades": [
+      "viruses",
+      "riboviria",
+      "nidovirales",
+      "coronaviridae",
+      "orthocoronavirinae",
+      "betacoronavirus",
+      "sarbecovirus",
+      "sars_related_cov"
+    ],
+    "fragments": 78,
+    "truth_reference": "NC_045512.2",
+    "label_min_mapq": 20,
+    "fragments_extracted": [
+      78,
+      78
+    ],
+    "alignment_summary": [
+      "78 reads; of these:",
+      "  78 (100.00%) were paired; of these:",
+      "    7 (8.97%) aligned concordantly 0 times",
+      "    0 (0.00%) aligned concordantly exactly 1 time",
+      "    71 (91.03%) aligned concordantly >1 times",
+      "    ----",
+      "    7 pairs aligned concordantly 0 times; of these:",
+      "      0 (0.00%) aligned discordantly 1 time",
+      "    ----",
+      "    7 pairs aligned 0 times concordantly or discordantly; of these:",
+      "      14 mates make up the pairs; of these:",
+      "        14 (100.00%) aligned 0 times",
+      "        0 (0.00%) aligned exactly 1 time",
+      "        0 (0.00%) aligned >1 times",
+      "91.03% overall alignment rate"
+    ],
+    "fragments_aligning_to_the_modern_reference": 71,
+    "mapq_distribution": {
+      "2": 32,
+      "9": 48,
+      "11": 8,
+      "12": 10,
+      "14": 2,
+      "17": 26,
+      "18": 16
+    },
+    "max_mapq": 18,
+    "all_below_the_label_threshold": true,
+    "conclusion": "71 of 78 fragments align to NC_045512.2, every mate below the label's MAPQ >= 20 cut-off. These are viral reads the ground-truth label declined to count, not classifier false positives, so the sample's viral content is slightly larger than the benchmark credits and the arm's apparent false-positive rate on its own background is not one."
   }
 }

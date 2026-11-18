@@ -670,27 +670,43 @@ def score_against_truth(
     to the classifier's own output. ``detected`` is a read the arm placed in the clade
     *and* that really is SARS-CoV-2; ``false_positive`` is one the arm placed in the
     clade that is not.
+
+    Every clade is scored, not only the headline one, because which clade counts as a
+    detection is not a free choice in a time-correct benchmark. In the November 2019
+    taxonomy *Bat coronavirus BM48-31/BGR/2008* — the nearest relative the database
+    holds — sits under "unclassified coronaviruses" in Coronaviridae, not under
+    Betacoronavirus, where today's tree puts it. Reads that match it are therefore
+    detections at family level and invisible at genus level, and the gap between the
+    two columns is that fact. Day 5 draws its own line, from this table.
     """
-    members = clades.members.get(clade, set())
-    detected = 0
-    false_positive = 0
+    detected: Counter[str] = Counter()
+    false_positive: Counter[str] = Counter()
     classified_viral = 0
     for fragment_id, taxid in iter_output(classified_output):
         truly_viral = fragment_id in viral_ids
         if truly_viral:
             classified_viral += 1
-        if taxid in members:
-            if truly_viral:
-                detected += 1
-            else:
-                false_positive += 1
+        for name, members in clades.members.items():
+            if taxid in members:
+                if truly_viral:
+                    detected[name] += 1
+                else:
+                    false_positive[name] += 1
     return {
         "clade": clade,
         "truth_fragments": len(viral_ids),
         "truth_fragments_classified_anywhere": classified_viral,
-        "detected": detected,
-        "false_positive": false_positive,
-        "sensitivity": (detected / len(viral_ids)) if viral_ids else None,
+        "detected": detected.get(clade, 0),
+        "false_positive": false_positive.get(clade, 0),
+        "sensitivity": (detected.get(clade, 0) / len(viral_ids)) if viral_ids else None,
+        "by_clade": {
+            name: {
+                "detected": detected.get(name, 0),
+                "false_positive": false_positive.get(name, 0),
+                "sensitivity": (detected.get(name, 0) / len(viral_ids)) if viral_ids else None,
+            }
+            for name in clades.members
+        },
     }
 
 

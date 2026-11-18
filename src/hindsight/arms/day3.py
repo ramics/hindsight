@@ -164,8 +164,17 @@ def classify_series(
             clade: clades.count({int(k): v for k, v in composed["counts"].items()}, clade)
             for clade in clades.members
         }
-        detected = clades.count(viral.counts, kraken.HEADLINE_CLADE)
-        false_positive = clades.count(background.counts, kraken.HEADLINE_CLADE)
+        # Every fragment in a viral part is ground-truth viral by construction, and
+        # every fragment in the background is not, so detection and false positives
+        # need no labelling step here — they are the two files' own clade counts.
+        detected_by_clade = {
+            name: clades.count(viral.counts, name) for name in clades.members
+        }
+        false_positive_by_clade = {
+            name: clades.count(background.counts, name) for name in clades.members
+        }
+        detected = detected_by_clade[kraken.HEADLINE_CLADE]
+        false_positive = false_positive_by_clade[kraken.HEADLINE_CLADE]
         levels.append(
             {
                 "name": name,
@@ -182,6 +191,8 @@ def classify_series(
                 },
                 "detected_viral_reads": detected,
                 "false_positive_reads": false_positive,
+                "detected_by_clade": detected_by_clade,
+                "false_positive_by_clade": false_positive_by_clade,
                 "sensitivity": (
                     detected / level["viral_fragments"] if level["viral_fragments"] else None
                 ),

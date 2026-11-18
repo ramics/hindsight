@@ -229,3 +229,39 @@ def test_no_post_2019_taxon_is_in_the_clade_list():
     and the only honest question is whether the reads landed in the betacoronaviruses.
     """
     assert 2697049 not in kraken.CLADES.values()
+
+
+def test_scoring_reports_every_clade_not_only_the_headline(tmp_path, taxonomy_dir):
+    """The clade that counts as a detection is not a free choice in a dated tree.
+
+    31631 stands in for Bat coronavirus BM48-31/BGR/2008, which the November 2019
+    taxonomy files under "unclassified coronaviruses" in Coronaviridae rather than
+    under Betacoronavirus, where today's tree puts it. A read matching the nearest
+    relative the database holds is therefore a detection at family level and nothing
+    at genus level, and the scoring has to show both or Day 5 cannot see the
+    difference.
+    """
+    nodes = (taxonomy_dir / "nodes.dmp").read_text() + "99999\t|\t11118\t|\tspecies\t|\n"
+    (taxonomy_dir / "nodes.dmp").write_text(nodes)
+    taxonomy = kraken.read_taxonomy(taxonomy_dir)
+    clades = kraken.clade_sets(
+        taxonomy, {"coronaviridae": 11118, "betacoronavirus": 694002}
+    )
+    path = tmp_path / "out.tsv.gz"
+    write_output(
+        path,
+        [
+            ("C", "viral1", 694009),  # detected at both levels
+            ("C", "viral2", 99999),  # detected at family level only
+            ("C", "bg1", 99999),  # a family-level false positive
+        ],
+    )
+    scored = kraken.score_against_truth(
+        path, {"viral1", "viral2"}, clades, clade="betacoronavirus"
+    )
+    assert scored["detected"] == 1
+    assert scored["by_clade"]["betacoronavirus"]["detected"] == 1
+    assert scored["by_clade"]["coronaviridae"]["detected"] == 2
+    assert scored["by_clade"]["betacoronavirus"]["false_positive"] == 0
+    assert scored["by_clade"]["coronaviridae"]["false_positive"] == 1
+    assert scored["by_clade"]["coronaviridae"]["sensitivity"] == 1.0
