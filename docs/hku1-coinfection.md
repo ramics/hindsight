@@ -191,6 +191,69 @@ are conservative in the right direction.
 
 ---
 
+## The reads that set Arm A's threshold are not coronavirus reads
+
+Arm A's alarm rule is one read above the worst negative, so the whole threshold rests on
+the two samples that tie for worst: `SRR13677700` and `SRR13677975`, at 11 reads each of
+*Sparrow coronavirus HKU17*, an avian deltacoronavirus. Two unrelated patients, the same
+taxon, the same count — Day 3 flagged it as suspicious at the time. It is worse than
+suspicious.
+
+```console
+$ hindsight arm-a diagnose-taxon --sample SRR13677700 --taxid 1159906 \
+    --reference NC_016992.1
+11 fragments were assigned to Sparrow coronavirus HKU17, and **not one of them aligns
+to NC_016992.1**. The call rests on shared k-mers rather than on the organism's
+sequence being present: whatever these reads are, they are not this.
+```
+
+Both samples give that same result. Five independent checks agree:
+
+| check | `SRR13677700` | `SRR13677975` |
+| --- | --- | --- |
+| reads aligning to `NC_016992.1` (bowtie2 `--local`) | 0 of 22 | 0 of 22 |
+| longest exact match to that genome | **18 bp** | **none at 18 bp** |
+| DIAMOND `blastx` hits in the whole dated viral protein set, at e-value 10 | 0 | 0 |
+| reads aligning to GRCh38 (`--very-sensitive-local`) | 0 of 22 | 0 of 22 |
+| 31-mers shared with the *other* sample's reads | 0 | 0 |
+
+So these are not sparrow coronavirus, not any virus the November 2019 database holds, not
+human, and not even the same sequence in the two samples. In each sample the 11 pairs
+overlap each other and tile one locus — 11 of 11 pairs and 9 of 11 have mates overlapping
+by 80 bp or more — so each sample contributes one locus counted eleven times, and the two
+loci are unrelated to each other. They are two independent coincidences.
+
+**The mechanism, from Kraken2's own output.** Every one of the 22 pairs looks like this:
+
+```
+SRR13677700.59768   138|138   0:19 1159906:5 0:80 |:| 0:80 1159906:5 0:19
+```
+
+Exactly **five** k-mers assigned, in one block, in each mate — and the mates are reverse
+complements of each other, so that is the *same* five k-mers seen twice. Kraken2's
+`--minimum-hit-groups 2` is meant to stop a single stretch of coincidental similarity from
+classifying a read, and here it does not, because a read pair whose insert is shorter than
+twice the read length presents one hit group twice and clears the threshold. The
+underlying similarity is an 18 bp exact match in one sample and less than that in the
+other, reaching a 31-base minimizer through Kraken2's spaced seeds.
+
+**What this does to the benchmark.** The arm's unmodified output gives a threshold of 12
+reads and a limit of detection of 7.71 viral reads per million. With these 22 reads
+recognised as artefacts, the worst remaining negative carries **2** reads, and the bottom
+rung of the dilution series produces 3 — so the threshold falls by most of a decade and
+the arm detects a rung it previously missed.
+
+**That is not this document's call to make, for a reason worth stating.** The exclusion
+rests on a diagnostic the arm does not itself run, applied after seeing which samples set
+the threshold. Scoring an arm on its own output is what makes the benchmark honest, and a
+post-hoc exclusion that improves a method's headline is exactly the move a reader should
+distrust. The defensible form is to report both: the arm as scored, and the arm after a
+**pre-declared** diagnostic pass that is applied to every alarm rather than to the
+inconvenient ones. The numbers are here, the command is in the repository, and the
+decision belongs to Day 5 and to Imo.
+
+---
+
 ## The largest viral call in the cohort is a cloned gene fragment
 
 Arm A's single largest viral call in this sample is **11,227 reads of *Equine infectious

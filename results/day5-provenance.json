@@ -3,7 +3,7 @@
   "name": "hindsight score",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-19T12:23:03+00:00",
+ "generated_at": "2026-11-19T13:05:08+00:00",
  "machine": {
   "platform": "Linux-6.18.44-fc-v653-x86_64-with-glibc2.39",
   "machine": "x86_64",
@@ -12,8 +12,8 @@
   "instance_type": null,
   "work_dir_disk": {
    "total_gib": 252.0,
-   "used_gib": 9.1,
-   "free_gib": 29.7
+   "used_gib": 9.2,
+   "free_gib": 29.6
   }
  },
  "inputs": {
@@ -726,6 +726,456 @@
      }
     ]
    }
+  },
+  "adjudicated": {
+   "status": "secondary; the headline is scored on the cohort as measured",
+   "why_not_the_headline": "Every deduction rests on a diagnostic the arm does not run, was made after it was known which samples set the threshold, and moves the method's own number in its favour. A quotable version needs a diagnostic declared in advance and applied to every alarm.",
+   "deductions": [
+    {
+     "accession": "SRR13677700",
+     "reads": 11,
+     "reason": "Artefact: 11 pairs tiling one locus, five k-mers in a single block per mate, mates reverse-complementary because the insert is shorter than twice the read length. No alignment to the sparrow genome, to GRCh38, or to any protein in the dated set.",
+     "evidence": "results/hku1-coinfection.json, sparrow_coronavirus_threshold_reads; docs/hku1-coinfection.md"
+    },
+    {
+     "accession": "SRR13677975",
+     "reads": 11,
+     "reason": "The same artefact shape, independently: 11 pairs on one locus, no alignment anywhere, and no 31-mer shared with SRR13677700 \u2014 so two coincidences, not one contaminant.",
+     "evidence": "results/hku1-coinfection.json, sparrow_coronavirus_threshold_reads; docs/hku1-coinfection.md"
+    },
+    {
+     "accession": "SRR13677922",
+     "reads": 7,
+     "reason": "The patient's own HKU1, genotype B: 99.3-100% identical to DQ415911 against 91.9-98.3% to the genotype A reference, the only HKU1 the dated database holds. The eighth counted read, a Coronavirus AcCoV-JC34 call, aligns to neither genotype and is deliberately left standing.",
+     "evidence": "docs/hku1-coinfection.md; hindsight arm-b diagnose-strain"
+    }
+   ],
+   "reads_adjudicated_away": 29,
+   "reads_remaining": 6,
+   "reads_remaining_note": "Remaining is not the same as unexplainable. Of these reads, 1 sits in a sample whose alarm was examined, the residue that diagnostic could not account for, and 5 sit in samples nobody has looked at. The sparrow pair is the reason to say so: twenty-two reads that looked real until someone aligned them. Expect the unexamined remainder to shrink, not to be signal.",
+   "reads_remaining_examined": 1,
+   "reads_remaining_unexamined": 5,
+   "worst_negative": {
+    "accession": "SRR13677589",
+    "nonhost_pairs": 16647038,
+    "reads_all": 3,
+    "endemic_reads": 1,
+    "reads": 2,
+    "estimates": {
+     "subtraction": 2,
+     "enumeration": 2
+    },
+    "reads_per_million_nonhost": 0.1201414930391821,
+    "reads_as_scored": 2,
+    "reads_adjudicated_away": 0,
+    "adjudication": null,
+    "evidence": null
+   },
+   "threshold_reads": 3.0,
+   "threshold_reads_as_scored": 12.0,
+   "limit_of_detection": {
+    "alarms_at": "viral000010",
+    "viral_fragments": 10,
+    "per_million": 0.7706785778637376,
+    "highest_silent_level": null,
+    "highest_silent_per_million": null,
+    "at_or_below_series_floor": true,
+    "monotone": true,
+    "levels": [
+     {
+      "name": "viral050000",
+      "viral_fragments": 50000,
+      "alarm": true
+     },
+     {
+      "name": "viral010000",
+      "viral_fragments": 10000,
+      "alarm": true
+     },
+     {
+      "name": "viral001000",
+      "viral_fragments": 1000,
+      "alarm": true
+     },
+     {
+      "name": "viral000100",
+      "viral_fragments": 100,
+      "alarm": true
+     },
+     {
+      "name": "viral000010",
+      "viral_fragments": 10,
+      "alarm": true
+     }
+    ]
+   },
+   "limit_of_detection_as_scored": {
+    "alarms_at": "viral000100",
+    "viral_fragments": 100,
+    "per_million": 7.706785778637376,
+    "highest_silent_level": "viral000010",
+    "highest_silent_per_million": 0.7706785778637376,
+    "at_or_below_series_floor": false,
+    "monotone": true,
+    "levels": [
+     {
+      "name": "viral050000",
+      "viral_fragments": 50000,
+      "alarm": true
+     },
+     {
+      "name": "viral010000",
+      "viral_fragments": 10000,
+      "alarm": true
+     },
+     {
+      "name": "viral001000",
+      "viral_fragments": 1000,
+      "alarm": true
+     },
+     {
+      "name": "viral000100",
+      "viral_fragments": 100,
+      "alarm": true
+     },
+     {
+      "name": "viral000010",
+      "viral_fragments": 10,
+      "alarm": false
+     }
+    ]
+   },
+   "arm_b": {
+    "contigs_as_scored": 1,
+    "samples_alarming_as_scored": [
+     "SRR13677922"
+    ],
+    "contigs_after_adjudication": 0,
+    "note": "The arm's one counted contig in the cohort, k141_852 in SRR13677922, is 100.00% identical at nucleotide level to the genotype B HKU1 genome DQ415911 over all 767 bases. Adjudicated away, the cohort holds no unexplained clade contig at all and the bitscore threshold falls from 250 to the arm's unfiltered rule \u2014 which does not move its limit, already at the series floor. Same caveat as the read side: diagnosed after the fact."
+   },
+   "negatives": [
+    {
+     "accession": "SRR13677589",
+     "nonhost_pairs": 16647038,
+     "reads_all": 3,
+     "endemic_reads": 1,
+     "reads": 2,
+     "estimates": {
+      "subtraction": 2,
+      "enumeration": 2
+     },
+     "reads_per_million_nonhost": 0.1201414930391821,
+     "reads_as_scored": 2,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677740",
+     "nonhost_pairs": 18327802,
+     "reads_all": 3,
+     "endemic_reads": 1,
+     "reads": 2,
+     "estimates": {
+      "subtraction": 2,
+      "enumeration": 2
+     },
+     "reads_per_million_nonhost": 0.10912383274328258,
+     "reads_as_scored": 2,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677922",
+     "nonhost_pairs": 14751395,
+     "reads_all": 2408,
+     "endemic_reads": 2400,
+     "reads": 1,
+     "estimates": {
+      "subtraction": 8,
+      "enumeration": 8
+     },
+     "reads_per_million_nonhost": 0.5423215906021092,
+     "reads_as_scored": 8,
+     "reads_adjudicated_away": 7,
+     "adjudication": "The patient's own HKU1, genotype B: 99.3-100% identical to DQ415911 against 91.9-98.3% to the genotype A reference, the only HKU1 the dated database holds. The eighth counted read, a Coronavirus AcCoV-JC34 call, aligns to neither genotype and is deliberately left standing.",
+     "evidence": "docs/hku1-coinfection.md; hindsight arm-b diagnose-strain"
+    },
+    {
+     "accession": "SRR13677744",
+     "nonhost_pairs": 18279498,
+     "reads_all": 1,
+     "endemic_reads": 1,
+     "reads": 1,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 1
+     },
+     "estimates_disagree": true,
+     "reads_per_million_nonhost": 0.054706097508804674,
+     "reads_as_scored": 1,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677700",
+     "nonhost_pairs": 10530048,
+     "reads_all": 57,
+     "endemic_reads": 46,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 11,
+      "enumeration": 11
+     },
+     "reads_per_million_nonhost": 1.0446296161233073,
+     "reads_as_scored": 11,
+     "reads_adjudicated_away": 11,
+     "adjudication": "Artefact: 11 pairs tiling one locus, five k-mers in a single block per mate, mates reverse-complementary because the insert is shorter than twice the read length. No alignment to the sparrow genome, to GRCh38, or to any protein in the dated set.",
+     "evidence": "results/hku1-coinfection.json, sparrow_coronavirus_threshold_reads; docs/hku1-coinfection.md"
+    },
+    {
+     "accession": "SRR13677975",
+     "nonhost_pairs": 9936172,
+     "reads_all": 11,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 11,
+      "enumeration": 11
+     },
+     "reads_per_million_nonhost": 1.1070661820266396,
+     "reads_as_scored": 11,
+     "reads_adjudicated_away": 11,
+     "adjudication": "The same artefact shape, independently: 11 pairs on one locus, no alignment anywhere, and no 31-mer shared with SRR13677700 \u2014 so two coincidences, not one contaminant.",
+     "evidence": "results/hku1-coinfection.json, sparrow_coronavirus_threshold_reads; docs/hku1-coinfection.md"
+    },
+    {
+     "accession": "SRR13677553",
+     "nonhost_pairs": 16208470,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677559",
+     "nonhost_pairs": 7352366,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677560",
+     "nonhost_pairs": 8626459,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677717",
+     "nonhost_pairs": 13485565,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677722",
+     "nonhost_pairs": 10593553,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677730",
+     "nonhost_pairs": 14405840,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677748",
+     "nonhost_pairs": 23767399,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677777",
+     "nonhost_pairs": 144001,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677842",
+     "nonhost_pairs": 3144022,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677843",
+     "nonhost_pairs": 9407026,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677844",
+     "nonhost_pairs": 6392282,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677878",
+     "nonhost_pairs": 14773932,
+     "reads_all": 11,
+     "endemic_reads": 11,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677921",
+     "nonhost_pairs": 1973266,
+     "reads_all": 0,
+     "endemic_reads": 0,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    },
+    {
+     "accession": "SRR13677977",
+     "nonhost_pairs": 9661502,
+     "reads_all": 1,
+     "endemic_reads": 1,
+     "reads": 0,
+     "estimates": {
+      "subtraction": 0,
+      "enumeration": 0
+     },
+     "reads_per_million_nonhost": 0.0,
+     "reads_as_scored": 0,
+     "reads_adjudicated_away": 0,
+     "adjudication": null,
+     "evidence": null
+    }
+   ]
   }
  },
  "arm_b": {

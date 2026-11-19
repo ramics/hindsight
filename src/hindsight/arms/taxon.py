@@ -210,6 +210,12 @@ def _align_and_profile(
             stats["identity_percent"] = round(100 * (1 - rate), 2)
     if stats.get("reads_examined"):
         stats["mapped_fraction"] = round(stats["reads_mapped"] / stats["reads_examined"], 4)
+    # With nothing mapped, samtools reports an error rate of 0, which this would otherwise
+    # publish as "100% identity" beside "0 reads aligned" — the most misleading pair of
+    # numbers the diagnostic can produce, and the exact case that matters most, since a
+    # taxon whose reads do not align at all is the one being called spurious.
+    if not stats.get("reads_mapped"):
+        stats["identity_percent"] = None
 
     lengths = subprocess.run(  # noqa: S603
         ["samtools", "view", "-H", str(bam)], capture_output=True, text=True, check=True
@@ -315,9 +321,17 @@ def _conclude(record: dict) -> str:
     taxon = record["taxon"] or record["taxid"]
     reference = record["reference"]["accession"]
     identity = record.get("identity_percent")
+    mapped = record.get("reads_mapped", 0)
+    if not mapped:
+        return (
+            f"{record['fragments_assigned']:,} fragments were assigned to {taxon}, and "
+            f"**not one of them aligns to {reference}**. The call rests on shared k-mers "
+            f"rather than on the organism's sequence being present: whatever these reads "
+            f"are, they are not this."
+        )
     head = (
         f"{record['fragments_assigned']:,} fragments were assigned to {taxon}; "
-        f"{record.get('reads_mapped', 0):,} reads align to {reference} at "
+        f"{mapped:,} reads align to {reference} at "
         f"{identity}% identity, covering {coverage['covered_percent']}% of it "
         f"({coverage['covered_bases']:,} of {coverage['reference_length']:,} bases) "
         f"at a mean depth of {coverage['mean_depth']}."

@@ -9,6 +9,7 @@ monotone. Each of those would produce a table that looks finished.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import subprocess
 from pathlib import Path
@@ -314,9 +315,10 @@ def test_the_committed_record_has_not_drifted_from_the_inputs(tmp_path):
     """
     committed_text = REAL_DAY5.read_text()
     committed = json.loads(committed_text)
-    fresh = day5.score(
-        day5.Scoring(day3=REAL_DAY3, day4=REAL_DAY4, provenance=tmp_path / "day5.json")
-    )
+    # Scored the way scripts/day5.sh scores it, from the committed config, since that is
+    # what the committed record is a product of.
+    config = day5.load_config(Path("config/day5.toml"))
+    fresh = day5.score(dataclasses.replace(config, provenance=tmp_path / "day5.json"))
     preamble = {"generated_at", "machine", "inputs"}
     assert {k: v for k, v in committed.items() if k not in preamble} == {
         k: v for k, v in fresh.items() if k not in preamble
@@ -337,3 +339,78 @@ def test_every_decision_is_recorded_with_its_alternatives():
     assert genus["arm_b_lod_per_million"] is None
     # And the grid carries the rows nobody chose.
     assert len(record["operating_points"]) > 40
+
+
+# ------------------------------------------------- the adjudicated operating point
+
+
+def _adjudication(accession, reads):
+    return {
+        "accession": accession,
+        "reads": reads,
+        "reason": "diagnosed",
+        "evidence": "somewhere",
+    }
+
+
+def test_an_adjudication_must_say_why_and_on_what_evidence():
+    with pytest.raises(ValueError, match="missing"):
+        day5.Scoring(adjudications=({"accession": "SRR1", "reads": 11},)).validate()
+    day5.Scoring(adjudications=(_adjudication("SRR1", 11),)).validate()
+
+
+@requires_records
+def test_adjudication_never_touches_the_headline(tmp_path):
+    """The whole point of the secondary number: deleting it changes nothing that is quoted.
+
+    Day 5's cohort has no alarm left that anybody can explain, and every deduction that
+    got it there was made after it was known which samples set the threshold. So the
+    headline is scored on the cohort as measured, and the adjudicated version is recorded
+    beside it — this test is what keeps those two apart.
+    """
+    plain = day5.score(
+        day5.Scoring(day3=REAL_DAY3, day4=REAL_DAY4, provenance=tmp_path / "plain.json")
+    )
+    adjudicated = day5.score(
+        day5.Scoring(
+            day3=REAL_DAY3,
+            day4=REAL_DAY4,
+            provenance=tmp_path / "adj.json",
+            adjudications=(
+                _adjudication("SRR13677700", 11),
+                _adjudication("SRR13677975", 11),
+                _adjudication("SRR13677922", 7),
+            ),
+        )
+    )
+    assert adjudicated["arm_a"]["headline"] == plain["arm_a"]["headline"]
+    assert adjudicated["arm_b"]["headline"] == plain["arm_b"]["headline"]
+    assert adjudicated["cross_arm"] == plain["cross_arm"]
+    assert adjudicated["operating_points"] == plain["operating_points"]
+    # And with nothing adjudicated, the secondary number is just the headline again.
+    assert plain["arm_a"]["adjudicated"]["threshold_reads"] == 12
+    assert plain["arm_a"]["adjudicated"]["reads_adjudicated_away"] == 0
+
+
+@requires_records
+def test_the_adjudicated_limit_is_the_one_the_write_up_quotes(tmp_path):
+    config = day5.load_config(Path("config/day5.toml"))
+    record = day5.score(dataclasses.replace(config, provenance=tmp_path / "day5.json"))
+    adjudicated = record["arm_a"]["adjudicated"]
+    assert adjudicated["reads_adjudicated_away"] == 29
+    assert adjudicated["reads_remaining"] == 6
+    # Six remain, but only one of them was ever examined: the AcCoV-JC34 read in
+    # SRR13677922. Calling all six "unexplained" would claim a residue of genuine signal
+    # that nobody has looked for, which is exactly what the sparrow pair warns against.
+    assert adjudicated["reads_remaining_examined"] == 1
+    assert adjudicated["reads_remaining_unexamined"] == 5
+    assert adjudicated["threshold_reads"] == 3
+    assert adjudicated["threshold_reads_as_scored"] == 12
+    assert adjudicated["limit_of_detection"]["alarms_at"] == "viral000010"
+    assert adjudicated["limit_of_detection_as_scored"]["alarms_at"] == "viral000100"
+    assert adjudicated["arm_b"]["contigs_as_scored"] == 1
+    assert adjudicated["arm_b"]["contigs_after_adjudication"] == 0
+    # Every deduction carries its reason and where the evidence lives, because a
+    # deduction a reader cannot check is not a deduction.
+    assert len(adjudicated["deductions"]) == 3
+    assert all(d["reason"] and d["evidence"] for d in adjudicated["deductions"])

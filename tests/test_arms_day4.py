@@ -9,6 +9,7 @@ levels already done would lose hours of compute without erroring.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from hindsight.arms import day4
 
@@ -240,3 +241,22 @@ def test_aggregate_alignment_of_nothing_reports_nothing_rather_than_dividing_by_
     assert agg["contigs"] == 0
     assert agg["weighted_nucleotide_identity_percent"] is None
     assert agg["reference_covered_percent"] is None
+
+
+def test_the_live_fixtures_name_their_hits_file_from_the_config():
+    """The live DIAMOND tests must not spell the sensitivity setting out by hand.
+
+    Day 5 moved ``config/day4.toml``'s index-stage sensitivity from ``--very-sensitive``
+    to stock, and two fixtures in ``tests/test_arms_diamond_live.py`` went on writing to
+    ``…very-sensitive.blastx.tsv.gz`` while ``day4.diagnose_contigs`` looked for
+    ``…default.blastx.tsv.gz``. Those tests are skipped wherever minimap2 or diamond is
+    missing, which includes CI, so the breakage was invisible until someone ran them in a
+    container with the real tools. This test needs neither tool: it reads the source and
+    insists the fixture filename is derived from the loaded config, so the next time the
+    setting moves, nothing has to be remembered.
+    """
+    source = Path("tests/test_arms_diamond_live.py").read_text()
+    hits_lines = [line for line in source.splitlines() if "blastx.tsv.gz" in line]
+    assert hits_lines, "the live tests no longer write a DIAMOND hits fixture"
+    for line in hits_lines:
+        assert "arm.sensitivity" in line or "_hits_path(" in line, line

@@ -81,3 +81,39 @@ denominator = "post_qc_pairs"
 # Arm B's bitscore ladder, fixed in config/day4.toml before the series ran, which is
 # what makes it usable as a threshold at all. 0 is the arm's own unfiltered rule.
 bitscore_ladder = [0.0, 50.0, 100.0, 250.0, 500.0, 1000.0]
+
+# --- diagnosed alarms, which are reported and never quoted -------------------------
+#
+# By the end of Day 5 every coronavirus alarm large enough to set a threshold had been
+# chased down, and none was the thing a false-alarm rate is meant to count. Six reads in
+# four samples survive: one examined and unaccounted for, five never examined. Those five
+# are not evidence of anything — the one diagnostic anyone ran dissolved all 22 reads it
+# touched — so the record calls them unexamined rather than unexplained. The entries below
+# record those diagnoses and feed exactly one number: `arm_a.adjudicated` in the record,
+# which is explicitly secondary. The headline is always scored on the cohort as measured.
+#
+# The rule, which matters more than the entries: every deduction here rests on a
+# diagnostic the arm does not run, each was made after it was known which samples set the
+# threshold, and all of them move the method's own number in its favour. That is the shape
+# of a threshold fitted to its cohort even when each deduction is individually correct.
+# A quotable version needs a diagnostic declared in advance and applied to every alarm,
+# including the ones that are inconvenient to lose — a Day 7 design, not a Day 5
+# adjustment. Deleting this whole section changes no headline number.
+
+[[adjudications]]
+accession = "SRR13677700"
+reads = 11
+reason = "Artefact: 11 pairs tiling one locus, five k-mers in a single block per mate, mates reverse-complementary because the insert is shorter than twice the read length. No alignment to the sparrow genome, to GRCh38, or to any protein in the dated set."
+evidence = "results/hku1-coinfection.json, sparrow_coronavirus_threshold_reads; docs/hku1-coinfection.md"
+
+[[adjudications]]
+accession = "SRR13677975"
+reads = 11
+reason = "The same artefact shape, independently: 11 pairs on one locus, no alignment anywhere, and no 31-mer shared with SRR13677700 — so two coincidences, not one contaminant."
+evidence = "results/hku1-coinfection.json, sparrow_coronavirus_threshold_reads; docs/hku1-coinfection.md"
+
+[[adjudications]]
+accession = "SRR13677922"
+reads = 7
+reason = "The patient's own HKU1, genotype B: 99.3-100% identical to DQ415911 against 91.9-98.3% to the genotype A reference, the only HKU1 the dated database holds. The eighth counted read, a Coronavirus AcCoV-JC34 call, aligns to neither genotype and is deliberately left standing."
+evidence = "docs/hku1-coinfection.md; hindsight arm-b diagnose-strain"

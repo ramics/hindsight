@@ -1,8 +1,8 @@
 {
  "tool": "hindsight (coinfection follow-up)",
- "generated_at": "2026-11-19T12:21:09Z",
+ "generated_at": "2026-11-19T12:51:28Z",
  "question": "Day 4 left four Coronaviridae contigs in SRR13677922 with HKU1 protein hits and no nucleotide alignment to NC_006577.2: a diverged region of one virus, or a second betacoronavirus? And what else, if anything, was in that patient's library?",
- "answer": "One virus, human coronavirus HKU1 genotype B. No coinfection. Separately: Arm A's seven non-endemic betacoronavirus reads in this sample are the same HKU1 misassigned, and the cohort's largest viral call is a cloned fragment of an EIAV gene present in all twenty negatives.",
+ "answer": "One virus, human coronavirus HKU1 genotype B. No coinfection. Separately: Arm A's seven non-endemic betacoronavirus reads in this sample are the same HKU1 misassigned, and the cohort's largest viral call is a cloned fragment of an EIAV gene present in all twenty negatives. The two samples that set Arm A's threshold were then checked too, and their 11 reads each are spurious k-mer coincidences rather than coronavirus reads.",
  "leakage": "no post-cutoff sequence is used anywhere. References outside the dated database are outside it by RefSeq's one-genome-per-species curation policy, not by date; each is checked against the cutoff at NCBI and its publication date is recorded below.",
  "reproduction": {
   "note": "the Day 4 container was gone; the sample was re-staged and re-assembled from scratch",
@@ -1013,5 +1013,122 @@
    ]
   },
   "not_examined": "this sample contributes 8 of the cohort 35 non-endemic reads at family level; the other 27 are in other samples and were not re-examined"
+ },
+ "sparrow_coronavirus_threshold_reads": {
+  "why": "Arm A's alarm rule is one read above the worst negative, so its threshold of 12 rests entirely on SRR13677700 and SRR13677975, at 11 Sparrow coronavirus HKU17 reads each",
+  "verdict": "spurious in both samples: no read aligns to the reference, no protein-level similarity to any virus in the dated set, not human, and the two samples do not share a single 31-mer, so they are two independent coincidences",
+  "checks": {
+   "reads_aligning_to_NC_016992_1": {
+    "SRR13677700": "0 of 22",
+    "SRR13677975": "0 of 22"
+   },
+   "longest_exact_match_to_that_genome_bp": {
+    "SRR13677700": 18,
+    "SRR13677975": null
+   },
+   "diamond_blastx_hits_in_dated_viral_proteins_at_evalue_10": {
+    "SRR13677700": 0,
+    "SRR13677975": 0
+   },
+   "reads_aligning_to_GRCh38_very_sensitive_local": {
+    "SRR13677700": "0 of 22",
+    "SRR13677975": "0 of 22"
+   },
+   "shared_31mers_between_the_two_samples_reads": 0,
+   "pairs_with_mate_overlap_over_80bp": {
+    "SRR13677700": "11 of 11",
+    "SRR13677975": "9 of 11"
+   }
+  },
+  "mechanism": "every pair carries exactly one block of 5 assigned k-mers per mate, and the mates are reverse complements, so it is the same block twice; --minimum-hit-groups 2 is satisfied by one locus because an insert shorter than twice the read length presents its single hit group once per mate",
+  "consequence": {
+   "threshold_as_scored_reads": 12,
+   "limit_as_scored_per_million": 7.71,
+   "worst_remaining_negative_reads": 2,
+   "bottom_rung_reads_detected": 3,
+   "caveat": "the exclusion rests on a diagnostic the arm does not run, applied after seeing which samples set the threshold; the defensible form is to report the arm as scored alongside the arm after a pre-declared diagnostic pass applied to every alarm. Day 5 and Imo own the decision."
+  },
+  "diagnoses": {
+   "SRR13677700": {
+    "sample": "SRR13677700",
+    "taxid": 1159906,
+    "taxon": "Sparrow coronavirus HKU17",
+    "clades": [
+     "viruses",
+     "riboviria",
+     "nidovirales",
+     "coronaviridae",
+     "orthocoronavirinae"
+    ],
+    "descendant_taxa_included": 1,
+    "fragments_assigned": 11,
+    "cutoff": "2019-12-01",
+    "note": "a diagnostic, run after the arm; nothing here feeds back into the arm's score",
+    "fragments_extracted": [
+     11,
+     11
+    ],
+    "reference": {
+     "accession": "NC_016992.1",
+     "source": "dated-manifest",
+     "published": null,
+     "before_cutoff": true
+    },
+    "reads_examined": 22,
+    "reads_mapped": 0,
+    "identity_percent": null,
+    "mapped_fraction": 0.0,
+    "coverage": {
+     "reference_length": 26083,
+     "covered_bases": 0,
+     "covered_percent": 0.0,
+     "mean_depth": 0.0,
+     "max_depth": 0,
+     "windows": 0,
+     "largest_windows": []
+    },
+    "conclusion": "11 fragments were assigned to Sparrow coronavirus HKU17, and **not one of them aligns to NC_016992.1**. The call rests on shared k-mers rather than on the organism's sequence being present: whatever these reads are, they are not this."
+   },
+   "SRR13677975": {
+    "sample": "SRR13677975",
+    "taxid": 1159906,
+    "taxon": "Sparrow coronavirus HKU17",
+    "clades": [
+     "viruses",
+     "riboviria",
+     "nidovirales",
+     "coronaviridae",
+     "orthocoronavirinae"
+    ],
+    "descendant_taxa_included": 1,
+    "fragments_assigned": 11,
+    "cutoff": "2019-12-01",
+    "note": "a diagnostic, run after the arm; nothing here feeds back into the arm's score",
+    "fragments_extracted": [
+     11,
+     11
+    ],
+    "reference": {
+     "accession": "NC_016992.1",
+     "source": "dated-manifest",
+     "published": null,
+     "before_cutoff": true
+    },
+    "reads_examined": 22,
+    "reads_mapped": 0,
+    "identity_percent": null,
+    "mapped_fraction": 0.0,
+    "coverage": {
+     "reference_length": 26083,
+     "covered_bases": 0,
+     "covered_percent": 0.0,
+     "mean_depth": 0.0,
+     "max_depth": 0,
+     "windows": 0,
+     "largest_windows": []
+    },
+    "conclusion": "11 fragments were assigned to Sparrow coronavirus HKU17, and **not one of them aligns to NC_016992.1**. The call rests on shared k-mers rather than on the organism's sequence being present: whatever these reads are, they are not this."
+   }
+  }
  }
 }
