@@ -67,9 +67,17 @@ ENDEMIC_HUMAN_CORONAVIRUSES: dict[str, int] = {
 }
 
 # The narrowest clade whose membership counts as a detection for the headline number.
-# Day 3 found that the family level is the defensible one in a dated tree and said so;
-# this stays at the genus because both arms record every clade and Day 5 draws the line.
-HEADLINE_CLADE = "betacoronavirus"
+#
+# Day 5 drew this line, on 2026-11-19, and moved it from "betacoronavirus" to the
+# family. Three independent arguments: the November 2019 taxonomy files Bat coronavirus
+# BM48-31/BGR/2008 under "unclassified coronaviruses" rather than in Betacoronavirus, so
+# genus and family differ by 5,510 of the index sample's reads (Day 3); a contig from a
+# genuinely novel sarbecovirus ties several known relatives, so its LCA *is* the family
+# and a genus-level headline reports zero on a sample where Arm B recovered 99.68% of the
+# genome (Day 4); and one negative's NL63 is an alphacoronavirus, invisible to anything
+# scored at the genus. Every clade here is still recorded at every level by both arms, so
+# the line moves back with a config change and no re-run — see docs/day5-scoring.md.
+HEADLINE_CLADE = "coronaviridae"
 
 
 # --------------------------------------------------------------------------- taxonomy

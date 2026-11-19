@@ -1,0 +1,83 @@
+# Day 5 of the benchmark: scoring both arms in one frame.
+#
+# This file is the only place the benchmark's headline numbers can be moved from, and
+# moving them costs nothing but a re-read of two JSON files — no classifier, no
+# assembler, no aligner. Days 3 and 4 recorded every clade at every dilution level and
+# every negative's per-taxon detail precisely so that this day would be arithmetic.
+#
+#   hindsight score run --config config/day5.toml
+#   hindsight score run --clade betacoronavirus      # disagree, cheaply
+#
+# Every combination of clade, framing and budget is written to the record anyway, under
+# `operating_points`, so a reader does not have to take the four choices below on trust.
+
+[inputs]
+day3 = "results/day3-provenance.json"
+day4 = "results/day4-provenance.json"
+provenance = "results/day5-provenance.json"
+
+[scoring]
+# --- the clade that counts as a detection ----------------------------------------
+#
+# The family, not the genus. Day 3 and Day 4 reached this independently and a third
+# argument came out of the negatives:
+#
+# 1. The November 2019 taxonomy files *Bat coronavirus BM48-31/BGR/2008* — the nearest
+#    relative the dated database holds — under "unclassified coronaviruses" in
+#    Coronaviridae, not in Betacoronavirus where today's tree puts it. Family and genus
+#    differ by 5,510 of the index sample's reads, and no benchmark that pairs dated
+#    sequences with a modern taxonomy can see that.
+# 2. A contig assembled from an organism absent from the database ties several known
+#    relatives at near-identical bitscores, so its LCA lands on the family by
+#    construction. Scoring Arm B at the genus reports *zero* on a sample where it
+#    reconstructed 99.68% of the genome.
+# 3. One negative patient's genuine NL63 infection is an alphacoronavirus, so a
+#    Betacoronavirus-level report cannot see a real coronavirus that Arm B found.
+clade = "coronaviridae"
+
+# --- which reads and contigs count as a false alarm ------------------------------
+#
+# "excluding_endemic" leaves out the four endemic human coronaviruses, which are named
+# species in the November 2019 tree and which two of the twenty patients genuinely had.
+# The alternative, "all", counts those as false alarms and moves Arm A's limit of
+# detection by a factor of a hundred (7.7 -> 771 viral reads per million), which measures
+# how often a BALF patient has a cold rather than anything about the method.
+framing = "excluding_endemic"
+
+# Whether a contig is "somebody's cold" is decided by its best hit rather than by its
+# LCA. Day 4's objection to the endemic exclusion was that six of the HKU1 patient's
+# contigs are HKU1's own sequence whose LCA resolved one rank up, so an LCA-based
+# exclusion keeps them and calls them false alarms. The best hit names the organism at
+# 97.8-100% amino-acid identity, which is the question that was meant. Both are scored
+# and both are in the record.
+attribution = "best_hit"
+
+# --- Arm B's sensitivity setting --------------------------------------------------
+#
+# "comparison" is DIAMOND's stock mode; "as_run" is the --very-sensitive setting
+# config/day4.toml pre-registered. Day 4 measured both on the index sample, every
+# dilution level, the spike-free background and all twenty negatives, and stock mode
+# matched the tuned setting's best bitscore everywhere there was signal while producing
+# none of its background artefacts, at about a sixth of the cost. Day 5 scores stock.
+# Nothing is re-run to change this: both searches are already in Day 4's record.
+arm_b_sensitivity = "comparison"
+
+# --- the false-alarm budget -------------------------------------------------------
+#
+# How many of the twenty negatives may alarm. Zero, which is stricter than the
+# benchmark's own promise of "<=1 false alarm per N samples" and which both arms can
+# meet. The threshold is then set from the negatives alone and never from the positive:
+# a threshold placed after looking at the positive's answer is not a detection limit.
+# The record carries the <=1 operating points too, where Arm A's threshold is unchanged
+# and Arm B's falls to its unfiltered rule.
+false_alarm_budget = 0
+
+# Reads per million of what. Post-QC pairs, decided on Day 2; raw spots and
+# non-redacted spots are recorded per level by both arms, so this is reversible.
+# Wu et al.'s 0.19% is against the unredacted original and is not comparable to any
+# of the three.
+denominator = "post_qc_pairs"
+
+# Arm B's bitscore ladder, fixed in config/day4.toml before the series ran, which is
+# what makes it usable as a threshold at all. 0 is the arm's own unfiltered rule.
+bitscore_ladder = [0.0, 50.0, 100.0, 250.0, 500.0, 1000.0]

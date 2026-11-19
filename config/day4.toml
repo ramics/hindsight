@@ -51,8 +51,21 @@ threads = 4
 # sensitivity and both numbers are recorded. If they agree, the choice did not matter
 # and the write-up says so; if they differ, that difference is itself a finding about
 # how such a pipeline must be configured.
-sensitivity = "very-sensitive"
-comparison_sensitivity = "default"
+# DAY 5 DECISION, 2026-11-19: the two values below are swapped from what Day 4 ran.
+#
+# The argument above is left intact because it is the pre-registration, and the record
+# of what was pre-registered matters more than its being right. It was wrong on this
+# cohort, and the measurement that says so is Day 4's own: on the index sample, at every
+# one of the five dilution levels, on the spike-free background and on all twenty
+# negatives, DIAMOND's stock mode reached the identical best bitscore wherever there was
+# genuine signal, found none of --very-sensitive's three background artefacts (28-33%
+# identity to whale and bat coronaviruses), and cost about a sixth as much. Day 4
+# deliberately did not edit this file, on the grounds that a setting changed after seeing
+# the result is no longer pre-registered; Day 5 changes it because scoring is where that
+# choice belongs, and scores the stock search Day 4 had already recorded. Nothing was
+# re-run. See docs/day5-scoring.md. Swap the two values back to reverse it.
+sensitivity = "default"
+comparison_sensitivity = "very-sensitive"
 
 # DIAMOND's own default e-value. Left at the default on purpose: a threshold chosen
 # after seeing the answer is not a detection limit. Every hit's bitscore, identity and

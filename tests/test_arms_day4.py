@@ -34,8 +34,13 @@ def test_defaults_are_the_documented_ones(tmp_path):
 def test_the_repo_config_is_what_the_write_up_describes():
     """config/day4.toml is quoted in the day's write-up, so it is checked here."""
     arm = day4.load_config("config/day4.toml")
-    assert arm.sensitivity == "very-sensitive"
-    assert arm.comparison_sensitivity == "default"
+    # Day 5 swapped these two on 2026-11-19, from the comparison Day 4 recorded: stock
+    # mode matched --very-sensitive's best bitscore everywhere there was signal, found
+    # none of its three background artefacts, and cost a sixth as much. Both searches
+    # still run, so the comparison survives the swap — see docs/day5-scoring.md and the
+    # pre-registration left in place above the values in config/day4.toml.
+    assert arm.sensitivity == "default"
+    assert arm.comparison_sensitivity == "very-sensitive"
     assert arm.evalue == 0.001
     assert arm.max_target_seqs == 25
     assert arm.read_level is True
