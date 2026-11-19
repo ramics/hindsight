@@ -341,19 +341,26 @@ unaccounted for, five never examined, and zero contigs.
 
 **The thresholds quoted above are the as-scored ones, and they are upper bounds.** With
 those deductions Kraken2's threshold falls from 12 reads to 3 and its limit from 7.71 to
-0.77 viral reads per million, a full decade, and Arm B's false alarms go to zero. That
-figure is in the record as a secondary number rather than the headline, because every
-deduction rests on a diagnostic the arm does not itself run, each was made after it was
-known which samples set the threshold, and all of them move the number in the method's
-favour. Each one being individually correct is what makes a threshold fitted to its own
-cohort persuasive, not what makes it safe. The defensible version declares the diagnostic
-in advance and applies it to every alarm, which is a Day 7 item.
+0.77 viral reads per million, a full decade, and MEGAHIT + DIAMOND's false alarms go to
+zero. That figure is in the record as a secondary number rather than the headline,
+because every deduction rests on a diagnostic the method does not itself run, each was
+made after it was known which samples set the threshold, and all of them move the number
+in the method's favour. Each one being individually correct is what makes a threshold
+fitted to its own cohort persuasive, not what makes it safe. The defensible version
+declares the diagnostic in advance and applies it to every alarm, which is a Day 7 item.
+Both columns are in [`results/day5-provenance.json`](results/day5-provenance.json).
 
-The same correction has now taken a threshold-setting read out of **both** arms. Arm B's
-bitscore threshold of 250 is selected by exactly one contig in the whole cohort, whose
-best hit is a rat coronavirus at 91.2% amino-acid identity — and which is **100.00%
-identical at nucleotide level** to the genotype B genome. Attributing a contig by its best
-hit rather than by its LCA cannot catch that one, because the best hit is itself wrong:
+Note also where that decade would land. The rung it buys is the bottom one, whose dose is
+90% undiluted background and which sits below the floor described under Figure 1. Even
+granted in full it would not separate the two methods: it would move Kraken2's quoted
+limit onto a rung this series cannot resolve.
+
+The same correction has now taken a threshold-setting read out of **both** methods.
+MEGAHIT + DIAMOND's bitscore threshold of 250 is selected by exactly one contig in the
+whole cohort, whose best hit is a rat coronavirus at 91.2% amino-acid identity — and which
+is **100.00% identical at nucleotide level** to the genotype B genome. Attributing a
+contig by its best hit rather than by its LCA cannot catch that one, because the best hit
+is itself wrong:
 the rat protein really is the closest in the dated database, and HKU1's own replicase ties
 it at the identical bitscore. A translated search against an incomplete reference set can
 be confidently wrong about *which* relative a sequence is while being right that it is a
