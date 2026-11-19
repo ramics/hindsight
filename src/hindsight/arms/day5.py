@@ -105,6 +105,10 @@ class Scoring:
     bitscore_ladder: tuple[float, ...] = BITSCORE_LADDER
     clades: tuple[str, ...] = tuple(CLADES)
     budgets: tuple[int, ...] = FALSE_ALARM_BUDGETS
+    # Negative-cohort alarms that a later diagnostic identified as artefacts or as a
+    # patient's own infection. They never touch the headline — see
+    # :func:`adjudicated_operating_point` for why, and config/day5.toml for the entries.
+    adjudications: tuple[dict, ...] = ()
 
     def validate(self) -> None:
         if self.clade not in CLADES:
@@ -117,6 +121,10 @@ class Scoring:
             raise ValueError("arm_b_sensitivity must be 'as_run' or 'comparison'")
         if self.false_alarm_budget < 0:
             raise ValueError("false_alarm_budget cannot be negative")
+        for entry in self.adjudications:
+            missing = {"accession", "reads", "reason", "evidence"} - set(entry)
+            if missing:
+                raise ValueError(f"adjudication is missing {sorted(missing)}: {entry}")
 
 
 def load_config(path: Path) -> Scoring:
@@ -125,8 +133,10 @@ def load_config(path: Path) -> Scoring:
     text = Path(path).read_bytes() if Path(path).exists() else b""
     if text:
         raw = tomllib.loads(text.decode())
-    scoring = raw.get("scoring", {})
+    scoring = dict(raw.get("scoring", {}))
     inputs = raw.get("inputs", {})
+    if "adjudications" in raw:
+        scoring["adjudications"] = raw["adjudications"]
     fields = {f.name for f in dataclasses.fields(Scoring)}
     kwargs: dict = {}
     for key, value in {**inputs, **scoring}.items():
@@ -134,7 +144,7 @@ def load_config(path: Path) -> Scoring:
             raise ValueError(f"unknown key {key!r} in {path}")
         if key in ("day3", "day4", "provenance"):
             value = Path(value)
-        if key in ("bitscore_ladder", "clades", "budgets"):
+        if key in ("bitscore_ladder", "clades", "budgets", "adjudications"):
             value = tuple(value)
         kwargs[key] = value
     config = Scoring(**kwargs)
@@ -622,6 +632,100 @@ def resident_background(day3: dict, day4: dict, clade: str, denominator: str) ->
     }
 
 
+def adjudicated_operating_point(day3: dict, day4: dict, config: Scoring) -> dict:
+    """What the cohort gives once its alarms have been diagnosed — reported, not quoted.
+
+    By the end of Day 5 every coronavirus alarm in the twenty negatives had been chased
+    down, and none of them was the thing a false-alarm rate is supposed to count. Two
+    patients had genuine endemic infections. One patient's eight stray reads and one
+    contig were that patient's own HKU1 at a genotype the dated database does not hold.
+    And the two samples that *set* Arm A's threshold, eleven reads each of *Sparrow
+    coronavirus HKU17*, are artefacts: nothing in either sample's reads aligns to the
+    sparrow genome, to the human genome or to any protein in the dated set, the two
+    samples share no 31-mer, and within each sample the eleven pairs tile one locus — one
+    coincidence counted eleven times, in a pair whose insert is shorter than twice the
+    read length, which is the case `--minimum-hit-groups 2` cannot protect.
+
+    So a cleaner cohort exists, and the limit it implies is better. **It is not the
+    headline, and the reason is a rule rather than a preference**: every deduction below
+    rests on a diagnostic the arm does not run, each was performed after it was known
+    which samples set the threshold, and all of them move the method's own number in the
+    method's favour. That is the shape of a threshold fitted to its cohort, and the fact
+    that each individual deduction is correct does not change the shape. What makes a
+    number like this quotable is a diagnostic declared in advance and applied to *every*
+    alarm, including the ones that are inconvenient to lose — which is a Day 7 design,
+    not a Day 5 adjustment.
+
+    It is computed and recorded because a reader is entitled to both: the rate this
+    cohort measured, and what the method would be credited with if its negatives were
+    adjudicated. Each deduction carries its reason and where the evidence lives.
+    """
+    base = arm_a_negative_scores(day3, config.clade, config.framing)
+    deductions = {entry["accession"]: entry for entry in config.adjudications}
+    adjusted: list[dict] = []
+    for sample in base:
+        entry = deductions.get(sample["accession"])
+        deducted = int(entry["reads"]) if entry else 0
+        adjusted.append(
+            {
+                **sample,
+                "reads_as_scored": sample["reads"],
+                "reads_adjudicated_away": min(deducted, sample["reads"]),
+                "reads": max(sample["reads"] - deducted, 0),
+                "adjudication": entry["reason"] if entry else None,
+                "evidence": entry["evidence"] if entry else None,
+            }
+        )
+    adjusted.sort(key=lambda s: -s["reads"])
+    threshold = threshold_for_budget([s["reads"] for s in adjusted], config.false_alarm_budget)
+    curve = arm_a_curve(day3, config.clade, config.denominator)
+    lod = limit_of_detection(curve, lambda lv: lv["detected"] >= threshold)
+    headline = arm_a_operating_point(
+        day3, config.clade, config.framing, config.false_alarm_budget, config.denominator
+    )
+    unexplained = sum(s["reads"] for s in adjusted)
+    return {
+        "status": "secondary; the headline is scored on the cohort as measured",
+        "why_not_the_headline": (
+            "Every deduction rests on a diagnostic the arm does not run, was made after "
+            "it was known which samples set the threshold, and moves the method's own "
+            "number in its favour. A quotable version needs a diagnostic declared in "
+            "advance and applied to every alarm."
+        ),
+        "deductions": [entry for entry in config.adjudications],
+        "reads_adjudicated_away": sum(s["reads_adjudicated_away"] for s in adjusted),
+        "unexplained_reads_remaining": unexplained,
+        "worst_negative": adjusted[0] if adjusted else None,
+        "threshold_reads": threshold,
+        "threshold_reads_as_scored": headline["threshold_reads"],
+        "limit_of_detection": lod,
+        "limit_of_detection_as_scored": headline["limit_of_detection"],
+        "arm_b": _adjudicated_arm_b(day4, config),
+        "negatives": adjusted,
+    }
+
+
+def _adjudicated_arm_b(day4: dict, config: Scoring) -> dict:
+    """Arm B's side of the same question, which the diagnostics empty completely."""
+    negatives = arm_b_negative_scores(
+        day4, config.clade, config.arm_b_sensitivity, config.framing, config.attribution
+    )
+    alarming = [n for n in negatives if n["contigs"]]
+    return {
+        "contigs_as_scored": sum(n["contigs"] for n in negatives),
+        "samples_alarming_as_scored": [n["accession"] for n in alarming],
+        "contigs_after_adjudication": 0,
+        "note": (
+            "The arm's one counted contig in the cohort, k141_852 in SRR13677922, is "
+            "100.00% identical at nucleotide level to the genotype B HKU1 genome "
+            "DQ415911 over all 767 bases. Adjudicated away, the cohort holds no "
+            "unexplained clade contig at all and the bitscore threshold falls from 250 "
+            "to the arm's unfiltered rule — which does not move its limit, already at "
+            "the series floor. Same caveat as the read side: diagnosed after the fact."
+        ),
+    }
+
+
 # ----------------------------------------------------------------- the three decisions
 
 
@@ -863,6 +967,7 @@ def score(config: Scoring) -> dict:
             "negatives": arm_a_negative_scores(day3, config.clade, config.framing),
             "curve": arm_a_curve(day3, config.clade, config.denominator),
             "headline": headline_a,
+            "adjudicated": adjudicated_operating_point(day3, day4, config),
         },
         "arm_b": {
             "method": "MEGAHIT 1.2.9 + diamond blastx, November 2019 protein set",

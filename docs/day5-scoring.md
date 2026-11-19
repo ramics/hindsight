@@ -213,9 +213,10 @@ moves two numbers while leaving the headline alone:
 The headline survives because the binding negatives were never this sample: the threshold
 of 12 comes from `SRR13677700` and `SRR13677975`, which carry 11 reads of *Sparrow
 coronavirus HKU17* each — the oddity Day 3 flagged as worth somebody's attention, two
-unrelated samples at exactly the same count, and still unexplained. **The arm's specificity
-is better than this day credited it with, and the quantity that is actually unexplained
-is 28 reads in 228 million, not 35.**
+unrelated samples at exactly the same count. Those two have since been chased down as
+well, which is [its own section](#what-a-diagnosed-clean-cohort-would-give-and-why-it-is-not-the-headline).
+**The arm's specificity is better than this day credited it with, and the quantity that is
+actually unexplained is 28 reads in 228 million, not 35.**
 
 **Arm B's one counted contig is the same thing, confirmed.** `k141_852` is **100.00%
 identical at nucleotide level to `DQ415911` over its 767 bases**, against 97.42% to the
@@ -237,12 +238,63 @@ incomplete reference set can be confidently wrong about *which* relative a seque
 while being right that it is a coronavirus, and no rule over its own hit table fixes that.
 
 The mechanism is general: a divergent strain of an organism the database holds only one
-genotype of will scatter reads onto whatever relatives *are* there. The other 27 reads
-deserve the same pass before Day 6 quotes the figure, and `Sparrow coronavirus HKU17` at
-11 reads in two unrelated samples is first in line, because those two samples are what
-sets Arm A's threshold. One read in this sample — a single *Coronavirus AcCoV-JC34* call —
-aligns to neither HKU1 genotype and remains unexplained, which is why this sample still
-contributes 1 to the cohort's 28 rather than 0.
+genotype of will scatter reads onto whatever relatives *are* there. One read in this
+sample — a single *Coronavirus AcCoV-JC34* call — aligns to neither HKU1 genotype and
+remains unexplained, which is why it still contributes 1 to the cohort's 28 rather than 0.
+
+### What a diagnosed-clean cohort would give, and why it is not the headline
+
+The sparrow pair turned out to be artefacts too, and not even the same artefact. In each
+sample the eleven pairs **tile a single locus** — one coincidence counted eleven times —
+and nothing in either sample's reads aligns to the sparrow genome (`NC_016992.1`), to
+GRCh38, or to any protein in the dated set at an e-value of 10. The two samples share no
+31-mer, so these are two independent coincidences rather than one contaminant. Kraken2's
+own output shows the mechanism:
+
+```
+SRR13677700.59768  138|138  0:19 1159906:5 0:80 |:| 0:80 1159906:5 0:19
+```
+
+Five assigned k-mers in one block per mate, and the mates are reverse complements of each
+other, because the insert is shorter than twice the read length. **`--minimum-hit-groups 2`
+cannot protect that pair**: the two "independent" hit groups are the same block, read
+twice. (From the coinfection thread; `results/hku1-coinfection.json`,
+`sparrow_coronavirus_threshold_reads`.)
+
+So every coronavirus alarm in the twenty negatives has now been accounted for, and none of
+them is the thing a false-alarm rate is supposed to count — two genuine endemic
+infections, one patient's own HKU1 at a genotype the database lacks, and two single-locus
+artefacts. `config/day5.toml` records those diagnoses, and the record carries exactly one
+number from them, `arm_a.adjudicated`:
+
+| | as scored | adjudicated |
+| --- | --- | --- |
+| reads deducted | — | 29 of 35 |
+| unexplained reads remaining | 35 | **6** |
+| worst negative | 11 (`SRR13677975`) | 2 (`SRR13677589`) |
+| Arm A threshold | 12 reads | **3 reads** |
+| Arm A limit | 7.7 /M | **0.77 /M**, the series' lowest rung |
+| Arm B contigs in the cohort | 1 | **0**, threshold falls to the unfiltered rule |
+
+**That is not the headline, and the reason is a rule rather than a preference.** Every
+deduction rests on a diagnostic the arm does not run; each was performed after it was
+known which samples set the threshold; and all of them move the method's own number in
+the method's favour. That is the shape of a threshold fitted to its cohort, and each
+deduction being individually correct does not change the shape — it is what makes the
+fitting persuasive. The coinfection thread reached the same conclusion from the other
+side and deliberately did not apply the exclusion, which is the right instinct.
+
+What would make this number quotable is a **diagnostic declared in advance and applied to
+every alarm**, including the ones that are inconvenient to lose: align each alarm's reads
+to its assigned taxon's genome, check the hit-group geometry, and exclude on a stated
+rule rather than on a verdict. That is a Day 7 design and it is now the second item on
+its list. Deleting the `adjudications` section from `config/day5.toml` changes no headline
+number, which is the test of whether this has been kept at arm's length.
+
+One thing the adjudicated column does establish, and it does not depend on any threshold:
+**after a cohort-wide hunt, the benchmark's twenty negatives contain six coronavirus reads
+nobody can explain, and zero contigs.** Both arms' specificity on this cohort is limited
+by what twenty samples can show, not by anything either method did wrong.
 
 ### One read that does not reconcile, and why it is here
 
@@ -440,21 +492,29 @@ Here it costs a flag.
   setting that was pre-registered and then dropped on its own evidence.
 * Quote the per-read specificity bound (0.013 per million) and the per-sample one (<14%)
   as the two different things they are.
-* The unexplained family-level figure is **28 reads in 228 million, not 35**, and both are
-  upper bounds: seven of the original 35 turned out to be the HKU1 patient's own genotype B
-  infection. Run the strain check over the remaining 27 before quoting the number — the
-  sparrow coronavirus pair first, since those two samples are what set Arm A's threshold.
+* The unexplained family-level figure is **28 reads in 228 million, not 35**, and after
+  the sparrow pair was diagnosed as well, **six** — but quote the as-scored threshold and
+  limit, not the adjudicated ones, and say why. The diagnosed-clean column (threshold 3
+  reads, limit 0.77 /M) belongs in the paper as a sentence about what a pre-declared
+  diagnostic pass would be worth, not as the result.
 
 **For Day 7**, in rough order of what the benchmark gains:
 
 1. **A series in a negative's background.** Two more decades of dose axis, no new
    sequencing, and it is the only way to find out where either arm actually fails.
-2. **The read-level false-alarm rate**, now about eight hours rather than 49 at stock
+2. **A pre-declared adjudication pass over every alarm.** Each of the cohort's alarms was
+   diagnosed one at a time, after the fact, and the result would improve Arm A's limit by
+   a decade — which is exactly why it cannot be quoted. Declare the diagnostic first
+   (align each alarm's reads to its assigned taxon's genome; check the hit-group
+   geometry; exclude on a stated rule), apply it to all twenty samples, and the
+   adjudicated column becomes a result instead of a footnote. The `adjudications` table
+   in `config/day5.toml` is the scaffolding.
+3. **The read-level false-alarm rate**, now about eight hours rather than 49 at stock
    sensitivity — the measurement that would let the read half be scored at all.
-3. **The host-derived false-positive test**, one bowtie2 pass over the index sample's QC
+4. **The host-derived false-positive test**, one bowtie2 pass over the index sample's QC
    reads to recover its 2,053,621 host-aligned pairs, run through both arms.
-4. A mapping-quality curve for the ground-truth label instead of one MAPQ 20 threshold.
+5. A mapping-quality curve for the ground-truth label instead of one MAPQ 20 threshold.
    The resident background above *is* that threshold's cost, measured.
-5. The items Days 3 and 4 carried: `bowtie2 --reorder`, bwa-mem against bowtie2 for the
+6. The items Days 3 and 4 carried: `bowtie2 --reorder`, bwa-mem against bowtie2 for the
    host filter, a combined Day 3 + Day 4 negatives runner, and the HKU1 patient's four
    non-aligning contigs.
