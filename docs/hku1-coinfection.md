@@ -148,24 +148,46 @@ would have left those first — they are longer and more conserved.
 
 Day 3 reported that excluding the endemic human coronaviruses left **7 betacoronavirus
 reads** across the whole 20-sample cohort, 0.031 per million non-host pairs, every one of
-them in this patient and described as embecovirus spillover. Those 7 are 5 reads of
-*Betacoronavirus HKU24*, 1 of *Betacoronavirus 1* and 1 of *Rat coronavirus Parker*.
+them in this patient and described as embecovirus spillover. Day 5 counts this sample at
+**8** reads once an alphacoronavirus read is included at family level. Every one of them
+was checked:
 
-All 7 are HKU1 genotype B sequence. Aligned to `DQ415911.1` they are 99.3 to 100% identical;
-aligned to the genotype A reference, 91.9 to 98.3%, and one of them does not align at all.
-They sit in two places, around positions 17,530-18,030 and 21,440-21,620 — ORF1ab, and the
-ORF1ab/HE boundary. Kraken2 assigned them to rodent and bovine embecoviruses because, for
-those 35-mers, a rodent embecovirus genuinely is the closest thing the database holds: the
-database does not contain this patient's genotype.
+| reads | Kraken2's call | identity to genotype B `DQ415911.1` | to genotype A | verdict |
+| --- | --- | --- | --- | --- |
+| 5 | *Betacoronavirus HKU24* | 99.3–100% | 91.9–98.3% | the patient's HKU1 |
+| 1 | *Rat coronavirus Parker* | 100% | 93.2% | the patient's HKU1 |
+| 1 | *Rabbit coronavirus HKU14* | 100% | 93.1–94.5% | the patient's HKU1 |
+| 1 | *Coronavirus AcCoV-JC34* | no alignment | no alignment | **unexplained** |
 
-**Consequence for Day 5.** The cohort's measured non-endemic betacoronavirus false-alarm
-count at genus level is **zero**, not 7, and the rate is not 0.031 per million but
-unmeasurably low — which is a stronger result for the arm than Day 3 credited it with, and
-one that should be stated as a bound rather than a rate. At family level this sample
-contributes 8 of the cohort's 35 non-endemic reads (these 7 plus one read assigned at
-Coronaviridae). **The other 27 are in other samples and have not been examined**; the same
-treatment would be worth applying to them before Day 6 quotes the family-level figure,
-since the mechanism is general.
+So **7 of the 8 are this patient's own HKU1**, and all 7 are the non-endemic
+*betacoronavirus* reads — the genus-level figure. They sit in three places on the genome,
+around positions 15,210–15,400, 17,530–18,030 and 21,440–21,620: ORF1ab, and the ORF1ab/HE
+boundary. Kraken2 reached for rodent, bovine and rabbit embecoviruses because for those
+35-mers a rodent embecovirus genuinely is the closest thing the database holds. The eighth
+read is an alphacoronavirus call that aligns to neither HKU1 genotype and stays on the
+books as one unexplained read in 14.75 million.
+
+**And Arm B's single counted false-alarm contig in the whole cohort is the same thing.**
+Day 5's threshold of bitscore 250 is selected by one contig: `k141_852`, 767 bp, best hit
+*Rat coronavirus Parker* ORF1a at 91.2% amino-acid identity, bitscore 226. It is **100.00%
+identical at nucleotide level to `DQ415911.1`** and 97.42% to genotype A. Day 5's fix of
+attributing a contig by best hit rather than by LCA cannot catch this one, because the best
+hit is itself wrong — a rat coronavirus really is the closest protein in the database, and
+DIAMOND's second hit is HKU1's own ORF1ab at 98.1% with the identical bitscore of 226. With
+it accounted for, **Arm B's measured false-alarm count across the negatives is zero
+contigs**, and nothing in the cohort selects a bitscore threshold above the arm's lowest
+pre-registered rung. The limit of detection does not move, because it already sits at the
+dilution series' floor; the specificity claim gets stronger.
+
+**Consequences for Day 5.** The cohort's non-endemic betacoronavirus count at genus level
+is **zero**, not 7, and the family-level count is 28 reads rather than 35; both are upper
+bounds rather than rates. Arm A's threshold of 12 reads **does not move**, because it was
+set by `SRR13677700` and `SRR13677975` at 11 reads each rather than by this patient — but
+those two samples are 11 reads of *Sparrow coronavirus HKU17* each, in two unrelated
+patients, which is the same signature. If they are the same mechanism the threshold drops
+and Arm A's limit of detection improves. **That is the one remaining thread worth pulling,
+and corrections of this kind can only ever lower a threshold**, so the published figures
+are conservative in the right direction.
 
 ---
 
