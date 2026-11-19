@@ -166,6 +166,20 @@ def test_an_empty_assembly_is_a_result_not_a_crash(source_db, tmp_path):
 # --------------------------------------------------------------- contig diagnosis
 
 
+def _hits_path(out_dir: Path, stage: str, name: str, arm) -> Path:
+    """Where ``day4.diagnose_contigs`` looks for a stage's DIAMOND output.
+
+    Derived from the arm's own config rather than spelled out, so that moving the
+    sensitivity setting — which Day 5 did, from ``--very-sensitive`` to stock — cannot
+    leave these fixtures writing to a filename nothing reads. These tests are skipped
+    wherever minimap2 or diamond is absent, which includes CI, so a stale name here fails
+    only in a container with the real tools and fails silently everywhere else.
+    """
+    path = out_dir / stage / "search" / f"{name}.{arm.sensitivity}.blastx.tsv.gz"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 @pytest.mark.skipif(shutil.which("minimap2") is None, reason="minimap2 is not installed")
 def test_the_contig_diagnosis_separates_the_virus_from_the_false_positives(
     source_db, tmp_path, monkeypatch, blast_row, write_blast_hits
@@ -203,9 +217,12 @@ def test_the_contig_diagnosis_separates_the_virus_from_the_false_positives(
     dmnd = tmp_path / "db.dmnd"
     diamond.build_database(source_db, dmnd, threads=2, log=lambda m: None)
     # Give both contigs a coronavirus call, so the diagnosis has two candidates and has
-    # to tell them apart by alignment rather than by what the search said.
-    hits = out / "index" / "search" / "SRRTEST_nonhost.very-sensitive.blastx.tsv.gz"
-    hits.parent.mkdir(parents=True, exist_ok=True)
+    # to tell them apart by alignment rather than by what the search said. The fixture's
+    # filename carries the sensitivity setting, so it is derived from the config the
+    # diagnosis itself reads: Day 5 moved that setting from --very-sensitive to stock, and
+    # a name spelled out here went looking for a file the arm no longer writes.
+    arm = day4.load_config(Path("config/day4.toml"))
+    hits = _hits_path(out, "index", "SRRTEST_nonhost", arm)
     write_blast_hits(
         hits,
         [
@@ -214,7 +231,6 @@ def test_the_contig_diagnosis_separates_the_virus_from_the_false_positives(
         ],
     )
 
-    arm = day4.load_config(Path("config/day4.toml"))
     arm = dataclasses.replace(arm, work_dir=work, out_dir=out, source_db=source_db, dmnd_db=dmnd)
     samples = dataclasses.replace(
         registry.load_config(Path("config/day2.toml")),
@@ -264,12 +280,12 @@ def test_the_diagnosis_says_so_when_nothing_aligns(
     )
     dmnd = tmp_path / "db.dmnd"
     diamond.build_database(source_db, dmnd, threads=2, log=lambda m: None)
-    hits = out / "index" / "search" / "SRRTEST_nonhost.very-sensitive.blastx.tsv.gz"
-    hits.parent.mkdir(parents=True, exist_ok=True)
+    stock = day4.load_config(Path("config/day4.toml"))
+    hits = _hits_path(out, "index", "SRRTEST_nonhost", stock)
     write_blast_hits(hits, [blast_row("k_bogus", "YP_000001.1", 694009, 120.0, qlen=1500)])
 
     arm = dataclasses.replace(
-        day4.load_config(Path("config/day4.toml")),
+        stock,
         work_dir=work,
         out_dir=out,
         source_db=source_db,
