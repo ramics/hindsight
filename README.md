@@ -270,6 +270,37 @@ negatives, why every dilution level costs its own assembly, what `--very-sensiti
 out to be worth, the read-mapping error and what generalises from it, and the measurement
 behind every runtime decision.
 
+Scoring the two arms against each other needs no machine at all, because both recorded
+every clade at every dilution level rather than only their own headline:
+
+```console
+$ scripts/day5.sh
+Arm A rule: at least 12 reads placed in coronaviridae
+  false alarms: 0 of 20 samples; limit of detection 7.71 viral reads per million
+Arm B rule: at least one coronaviridae contig at bitscore >= 250
+  false alarms: 0 of 20 samples; limit of detection 0.771 viral reads per million
+```
+
+**Both arms would have caught it, with no false alarm in twenty pre-COVID samples, down
+to about 8 viral reads per million — and that floor belongs to the benchmark rather than
+to either method.** The dilution series was cut from the index patient's own background,
+and that background holds ~90 coronavirus reads of its own that the ground-truth label
+missed and the dilution never thinned, so 90% of the lowest rung's dose was never
+diluted. The series has four usable rungs, not five. Fixing it is cheap and needs no new
+sequencing: spike into a *negative* library's background instead.
+
+The other reversal is that the crossover does not decide who alarms. At the lowest rung
+the assembly arm recovers one read of ten against the classifier's four, and it is the
+assembly arm that alarms — one 462 bp contig matching a coronavirus replicase at bitscore
+270 clears the cohort's noise, and four reads do not. Recovery and detection are
+different questions.
+
+[`docs/day5-scoring.md`](docs/day5-scoring.md) has the scoring in full: the three
+decisions this day owns (the clade, which false alarms count, and dropping a
+pre-registered DIAMOND setting on its own evidence), the 128 operating points behind the
+two headline rows, what twenty negatives can and cannot establish, and why the read-level
+search's flat 93% is a mechanism result rather than a limit.
+
 ## What this does not give you, and why it matters
 
 Stated plainly, because a benchmark whose database has unexamined properties is not a

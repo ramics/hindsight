@@ -269,6 +269,10 @@ is nearly free beside a 35-minute assembly — so the record carries a false-ala
 each, measured on twenty real libraries, and Day 5 chooses on that. On present evidence it
 should choose stock.
 
+**Day 5 did choose stock**, from this record and without re-running anything, and swapped
+the two values in `config/day4.toml` while leaving the pre-registration above it intact.
+See [day5-scoring.md](day5-scoring.md).
+
 ## A limitation in the negatives that Arm B is more exposed to than Arm A
 
 Worth stating before the false-alarm rate is quoted, because it bounds what that rate
