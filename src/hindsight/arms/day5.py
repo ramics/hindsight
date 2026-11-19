@@ -1008,18 +1008,18 @@ def report(record: dict) -> list[str]:
     lines.append(
         f"scored at {clade}, false alarms counted {params.get('framing')}, "
         f"budget <= {params.get('false_alarm_budget')} of {params.get('negatives')} negatives; "
-        f"Arm B at {params.get('arm_b_sensitivity')} sensitivity"
+        f"DIAMOND at {params.get('arm_b_sensitivity')} sensitivity"
     )
     a = (record.get("arm_a") or {}).get("headline") or {}
     b = (record.get("arm_b") or {}).get("headline") or {}
     lines.append("")
-    lines.append(f"Arm A rule: {a.get('rule')}")
+    lines.append(f"Kraken2 rule: {a.get('rule')}")
     lines.append(
         f"  false alarms: {a.get('false_alarm_samples')} of {params.get('negatives')} samples; "
         f"limit of detection {_fmt(a.get('limit_of_detection', {}).get('per_million'))} "
         f"viral reads per million ({a.get('limit_of_detection', {}).get('alarms_at')})"
     )
-    lines.append(f"Arm B rule: {b.get('rule')}")
+    lines.append(f"MEGAHIT + DIAMOND rule: {b.get('rule')}")
     lod_b = b.get("limit_of_detection") or {}
     floor = (
         " (the series' lowest rung; the limit is at or below it)"
@@ -1033,13 +1033,13 @@ def report(record: dict) -> list[str]:
     )
     lines.append("")
     lines.append(
-        "level                fragments  per million   Arm A reads  alarm   Arm B bits  alarm"
+        "level                fragments  per million   Kraken2 rds  alarm   assembly bits  alarm"
     )
     for row in (record.get("cross_arm") or {}).get("levels", []):
         lines.append(
             f"{row['name']:<20} {row['viral_fragments']:>9,}  {_fmt(row['per_million']):>11}  "
             f"{row['arm_a_reads']:>11,}  {'yes' if row['arm_a_alarm'] else 'no':<5}  "
-            f"{_fmt(row['arm_b_best_bitscore']):>10}  {'yes' if row['arm_b_alarm'] else 'no'}"
+            f"{_fmt(row['arm_b_best_bitscore']):>13}  {'yes' if row['arm_b_alarm'] else 'no'}"
         )
     residents = record.get("resident_background") or {}
     lines.append("")

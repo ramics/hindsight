@@ -24,6 +24,14 @@ kraken_db = "work/kraken2/nov2019"
 # matching a poly-A stretch in a reference genome is a false alarm that says nothing
 # about either sequence.
 mask_low_complexity = true
+# Unset means Kraken2's own defaults: 35-mers, 31 bp minimizers. They are settable so
+# that "would a shorter k have recovered more than 41.7% of the viral reads?" is an
+# experiment rather than an argument — but it is not a free improvement, because a
+# shorter k raises the background along with the signal and the alarm threshold is set
+# from that background. Change `kraken_db` with them, or a k=27 run will silently reuse
+# the k=35 index.
+# kmer_length = 27
+# minimizer_length = 24
 
 [classify]
 threads = 4
