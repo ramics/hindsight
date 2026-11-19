@@ -129,3 +129,17 @@ def test_a_bounded_window_with_soft_edges_stops_short_of_calling_it_a_construct(
     text = taxon._conclude(_record(taxon._profile(depth)))
     assert "not clean enough to call it a construct outright" in text
     assert "cloned fragment" not in text
+
+
+def test_nothing_mapped_is_not_reported_as_perfect_identity():
+    """samtools reports an error rate of 0 when nothing mapped; 100% identity beside
+    "0 reads aligned" is the most misleading pair of numbers this can print, and it is the
+    case that matters most — a taxon whose reads do not align is the one being called
+    spurious."""
+    record = _record(taxon._profile([0] * 8000), identity=None, fragments=11)
+    record["reads_mapped"] = 0
+    text = taxon._conclude(record)
+    assert "not one of them aligns" in text
+    assert "rests on shared k-mers" in text
+    assert "100.0% identity" not in text
+    assert "identity" not in text.split("aligns to")[0]

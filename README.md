@@ -327,14 +327,27 @@ dose axis become visible.
 Seven of the cohort's non-endemic coronavirus reads have since been traced to one
 patient's genuine HKU1 infection, of a genotype RefSeq does not carry — it curates one
 genome per species — which Kraken2 scattered onto rodent and bovine relatives because
-for those k-mers those really are the nearest thing the database holds. That leaves 28
-unexplained family-level reads rather than 35, and none at genus level, and both figures
-are upper bounds because the remaining reads have not had the same strain-level pass.
-It does not move the limits quoted above: Kraken2's threshold of 12 is set by two other
-samples at 11 reads each. But those two have not been examined either, and a correction
-of this kind can only ever take reads out of the false-alarm column, so a careful pass
-over the rest would move the thresholds down and make this benchmark's methods look
-better, never worse.
+for those k-mers those really are the nearest thing the database holds. That takes the
+cohort's non-endemic count from 35 family-level reads to 28, and to zero at genus level.
+
+The two samples that actually set Kraken2's threshold of 12 — one patient each with 11
+*Sparrow coronavirus* reads — have since had the same pass, and they do not survive it.
+Not one of those 22 reads aligns to the sparrow genome, none has a protein-level hit
+anywhere in the dated set, none is human, and the two samples share no 31-mer, so they
+are two independent coincidences rather than one contaminant: an 18 bp match reaching a
+minimizer, counted eleven times because the mates overlap and Kraken2 scored the same
+block twice. Six non-endemic coronavirus reads then remain cohort-wide, one examined and
+unaccounted for, five never examined, and zero contigs.
+
+**The thresholds quoted above are the as-scored ones, and they are upper bounds.** With
+those deductions Kraken2's threshold falls from 12 reads to 3 and its limit from 7.71 to
+0.77 viral reads per million, a full decade, and Arm B's false alarms go to zero. That
+figure is in the record as a secondary number rather than the headline, because every
+deduction rests on a diagnostic the arm does not itself run, each was made after it was
+known which samples set the threshold, and all of them move the number in the method's
+favour. Each one being individually correct is what makes a threshold fitted to its own
+cohort persuasive, not what makes it safe. The defensible version declares the diagnostic
+in advance and applies it to every alarm, which is a Day 7 item.
 
 The same correction has now taken a threshold-setting read out of **both** arms. Arm B's
 bitscore threshold of 250 is selected by exactly one contig in the whole cohort, whose
