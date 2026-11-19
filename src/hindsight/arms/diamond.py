@@ -730,17 +730,31 @@ def count_reads_on_contigs(
     truth_ids: set[str] | None = None,
     log=print,
 ) -> dict:
-    """Map the non-host reads onto a chosen subset of contigs and count what sticks.
+    """Count the non-host reads whose best home in the assembly is a clade contig.
 
     This is what makes Arm B's numbers comparable with Arm A's. Arm A counts reads
     placed in a clade; this counts reads that align to a contig the arm placed in that
     clade. Both are "reads this arm would have shown an analyst".
 
-    Local alignment, matching the host filter, and the full mapping-quality
-    distribution is recorded rather than a single threshold applied: a short contig can
-    attract low-complexity reads, and Day 5 should be able to redraw the line without a
-    re-run. ``truth_ids`` splits the aligned reads into real viral fragments and the
-    rest, which is this arm's sensitivity and its false-positive count on one sample.
+    **Two passes, and the second one is the point.** Mapping quality means "unique among
+    the sequences you gave the aligner", not "this read came from here". An index holding
+    only the clade contigs leaves every read from the rest of the library nowhere else to
+    go, so reads land on whatever thirty bases they happen to share and are scored
+    confidently for it. Measured: one negative's 23 coronavirus contigs took 1,435,005
+    read pairs against a 23-contig index and 2,885 against the whole 7,438-contig
+    assembly, a factor of 498, where Arm A's count for that sample was 2,399.
+
+    So the subset index is used only as a candidate filter, which is sound because adding
+    references to an index can take reads away from a contig but never add them, and the
+    candidates are then re-adjudicated against the whole assembly. That costs one cheap
+    pass over the library plus one expensive pass over a few hundred thousand reads,
+    rather than the whole library against the whole assembly.
+
+    Local alignment, matching the host filter, and the full mapping-quality distribution
+    is recorded rather than a single threshold applied: Day 5 should be able to redraw
+    the line without a re-run. ``truth_ids`` splits the adjudicated reads into real viral
+    fragments and the rest, which is this arm's sensitivity and its false-positive count
+    on one sample.
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -774,64 +788,56 @@ def count_reads_on_contigs(
     record["contig_bases"] = kept
     index = out_dir / f"{name}.clade-contigs"
     build_log = out_dir / f"{name}.bowtie2-build.log"
-    with build_log.open("wb") as errlog:
-        completed = subprocess.run(  # noqa: S603
-            ["bowtie2-build", "--threads", str(threads), str(subset), str(index)],
-            stdout=errlog,
-            stderr=errlog,
-            check=False,
-        )
-    if completed.returncode != 0:
-        raise DiamondError(f"{name}: bowtie2-build failed ({completed.returncode})")
+    build_log.unlink(missing_ok=True)
+    _bowtie2_build(subset, index, threads=threads, log_path=build_log, name=name)
 
-    log(f"{name}: mapping reads back onto {len(names)} clade contigs")
+    log(f"{name}: pass 1, candidate reads against {len(names)} clade contigs")
     align_log = out_dir / f"{name}.bowtie2.log"
     start = time.monotonic()
-    mapqs: Counter[int] = Counter()
-    aligned: set[str] = set()
-    with align_log.open("wb") as errlog:
-        bowtie = subprocess.Popen(  # noqa: S603
-            [
-                "bowtie2",
-                "--local",
-                "--no-unal",
-                "-p",
-                str(threads),
-                "-x",
-                str(index),
-                "-1",
-                str(r1),
-                "-2",
-                str(r2),
-            ],
-            stdout=subprocess.PIPE,
-            stderr=errlog,
-            text=True,
-            bufsize=1 << 20,
-        )
-        assert bowtie.stdout is not None
-        for line in bowtie.stdout:
-            if line.startswith("@"):
-                continue
-            fields = line.split("\t", 6)
-            if len(fields) < 5 or fields[2] == "*":
-                continue
-            flag = int(fields[1])
-            if flag & 0x100 or flag & 0x800:  # secondary or supplementary
-                continue
-            mapqs[int(fields[4])] += 1
-            aligned.add(reads.normalise_id(fields[0]))
-        bowtie.stdout.close()
-        rc = bowtie.wait()
-    if rc != 0:
-        tail = align_log.read_text(errors="replace")[-1500:]
-        raise DiamondError(f"{name}: bowtie2 failed ({rc}):\n{tail}")
+    candidates = out_dir / f"{name}.candidates.fa"
+    found = _align_and_collect(
+        ["bowtie2", "--local", "--no-unal", "-p", str(threads), "-x", str(index)]
+        + ["-1", str(r1), "-2", str(r2)],
+        align_log,
+        name=name,
+        keep=None,
+        write_fasta=candidates,
+    )
+    record["candidate_reads"] = len(found["reads"])
+    record["candidate_mate_alignments"] = sum(found["mapqs"].values())
+    record["pass1_alignment_summary"] = (
+        align_log.read_text(errors="replace").strip().splitlines()[-6:]
+    )
+    log(f"{name}: {len(found['reads']):,} candidate reads; adjudicating on the whole assembly")
+
+    whole = out_dir / f"{name}.whole-assembly"
+    _bowtie2_build(contigs, whole, threads=threads, log_path=build_log, name=name)
+    adjudicate_log = out_dir / f"{name}.bowtie2-adjudicate.log"
+    final = _align_and_collect(
+        # -f because the candidates arrive as FASTA: the first pass saved the aligner's
+        # own SEQ field, which carries no quality string.
+        ["bowtie2", "--local", "--no-unal", "-f", "-p", str(threads), "-x", str(whole)]
+        + ["-U", str(candidates)],
+        adjudicate_log,
+        name=name,
+        keep=set(names),
+        write_fasta=None,
+    )
+    aligned = final["reads"]
+    mapqs = final["mapqs"]
 
     record["seconds"] = round(time.monotonic() - start, 1)
     record["reads_aligned"] = len(aligned)
     record["mapq_distribution"] = dict(sorted(mapqs.items()))
     record["mate_alignments"] = sum(mapqs.values())
-    record["alignment_summary"] = align_log.read_text(errors="replace").strip().splitlines()[-6:]
+    record["alignment_summary"] = (
+        adjudicate_log.read_text(errors="replace").strip().splitlines()[-6:]
+    )
+    # Kept because the ratio is the measurement that justifies the second pass, and
+    # because a future change to either index would show up here first.
+    record["subset_index_inflation"] = (
+        round(record["candidate_reads"] / len(aligned), 1) if aligned else None
+    )
     if truth_ids is not None:
         hit_truth = aligned & truth_ids
         record["truth_fragments"] = len(truth_ids)
@@ -839,11 +845,86 @@ def count_reads_on_contigs(
         record["false_positive"] = len(aligned) - len(hit_truth)
         record["sensitivity"] = len(hit_truth) / len(truth_ids) if truth_ids else None
     marker.write_text(json.dumps(record, indent=2) + "\n")
-    # The index and the subset FASTA are rebuildable from the contigs and the name list,
-    # and at twenty negatives they are not worth keeping.
+    # Both indexes and the candidate FASTA are rebuildable from the contigs and the name
+    # list, and the whole-assembly index is the largest thing this step makes.
     for stale in out_dir.glob(f"{name}.clade-contigs*.bt2"):
         stale.unlink(missing_ok=True)
+    for stale in out_dir.glob(f"{name}.whole-assembly*.bt2"):
+        stale.unlink(missing_ok=True)
+    candidates.unlink(missing_ok=True)
     return record
+
+
+def _bowtie2_build(fasta: Path, index: Path, *, threads: int, log_path: Path, name: str) -> None:
+    with log_path.open("ab") as errlog:
+        completed = subprocess.run(  # noqa: S603
+            ["bowtie2-build", "--threads", str(threads), str(fasta), str(index)],
+            stdout=errlog,
+            stderr=errlog,
+            check=False,
+        )
+    if completed.returncode != 0:
+        raise DiamondError(f"{name}: bowtie2-build on {fasta.name} failed ({completed.returncode})")
+
+
+def _align_and_collect(
+    argv: Sequence[str],
+    log_path: Path,
+    *,
+    name: str,
+    keep: set[str] | None,
+    write_fasta: Path | None,
+) -> dict:
+    """Run bowtie2, counting primary alignments and optionally saving the reads.
+
+    ``keep`` restricts the count to alignments landing on those references; ``None``
+    counts every alignment. ``write_fasta`` saves each counted mate's sequence, which is
+    how the candidate set reaches the second pass without a second trip through the
+    FASTQ. The sequence is written as the aligner reported it, which is reverse
+    complemented for a mate on the minus strand — immaterial, since the next pass aligns
+    it to the same assembly either way.
+    """
+    mapqs: Counter[int] = Counter()
+    seen: set[str] = set()
+    out = write_fasta.open("w") if write_fasta is not None else None
+    try:
+        with log_path.open("wb") as errlog:
+            bowtie = subprocess.Popen(  # noqa: S603
+                list(argv),
+                stdout=subprocess.PIPE,
+                stderr=errlog,
+                text=True,
+                bufsize=1 << 20,
+            )
+            assert bowtie.stdout is not None
+            for line in bowtie.stdout:
+                if line.startswith("@"):
+                    continue
+                fields = line.split("\t", 11)
+                if len(fields) < 10 or fields[2] == "*":
+                    continue
+                flag = int(fields[1])
+                if flag & 0x100 or flag & 0x800:  # secondary or supplementary
+                    continue
+                if keep is not None and fields[2] not in keep:
+                    continue
+                mapqs[int(fields[4])] += 1
+                read_id = reads.normalise_id(fields[0])
+                seen.add(read_id)
+                if out is not None and fields[9] != "*":
+                    # Mates of a pair share a normalised id, so the mate number keeps the
+                    # two records distinct in the candidate FASTA.
+                    mate = 2 if flag & 0x80 else 1
+                    out.write(f">{read_id}/{mate}\n{fields[9]}\n")
+            bowtie.stdout.close()
+            rc = bowtie.wait()
+    finally:
+        if out is not None:
+            out.close()
+    if rc != 0:
+        tail = log_path.read_text(errors="replace")[-1500:]
+        raise DiamondError(f"{name}: bowtie2 failed ({rc}):\n{tail}")
+    return {"mapqs": mapqs, "reads": seen}
 
 
 def _write_contig_subset(contigs: Path, names: set[str], dest: Path) -> int:
