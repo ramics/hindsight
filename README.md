@@ -327,17 +327,32 @@ dose axis become visible.
 Seven of the cohort's non-endemic coronavirus reads have since been traced to one
 patient's genuine HKU1 infection, of a genotype RefSeq does not carry — it curates one
 genome per species — which Kraken2 scattered onto rodent and bovine relatives because
-for those k-mers those really are the nearest thing the database holds. That leaves 28
-unexplained family-level reads rather than 35, and none at genus level, and both figures
-are upper bounds because the remaining reads have not had the same strain-level pass.
-It does not move the limits quoted above: Kraken2's threshold of 12 is set by two other
-samples at 11 reads each. But those two have not been examined either, and a correction
-of this kind can only ever take reads out of the false-alarm column, so a careful pass
-over the rest would move the thresholds down and make this benchmark's methods look
-better, never worse.
+for those k-mers those really are the nearest thing the database holds. The two samples
+that actually set Kraken2's threshold, eleven *Sparrow coronavirus HKU17* reads each,
+have since been chased down too, and are single-locus artefacts — not one contaminant
+but two independent coincidences, with nothing in either sample aligning to the sparrow
+genome and the pair's overlapping mates defeating the two-hit-group rule by presenting
+one block of five k-mers twice.
 
-The same correction has now taken a threshold-setting read out of **both** arms. Arm B's
-bitscore threshold of 250 is selected by exactly one contig in the whole cohort, whose
+So every coronavirus alarm in the twenty negatives is now accounted for, and **six reads
+in 228 million, with no contigs, are unexplained** — not the 35 that were scored. Deduct
+all of it and Kraken2's threshold falls from 12 reads to 3 and its limit from 7.7 to 0.77
+per million, about a decade — on paper. **That is not quoted as the result, and should
+not be.**
+Every deduction rests on a diagnostic the method does not itself run, each was made after
+it was known which samples set the threshold, and all of them move a method's own number
+in its favour. The honest form is the one this section is making: a pre-declared
+adjudication pass over every alarm would be worth about a decade of detection limit, and
+measuring that is Day 7's job rather than a result this benchmark has. Both columns are
+in [`results/day5-provenance.json`](results/day5-provenance.json). Note also where that
+decade would land: the rung it buys is the bottom one, whose dose is 90% undiluted
+background, below the floor described under Figure 1. Even granted in full, it would not
+separate the two methods — it would move Kraken2's quoted limit to a rung this series
+cannot resolve.
+
+The same correction has now taken a threshold-setting read out of **both** methods.
+MEGAHIT + DIAMOND's bitscore threshold of 250 is selected by exactly one contig in the
+whole cohort, whose
 best hit is a rat coronavirus at 91.2% amino-acid identity — and which is **100.00%
 identical at nucleotide level** to the genotype B genome. Attributing a contig by its best
 hit rather than by its LCA cannot catch that one, because the best hit is itself wrong:
