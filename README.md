@@ -1,33 +1,117 @@
 # hindsight
 
-Build a viral reference database as it stood on a date you choose — not an
-approximation of it, but the actual record set, at the exact accession versions that
-were public at the time.
+**Would an automated, pathogen-agnostic pipeline have flagged SARS-CoV-2 in the index
+sample, using only what was knowable before it existed — and down to what abundance?**
 
-```console
-$ hindsight build --date 2019-12-01 --out db/november-2019
-cutoff 2019-12-01 -> release 97 (2019-11-04); first excluded release: release 98 (2020-01-06)
-manifest: 12179 nucleotide + 373129 protein records across 9305 taxa
-nucleotide: wrote 12179 records to viral.fna (0 withdrawn, 0 version mismatches)
-protein: wrote 373129 records to viral.faa (0 withdrawn, 0 version mismatches)
-taxonomy: taxdmp snapshot 2019-11-01
-```
+This repository is the benchmark that answers it, and the tool that makes the answer
+honest. Every reference either detection pipeline consults comes from RefSeq release 97
+(4 November 2019), at the exact accession versions that were public then, paired with
+the taxonomy as it stood on 2019-11-01. SARS-CoV-2 is not in it. Neither is RaTG13,
+nor anything else learned since. Nothing was deleted to make it so; those records had
+not been written yet.
 
-hindsight exists for one job: making a detection benchmark honest. If you want to ask
-whether a pipeline would have flagged a novel pathogen before anyone knew it existed,
-every reference the pipeline consults has to predate the discovery. Today's RefSeq
-cannot answer that question, and neither can today's RefSeq with the obvious records
-deleted.
+## What it shows
 
-## The leakage argument
+**Both pipelines would have caught it.** Against a database that had never seen the virus or
+any of its post-2019 relatives:
 
-The question this tool serves is: **would an automated, pathogen-agnostic pipeline
-have flagged SARS-CoV-2 in the index sample, using only what was knowable before it
-existed?**
+| | Kraken2 | MEGAHIT + DIAMOND |
+| --- | --- | --- |
+| index sample | **25,928 of 62,117 viral fragments** placed in Coronaviridae (41.7%) | **99.68% of the genome in one 29,809 bp contig at 100% identity** |
+| detection statistic | reads placed in Coronaviridae | best bitscore of a Coronaviridae contig |
+| alarm rule, drawn from the negatives alone | ≥ 12 reads | ≥ 1 contig at bitscore ≥ 250 |
+| false alarms, 20 pre-COVID BALF samples | **0 of 20** | **0 of 20** |
+| limit of detection | **7.7 labelled viral reads per million** | **≤ 0.77 per million** |
 
-Answering it requires a database with a specific property: it must contain everything
-a real analyst could have consulted in December 2019, and nothing they could not. The
-easy approaches all fail:
+The assembly pipeline did not merely find a signal. It reconstructed the genome: a single
+29,809 bp contig covering 99.68% of SARS-CoV-2 at 100% nucleotide identity to the
+reference nobody had yet deposited, out of a database whose nearest protein match sat at
+79.9% amino-acid identity.
+
+Diluted into its own background, the signal stays detectable across a 621-fold dilution,
+to **about 8 viral reads per million post-QC pairs**, with no false alarm in twenty
+time-matched pre-COVID libraries. That limit is a property of **this benchmark's floor**
+rather than of either method: see [the caveats](#what-this-does-not-show-and-why-it-matters)
+before quoting it.
+
+![Two panels. A: each pipeline's evidence as a multiple of its own alarm threshold
+across the dilution series, on log axes; both curves lie above the alarm line at every
+dose except Kraken2 at the lowest, which is inside the shaded floor region. B: the share
+of labelled viral fragments each pipeline recovers; MEGAHIT + DIAMOND falls from 98% to
+10% while Kraken2 stays flat near 41%, and the two curves cross between the 10- and
+100-fragment rungs.](docs/figures/detection-vs-dilution.svg)
+
+**Figure 1. Detection and recovery across the dilution series.** The index sample's
+labelled SARS-CoV-2 fragments, thinned to five doses in that sample's own background and
+scored against a November 2019 reference frame. Because the series was diluted into the
+index patient's own reads, and those reads already carried ~90 coronavirus fragments of
+their own, no rung can hold less virus than that residue: shading marks the doses below
+6.9 labelled reads per million, where most of what is present was never diluted and the
+rung measures the benchmark rather than either pipeline.
+**(A) Detection.** Each pipeline's evidence — Coronaviridae reads for Kraken2, best
+Coronaviridae contig bitscore for MEGAHIT + DIAMOND — expressed as a multiple of that
+pipeline's own alarm threshold, both thresholds set from the twenty pre-COVID negatives
+alone and neither raising a false alarm on them. Both pipelines clear the alarm line at
+every usable dose. The single point below it is Kraken2 at the lowest rung, inside the
+floor, where four labelled reads do not reach its threshold of twelve while
+MEGAHIT + DIAMOND still alarms on one 462 bp contig at bitscore 270.
+**(B) Recovery.** The share of labelled fragments each pipeline finds. MEGAHIT + DIAMOND
+recovers 98% of them while coverage is sufficient for assembly and 10% at the lowest
+dose; Kraken2 recovers a flat ~41% throughout, because it classifies each read
+independently. The two curves therefore cross between the 10- and 100-fragment rungs.
+**That crossing is in recovery and not in detection**: it does not change which pipeline
+alarms, and at the lowest dose the pipeline that recovers less is the one that alarms.
+
+### Why the two questions come apart
+
+Above ~1,000 fragments the assembly recovers more than twice what the classifier does,
+because a contig recruits reads that would never classify alone; below ~100 it collapses,
+because the assembler runs out of coverage, while Kraken2's per-read rate stays flat at
+~41% all the way down. That is the whole of the recovery crossing, and it is a statement
+about how each method uses coverage.
+
+Detection asks something else: is there one piece of evidence above the cohort's noise? A
+462 bp contig matching a coronavirus replicase at bitscore 270 is that; four reads, in a
+cohort whose worst negative reaches eleven, is not. **The method that recovers less can be
+the method that detects**, which is why the two carry separate statistics rather than one
+shared threshold, and why a single curve of "detection" against dose would be the wrong
+plot.
+
+### Why Kraken2 sees 41% and not 95%
+
+Kraken2 matches **exact k-mers**: at its defaults each read is classified from 35-mers,
+looked up through their 31 bp minimizers. The nearest relatives the November 2019
+database holds are 79–88% identical to this virus at nucleotide level — a mismatch every
+five to eight bases on average — so a match survives only where a conserved stretch runs
+clean for a whole minimizer. 58% of the labelled fragments going unclassified is the
+expected cost of that design against a novel organism, not a defect in the database or
+its date. It is also the gap MEGAHIT + DIAMOND closes from the other side: assemble
+first, then match protein, where homology is still visible at 30% amino-acid identity.
+
+**It is a knob, and it was deliberately not turned.** `k` and the minimizer length are
+build-time settings. `config/day3.toml` exposes them as `kmer_length` and
+`minimizer_length` under `[database]` and leaves both unset, which is Kraken2's own
+default of 35 and 31; the build record carries the setting either way, so running at
+defaults is a claim in the record rather than an inference from a missing field.
+
+Turning them is a real experiment rather than a free improvement, for two reasons. A
+shorter k raises sensitivity and background together, and because the alarm threshold is
+set from the negatives, recovering more viral reads does not by itself lower the limit of
+detection. And testing it fairly means redoing the whole comparison: rebuild (~20 min),
+reclassify everything (~25 min), then re-measure all twenty negatives, whose reads Day 3
+deleted after classifying — about three hours of fetching and host filtering per value of
+k. The one tuning knob this benchmark did measure argues for restraint. DIAMOND's
+`--very-sensitive` was pre-registered as necessary, matched stock mode's best bitscore on
+every genuine signal, and differed only in false positives.
+
+The figure is drawn from `results/day5-provenance.json` by
+[`scripts/day6_figure.py`](scripts/day6_figure.py) and invents no number; re-score with a
+different flag and re-run it, and the figure follows.
+
+## Why a dated database, and not today's with the answer deleted
+
+The question needs a database with a specific property: everything a real analyst could
+have consulted in December 2019, and nothing they could not. The easy routes all fail.
 
 - **Use today's database and delete SARS-CoV-2.** The genome is gone but its relatives
   are not. RaTG13 (deposited 27 January 2020), the pangolin coronaviruses, and
@@ -43,27 +127,18 @@ easy approaches all fail:
   available for an arbitrary date.
 
 hindsight takes a different route, which works because NCBI never threw anything away.
-
-**RefSeq release catalogs are archived back to release 1 (June 2003).** Each release
-has a dated set of files, and `RefSeq-release<N>.catalog.gz` lists every accession in
-that release — crucially, at the **version** it held in that release. The viral set is
-a filter on one column:
+**RefSeq release catalogs are archived back to release 1 (June 2003)**, and
+`RefSeq-release<N>.catalog.gz` lists every accession in that release at the **version**
+it held then. The viral set is a filter on one column:
 
 ```
 694009  Severe acute respiratory syndrome-related coronavirus  NC_004718.3  complete|viral  na  29751
 ```
 
-So hindsight:
-
-1. Picks the last release issued **strictly before** your cutoff date.
-2. Reads that release's catalog and extracts the viral accession set, versions included.
-3. Fetches each record **at that exact version** from E-utilities, which honours the
-   version suffix and returns the revision as it was.
-4. Pairs it with the NCBI taxonomy dump archived nearest before the same release date,
-   so names, ranks and tree structure are contemporaneous too.
-5. Writes a `provenance.json` recording the cutoff, the release, the release NCBI
-   issued next (the one deliberately excluded), the taxonomy snapshot, every count,
-   every withdrawn record, and a SHA-256 of every output.
+So hindsight picks the last release issued strictly before the cutoff, extracts the
+viral accession set with versions, fetches each record **at that exact version** from
+E-utilities, pairs it with the taxonomy dump archived nearest before the release date,
+and writes a provenance record with every count and a SHA-256 of every output.
 
 For a December 2019 cutoff that gives release 97, November 2019:
 
@@ -78,16 +153,72 @@ For a December 2019 cutoff that gives release 97, November 2019:
 | SARS-CoV-2 (`NC_045512`, `MN908947`) | absent |
 | RaTG13 (`MN996532`) | absent |
 
-That is the shape the benchmark needs. The nearest relatives a December 2019 analyst
-could have reached — 79–88% identity to the index sample, which is what Wu et al.
-actually had — are in. Everything learned from the pandemic is out. Nothing was
-deleted to make it so; those records simply had not been written yet.
+The nearest relatives a December 2019 analyst could have reached — 79–88% identity to
+the index sample, which is what Wu et al. actually had — are in. Everything learned from
+the pandemic is out. These are not claims in a README: `tests/test_leakage.py` asserts
+them, and the network-marked test in that file streams the full 385,308-row release 97
+viral set from NCBI and checks the whole thing.
 
-These are not claims in a README. `tests/test_leakage.py` asserts them, and the
-network-marked test in that file streams the full 385,308-row release 97 viral set
-from NCBI and checks the whole thing.
+**Dating the sequences is not enough, because a classifier's output is a taxon.** 4,922
+of the index sample's reads were assigned to *Bat coronavirus BM48-31/BGR/2008*, the
+nearest relative the database holds — and the November 2019 taxonomy files that genome
+under "unclassified coronaviruses", not under Betacoronavirus where today's tree puts
+it. Detection at family level is 25,928 reads; at genus level, 20,418. A benchmark that
+dates its sequences but keeps a modern taxonomy cannot see that difference. It is the
+single strongest argument for this tool, and it was found rather than predicted.
 
-## Install
+## How the benchmark is built
+
+Five stages, each a day's work, each with its own provenance record and its own write-up.
+
+| | what it does | write-up | record |
+| --- | --- | --- | --- |
+| **Database** | RefSeq release 97 at its own versions, with the 2019-11-01 taxonomy | this file | `db/nov2019/provenance.json` |
+| **Reads** | index sample + 20 negatives, QC, host filter, ground-truth label, frozen dilution series | [`docs/day2-samples.md`](docs/day2-samples.md) | [`results/day2-provenance.json`](results/day2-provenance.json) |
+| **Kraken2** | a read classifier at its own default settings | [`docs/day3-arm-a.md`](docs/day3-arm-a.md) | [`results/day3-provenance.json`](results/day3-provenance.json) |
+| **MEGAHIT + DIAMOND** | de novo assembly, then translated search | [`docs/day4-arm-b.md`](docs/day4-arm-b.md) | [`results/day4-provenance.json`](results/day4-provenance.json) |
+| **Scoring** | thresholds from the negatives, limits, 128 operating points | [`docs/day5-scoring.md`](docs/day5-scoring.md) | [`results/day5-provenance.json`](results/day5-provenance.json) |
+
+**The reads.** `SRR10971381` (the Wu et al. BALF metatranscriptome) and 20 time-matched
+pre-COVID Wuhan BALF negatives from `PRJNA699976`. Half the index sample's spots are
+NCBI's human-read redaction; 15.8% of what survives QC still aligns to GRCh38, so the
+host filter earns its place. 12,975,578 post-QC pairs, 10,921,957 non-host, and
+**62,117 fragments labelled as really SARS-CoV-2** by aligning to the modern reference —
+0.22% of raw spots. (Wu et al. report 0.19%, against the unredacted original; the two
+are not directly comparable.) The dilution series thins those labelled fragments to
+50,000 / 10,000 / 1,000 / 100 / 10 and holds them in the sample's own background, with
+fixed seeds, stored as parts rather than as five copies of a 21 GB library.
+
+The label is the one place the pipeline is allowed to know something from 2020. **The
+pipelines never see it**, and never see the modern reference — they see only the
+November 2019 database. Knowing the answer is the benchmark's job; it is what they are not
+allowed to do.
+
+**The thresholds are drawn from the negatives and never from the positive.** A threshold
+placed after looking at the answer is not a detection limit. The worst negative gives
+Kraken2 11 Coronaviridae reads, so the rule is 12; the assembly rule can only be picked from the
+bitscore ladder `50/100/250/500/1000` that was fixed before the series ran, and the
+negatives select 250. Three scoring choices are argued in full in
+[`docs/day5-scoring.md`](docs/day5-scoring.md) and all three are reversible by flag:
+
+1. **Score at the family, Coronaviridae.** The 2019 taxonomy puts the nearest relative
+   outside the genus; a novel organism's contig cannot resolve below the family anyway
+   (the genome contig's own LCA *is* Coronaviridae); and one negative patient's real
+   NL63 infection is an alphacoronavirus, invisible below the family.
+2. **Two patients' genuine endemic coronavirus infections are not false alarms.** The
+   November 2019 database holds all four endemic human coronaviruses and names them
+   correctly; a pipeline reporting HKU1 in an HKU1 patient was right. Counting a correct
+   answer as a false alarm costs Kraken2 a factor of ten to a hundred and leaves the
+   assembly search unthresholdable.
+3. **Score DIAMOND's stock mode, not the pre-registered `--very-sensitive`.** Both were
+   run on everything. Six comparisons on genuine signal, six identical best bitscores,
+   and the only differences anywhere are false positives — at a sixth of the cost.
+
+Everything else the scoring could have decided is in the record: clade × framing ×
+budget × sensitivity × attribution, 128 operating points, of which the headline is two.
+A reader who disagrees with a threshold moves it with a flag, not with a machine.
+
+## Reproducing it
 
 ```bash
 uv sync --locked --all-extras     # or: pip install -e ".[dev]"
@@ -97,7 +228,195 @@ Set `NCBI_API_KEY` if you have one ([free from your NCBI
 account](https://www.ncbi.nlm.nih.gov/account/settings/)). It raises the E-utilities
 request ceiling from 3/s to 10/s and takes a full build from hours to under one.
 
-## Use
+```console
+$ hindsight build --date 2019-12-01 --out db/november-2019   # the dated database
+$ scripts/day2.sh                                            # reads, label, dilution series
+$ scripts/day3.sh                                            # Kraken2
+$ scripts/day4.sh                                            # MEGAHIT + DIAMOND
+$ scripts/day5.sh                                            # scoring, both pipelines
+$ python scripts/day6_figure.py                              # the figure above
+```
+
+Each stage is resumable and writes its own provenance; each later stage reads the
+earlier ones' records rather than their working files.
+
+```console
+$ scripts/day3.sh
+index sample: 25,928 of 62,117 ground-truth viral fragments in Coronaviridae (41.7%)
+  viral050000: 20,892 of 50,000 detected
+  viral010000:  4,232 of 10,000 detected
+  viral001000:    420 of  1,000 detected
+  viral000100:     39 of    100 detected
+  viral000010:      4 of     10 detected
+
+$ scripts/day4.sh
+index sample: 99.68% of the SARS-CoV-2 genome in one 29,809 bp contig at 100.0% identity
+  viral050000: 49,077 of 50,000 detected
+  viral010000:  9,824 of 10,000 detected
+  viral001000:    936 of  1,000 detected
+  viral000100:     41 of    100 detected
+  viral000010:      1 of     10 detected
+
+$ scripts/day5.sh
+Kraken2 rule: at least 12 reads placed in coronaviridae
+  false alarms: 0 of 20 samples; limit of detection 7.71 viral reads per million
+  (viral000100)
+MEGAHIT + DIAMOND rule: at least one coronaviridae contig at bitscore >= 250
+  false alarms: 0 of 20 samples; limit of detection 0.771 viral reads per million
+  (viral000010) (the series' lowest rung; the limit is at or below it)
+```
+
+Those two limits are the rungs' **labelled** doses, which is how the scorer reports them
+and is the conservative choice for both methods — it credits neither with the virus the
+background already carried. The 0.771 figure is the bottom rung's label and not a
+sensitivity claim: that rung sits below the floor described under Figure 1, which is why
+the scorer prints
+it as an upper bound rather than a point, and why the headline limit quoted above is
+~8 reads per million for both. See
+[the caveats](#what-this-does-not-show-and-why-it-matters).
+
+### What it costs
+
+Everything above was measured on **4 cores, 15.7 GiB and about 30 GB of writable
+disk** — a small cloud container, nothing rented, no GPU.
+
+| | |
+| --- | --- |
+| Database build (release 97, nucleotide + protein + taxonomy) | under 1 h with an API key |
+| Reads: fetch, QC, host filter, label, series, 21 samples | 147 min |
+| Kraken2, including 20 negatives at native depth | 191 min, of which classification is 24.5 min for 250 M read pairs |
+| MEGAHIT + DIAMOND, including 20 negatives at native depth | ~14 h, dominated by one 34.6-min assembly per sample |
+| Scoring | ~1 s, no tool invoked |
+
+Two facts behind those numbers. **Classification is never the cost** — fetching
+and host-filtering is — so a disk ceiling is a staging problem rather than a compute one,
+and the negatives run at native depth on a machine that cannot hold them by classifying
+each as it comes off the filter and keeping only the output. **Assembly is always the
+cost** in the assembly pipeline, and it does not compose: Kraken2 scores each read independently, so a
+dilution level is its parts' results added up, while an assembly is a statement about the
+whole read set and every level needs its own.
+
+## What this does not show, and why it matters
+
+Stated plainly, because a benchmark with unexamined properties is not a benchmark.
+
+**The series cannot see below its own background — it has four usable rungs, not five.**
+The dilution was cut from the index patient's own reads, and that background carries
+~90 Coronaviridae reads of its own (78 in Sarbecovirus; 71 verified by alignment as
+SARS-CoV-2 reads the ground-truth label declined to count). Those were never diluted, so
+they sit at full strength in every rung: **90% of the lowest rung's dose was never
+diluted at all**, and its effective dose equals the next rung up.
+
+| rung | labelled | labelled /M | resident | effective /M | undiluted share |
+| --- | --- | --- | --- | --- | --- |
+| 50,000 | 50,000 | 3,853 | 90 | 3,860 | 0.2% |
+| 10,000 | 10,000 | 771 | 90 | 778 | 0.9% |
+| 1,000 | 1,000 | 77.1 | 90 | 84.0 | 8.3% |
+| 100 | 100 | 7.71 | 90 | 14.6 | 47% |
+| 10 | 10 | 0.77 | 90 | 7.71 | **90%** |
+
+So the benchmark's floor is **~7 viral reads per million, and it belongs to the benchmark
+rather than to either method**. Do not claim a sensitivity limit below it, and do not
+claim either method is more sensitive than the other at the limit: ≈15 against ≤7.7 effective
+reads per million is well inside the floor's own width. The fix is cheap and needs no new
+sequencing — cut a second series into a *negative* library's background, which is
+confirmed free of sarbecovirus reads across 228 million pairs, and two more decades of
+dose axis become visible.
+
+**The alarm thresholds are upper bounds, because some "false alarms" are not false.**
+Seven of the cohort's non-endemic coronavirus reads have since been traced to one
+patient's genuine HKU1 infection, of a genotype RefSeq does not carry — it curates one
+genome per species — which Kraken2 scattered onto rodent and bovine relatives because
+for those k-mers those really are the nearest thing the database holds. That leaves 28
+unexplained family-level reads rather than 35, and none at genus level, and both figures
+are upper bounds because the remaining reads have not had the same strain-level pass.
+It does not move the limits quoted above: Kraken2's threshold of 12 is set by two other
+samples at 11 reads each. But those two have not been examined either, and a correction
+of this kind can only ever take reads out of the false-alarm column, so a careful pass
+over the rest would move the thresholds down and make this benchmark's methods look
+better, never worse.
+
+The same correction has now taken a threshold-setting read out of **both** arms. Arm B's
+bitscore threshold of 250 is selected by exactly one contig in the whole cohort, whose
+best hit is a rat coronavirus at 91.2% amino-acid identity — and which is **100.00%
+identical at nucleotide level** to the genotype B genome. Attributing a contig by its best
+hit rather than by its LCA cannot catch that one, because the best hit is itself wrong:
+the rat protein really is the closest in the dated database, and HKU1's own replicase ties
+it at the identical bitscore. A translated search against an incomplete reference set can
+be confidently wrong about *which* relative a sequence is while being right that it is a
+coronavirus, and no rule applied to its own hit table fixes that.
+
+**The negatives bound coronavirus false alarms, not pathogen-agnostic ones.** All twenty
+carry *Equine infectious anemia virus* — 3,284,717 reads in total, up to 499,690 in one
+sample, and the largest viral call in most of them. It is not the virus: the reads are
+98.8% identical to the genome but confined to a single 1.7 kb window inside *pol*, with no
+coverage of *gag*, *env* or either long terminal repeat, depth that stops within one base
+at both ends, and the same window in unrelated patients. It is a cloned gene fragment,
+presumably a laboratory reagent. That leaves the coronavirus limits untouched — they are
+drawn per clade — but a *pathogen-agnostic* pipeline run on this cohort reports a
+notifiable equine pathogen in 20 of 20 clinical samples, and any alarm keyed on a read
+count fires every time. A read count cannot see the difference; where the reads sit on the
+reference can.
+
+[`docs/hku1-coinfection.md`](docs/hku1-coinfection.md) has both of these in full, and both
+checks are commands rather than arguments: `hindsight arm-b diagnose-strain` for one
+diverged strain against two organisms, `hindsight arm-a diagnose-taxon` for an organism
+against a laboratory sequence.
+
+**Twenty negatives bound specificity coarsely.** 0 alarms in 20 samples bounds the
+per-sample false-alarm rate at **under 14%** with 95% confidence, and no better. The
+per-read bound is much tighter and is a different statement: 0 sarbecovirus reads in
+228,407,636 non-host pairs, about **0.013 per million**. Quote them as the two different
+things they are. The cohort is also *cleaner* than the positive — host-depleted before
+submission, 0.075% human against the index sample's 15.8% — so these are specificity
+figures on unusually clean input, and that flatters a translated search more than exact
+k-mer matching. And they are **coronavirus** false-alarm rates: both thresholds are
+scored inside one clade, so nothing here bounds how often a pathogen-agnostic pipeline
+would alarm on something else.
+
+**n = 1 on the positive.** One index sample, one virus, one library preparation. The
+dilution series is the generalisation axis, not the sample, and nothing here says how
+either method behaves on a different novel pathogen in a different matrix.
+
+**The read-level translated search is a mechanism result, not a limit.** It detects a flat ~93%
+of the labelled fragments at every dose — and from 100 fragments downward it is below its
+own noise floor of 177 background fragments. Nine true reads among 177 false ones is not
+a detection by any operational standard, and the read half has no independent false-alarm
+rate (it is off for the negatives), so it cannot be thresholded at all.
+
+**RefSeq, not GenBank or nr/nt.** This reconstructs the curated RefSeq viral set, which
+is what Kraken2's standard viral library and comparable reference sets are built from.
+Wu et al. searched much larger databases, so the assembly pipeline is a faithful automation of their
+*method*, not a replay of their *search space*. GenBank has no equivalent dated catalog,
+so a time-correct nr is not reconstructible this way.
+
+**Release granularity, not day granularity.** Releases are roughly two months apart (97
+is 4 November 2019, 98 is 6 January 2020 — a 63-day gap), so a 1 December 2019 cutoff
+yields the database as of 4 November. The error is one-sided and deliberate: hindsight
+never includes something published after the cutoff, but it may omit something published
+in the weeks before it. `hindsight resolve` prints the blind window so you can quote it.
+
+**No protein-language-model arm.** It would have eaten the week, and the leakage argument
+for a model trained on today's sequence databases is not resolvable in seven days. That
+is the next paper, not an omission this one can paper over.
+
+**This is a study of detection sensitivity.** It makes no claim whatsoever about the
+virus's origin, and it is not a finding that surveillance does not work: it is a measured
+detection limit under one leakage-controlled condition.
+
+Three more properties of the tool itself, which travel with any database it builds:
+**withdrawn records** (present in release 97, since suppressed by NCBI) are recorded in
+`withdrawn.tsv` rather than silently dropped — currently empty for release 97, but check
+it; **version substitution is rejected, not tolerated**, because a record quietly upgraded
+to its current revision is exactly the leak this tool exists to prevent; and **taxonomy
+snapshots are monthly**, so the tree sits up to a month before the release date (3 days
+for release 97) and cutoffs before 2014-08-01 have no contemporaneous taxonomy at all,
+which hindsight says rather than reaching for a later tree.
+
+## The tool, on its own
+
+`hindsight` is useful outside this benchmark: it builds the viral reference set as it
+stood on any date since 2003.
 
 ```bash
 # Which release does a date select, and what does that exclude?
@@ -124,8 +443,6 @@ Interrupt a build and re-run the same command: it resumes from the last complete
 shard. Downloads resume mid-file with HTTP Range, and fetched records are cached by
 shard with a digest, so nothing is retrieved twice.
 
-### Outputs
-
 ```
 db/nov2019/
   manifest.tsv        every accession in the release's viral set, with version,
@@ -142,209 +459,14 @@ Builds are deterministic: the manifest is sorted, records are emitted in manifes
 order regardless of the order NCBI answers in, and FASTA is rewrapped to a fixed
 width. Two builds of the same cutoff produce byte-identical files.
 
-## The samples
+The benchmark's own commands are the same shape:
 
-`hindsight build` is one half of the benchmark. The other half is the reads, and
-`hindsight samples` prepares them:
-
-```console
-$ scripts/day2.sh
+```bash
+hindsight samples ...              # fetch, QC, host filter, label, freeze the series
+hindsight arm-a ...                # Kraken2 arm; `diagnose-background` explains its own noise
+hindsight arm-b ...                # assembly arm; `diagnose-contigs` checks a contig's identity
+hindsight score run|report         # thresholds and limits, from both records
 ```
-
-That fetches the index sample (`SRR10971381`, the Wu et al. BALF metatranscriptome)
-and 20 time-matched pre-COVID Wuhan BALF negatives from `PRJNA699976`, runs read QC
-and host filtering over both, labels which fragments in the index sample are really
-SARS-CoV-2, and freezes a dilution series — the sample's own viral reads thinned to
-50,000 / 10,000 / 1,000 / 100 / 10 fragments and held in the sample's own background.
-Every stage is resumable, every seed is recorded, and the counts, digests, tool
-versions, timings and machine land in `work/day2-provenance.json`.
-
-The ground-truth label is the one place the pipeline is allowed to know something from
-2020: fragments are labelled by aligning to the modern SARS-CoV-2 reference. The
-detection arms never see that label or that reference — they see only the November
-2019 database above. Knowing the answer is the benchmark's job; it is what the arms
-are not allowed to do.
-
-Two properties of the negative set have to travel with every number derived from it:
-the deposit holds **non-human reads only**, so a false-alarm rate per raw sequenced
-read is not available for those samples, and ENA reports **no collection date** for
-any of the 440 runs, so the 2016-17 window is the paper's at cohort level and is not
-verifiable per run. [`docs/day2-samples.md`](docs/day2-samples.md) has the full
-account, including why the levels are nested, why the negatives are chosen by a seeded
-hash rather than by eye, and what the whole thing costs in wall-clock and disk.
-
-## The arms
-
-With the database and the reads in place, an arm is a detection pipeline run against
-them and scored on what it found. The first one is Kraken2:
-
-```console
-$ scripts/day3.sh
-index sample: 25,928 of 62,117 ground-truth viral fragments in Coronaviridae (41.7%)
-  viral050000: 20,892 of 50,000 detected
-  viral010000:  4,232 of 10,000 detected
-  viral001000:    420 of  1,000 detected
-  viral000100:     39 of    100 detected
-  viral000010:      4 of     10 detected
-```
-
-**A standard read classifier, at its own default settings, against a database that had
-never seen SARS-CoV-2 or any of its relatives discovered after 4 November 2019, placed
-25,928 of the index sample's viral reads in Coronaviridae.** It could not name the
-virus — the virus had no name — and it did not need to.
-
-Down the dilution series the detection *rate* is flat at about 41%, because Kraken2
-classifies each fragment independently, so what falls is the absolute count: four
-coronavirus reads survive at 0.77 viral reads per million. Whether four reads is a
-detection depends on the false-alarm rate, which the 20 pre-COVID negatives measure.
-
-One result from that arm is the argument for this whole tool, and it was found rather
-than predicted. 4,922 of those reads were assigned to *Bat coronavirus
-BM48-31/BGR/2008*, the nearest relative the database holds — and the **November 2019
-taxonomy files that genome under "unclassified coronaviruses", not under
-Betacoronavirus**, where today's tree puts it. Detection at family level is 25,928
-reads; at genus level it is 20,418. A benchmark that dates its sequences but keeps a
-modern taxonomy cannot see that difference, because the modern tree has since moved
-BM48-31 into Sarbecovirus. A classifier's output is a taxon, and taxa move.
-
-[`docs/day3-arm-a.md`](docs/day3-arm-a.md) has the arm in full: the per-clade curve,
-why the negatives run at native depth on a machine that cannot hold them, what the
-index sample's own background turns out to contain, and the one check that the
-composition shortcut behind the series is exact.
-
-The second arm is not a classifier at all. It is what the original team actually did —
-assemble de novo, then match the contigs by protein homology — run against the same
-dated database:
-
-```console
-$ scripts/day4.sh
-index sample: 99.68% of the SARS-CoV-2 genome in one 29,809 bp contig at 100.0% identity
-  viral050000: 49,077 of 50,000 detected
-  viral010000:  9,824 of 10,000 detected
-  viral001000:    936 of  1,000 detected
-  viral000100:     41 of    100 detected
-  viral000010:      1 of     10 detected
-```
-
-**The assembly recovered the genome, not merely a signal, from a database whose nearest
-relative matched it at 79.9% amino acid identity.** Its best match was the SARS-CoV
-replicase; the lowest common ancestor of everything it tied with is Coronaviridae, which
-is the correct answer and not the confident wrong one a single-best-hit rule would give.
-
-And the two arms cross. Above about 1,000 viral fragments assembly is more than twice as
-sensitive as the classifier, because a contig recruits reads that would never classify
-alone; below 100 it loses, because the assembler runs out of coverage while Kraken2's
-per-read rate stays flat. Two methods with opposite failure modes is the most useful
-thing a two-arm benchmark can find, and it is the reason Day 5 cannot draw one threshold
-across both.
-
-One result in that arm is a caution rather than a finding. **The spike-free background
-alarms too**: every assembly yields three short contigs the taxonomy places in
-Coronaviridae, whose best matches are Beluga whale coronavirus SW1 and a Rousettus bat
-coronavirus at 28–33% identity. Real remote homology, so "found a contig in the family"
-is not a detection rule. Bitscore separates it cleanly — the floor tops out at 58 and the
-weakest genuine contig scores 270 — so the arm records a signal-strength profile and
-leaves the threshold to the negatives, rather than picking one that fits the answer.
-
-On twenty pre-COVID negatives at native depth — 228,407,636 non-host read pairs, the same
-cohort and count Arm A used — **the arm places no contig in Sarbecovirus at all**. It
-alarms at family level on three of the twenty, and two of those three are correct answers:
-real HKU1 and NL63 infections that the November 2019 database contains and names. The
-third is the background floor appearing in a real library, one 951 bp contig at a bitscore
-of 46.6, and it is gone at any threshold above 100. The NL63 patient is invisible to
-Arm A's headline, because NL63 is an alphacoronavirus and Day 3 reported at genus level —
-a second, independent argument for scoring at family.
-
-One correction in that arm is worth more than most of its results. The step that converts
-contigs into reads built its aligner index from the flagged contigs alone, and **mapping
-quality means "unique among the sequences you gave the aligner", not "this read came from
-here"**. Given 23 contigs out of an assembly of 7,438, reads belonging to the other 7,415
-had nowhere else to go: one negative's endemic coronavirus read count came out 498 times
-too high. It now runs in two passes, using the subset index only as a candidate filter and
-re-adjudicating against the whole assembly, and records the ratio between the two for
-every sample. Nine of the ten were already right; the index sample's 98.1% recovery and
-the dilution series' false-positive floor both stand as first measured.
-
-[`docs/day4-arm-b.md`](docs/day4-arm-b.md) has that arm in full: the crossover, the
-negatives, why every dilution level costs its own assembly, what `--very-sensitive` turns
-out to be worth, the read-mapping error and what generalises from it, and the measurement
-behind every runtime decision.
-
-Scoring the two arms against each other needs no machine at all, because both recorded
-every clade at every dilution level rather than only their own headline:
-
-```console
-$ scripts/day5.sh
-Arm A rule: at least 12 reads placed in coronaviridae
-  false alarms: 0 of 20 samples; limit of detection 7.71 viral reads per million
-Arm B rule: at least one coronaviridae contig at bitscore >= 250
-  false alarms: 0 of 20 samples; limit of detection 0.771 viral reads per million
-```
-
-**Both arms would have caught it, with no false alarm in twenty pre-COVID samples, down
-to about 8 viral reads per million — and that floor belongs to the benchmark rather than
-to either method.** The dilution series was cut from the index patient's own background,
-and that background holds ~90 coronavirus reads of its own that the ground-truth label
-missed and the dilution never thinned, so 90% of the lowest rung's dose was never
-diluted. The series has four usable rungs, not five. Fixing it is cheap and needs no new
-sequencing: spike into a *negative* library's background instead.
-
-The other reversal is that the crossover does not decide who alarms. At the lowest rung
-the assembly arm recovers one read of ten against the classifier's four, and it is the
-assembly arm that alarms — one 462 bp contig matching a coronavirus replicase at bitscore
-270 clears the cohort's noise, and four reads do not. Recovery and detection are
-different questions.
-
-[`docs/day5-scoring.md`](docs/day5-scoring.md) has the scoring in full: the three
-decisions this day owns (the clade, which false alarms count, and dropping a
-pre-registered DIAMOND setting on its own evidence), the 128 operating points behind the
-two headline rows, what twenty negatives can and cannot establish, and why the read-level
-search's flat 93% is a mechanism result rather than a limit.
-
-## What this does not give you, and why it matters
-
-Stated plainly, because a benchmark whose database has unexamined properties is not a
-benchmark.
-
-**Release granularity, not day granularity.** Releases are roughly two months apart
-(97 is 4 November 2019, 98 is 6 January 2020 — a 63-day gap). A 1 December 2019 cutoff
-therefore yields the database as of 4 November, not 30 November. The error is one-sided
-and that is deliberate: hindsight never includes something published after the cutoff,
-but it may omit something published in the weeks before it. `hindsight resolve` prints
-the blind window so you can quote it. If you need the other direction, move the cutoff
-forward and check what the later release contains.
-
-**RefSeq, not GenBank or nr/nt.** This reconstructs the curated RefSeq viral set,
-which is what Kraken2's standard viral library and comparable reference sets are built
-from. It is not the whole of GenBank. The original Wu et al. analysis searched much
-larger databases, so an arm benchmarked here against `viral.faa` is a faithful
-automation of their *method*, not a replay of their *search space*. GenBank has no
-equivalent dated catalog, so a time-correct nr is not reconstructible this way. Say so
-in the methods.
-
-**Withdrawn records.** A record present in release 97 that NCBI has since suppressed
-cannot be fetched today, no matter how the request is phrased. hindsight records every
-such accession in `withdrawn.tsv` and in the provenance rather than silently shipping a
-smaller database. For release 97 this set is currently empty, but it will not stay that
-way forever, so check it.
-
-**Version substitution is rejected, not tolerated.** If E-utilities ever returns a
-record at a version other than the one requested, hindsight refuses it, counts it in
-`version_mismatches`, and reports it on stderr. A record quietly upgraded to its
-current revision is exactly the leak this tool exists to prevent, and it would be
-invisible in the output FASTA.
-
-**Monthly taxonomy snapshots.** Taxonomy dumps are archived monthly, so the snapshot
-sits up to a month before the release date; the lag is recorded in the provenance
-(3 days for release 97). The `taxdmp` archive starts 2014-08-01 and `new_taxdump`
-starts 2018-12-01, so cutoffs earlier than that have no contemporaneous taxonomy and
-hindsight says so rather than reaching for a later tree.
-
-**NCBI's own products disagree slightly.** The release 97 catalog cites taxid 10658
-(*Enterobacteria phage PRD1*), which the 2019-11-01 taxonomy already lists as deleted.
-One taxon out of 9,305. hindsight checks every catalog taxid against the dated tree and
-splits the misses into merged, deleted and unexplained, so a discrepancy appears in the
-provenance instead of surfacing later as an unexplained Kraken2 build warning.
 
 ## Notes from the archive
 
@@ -365,11 +487,22 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 - **E-utilities signals a rate-limit rejection with HTTP 200** and a JSON body. Code
   that checks only the status code will write `{"error":"API rate limit exceeded"}`
   into a FASTA file as a sequence.
+- **NCBI's own products disagree slightly.** The release 97 catalog cites taxid 10658
+  (*Enterobacteria phage PRD1*), which the 2019-11-01 taxonomy already lists as deleted.
+  One taxon out of 9,305, reported in the provenance rather than surfacing later as an
+  unexplained Kraken2 build warning.
+- **A mapping quality means "unique among the sequences you gave the aligner"**, not
+  "this read came from here". The assembly pipeline's read-counting step built its index
+  from 23 flagged
+  contigs out of an assembly of 7,438, and one negative's read count came out 498 times
+  too high. It now runs in two passes — subset index as a candidate filter, then
+  re-adjudication against the whole assembly — and records the ratio between them for
+  every sample.
 
 ## Development
 
 ```bash
-uv run pytest             # 294 offline tests
+uv run pytest             # 315 offline tests (5 skip without diamond and minimap2)
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```

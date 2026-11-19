@@ -515,11 +515,15 @@ to the contig half's 98%.
   disk — to recover its 2,053,621 host-aligned pairs, and then both arms run on them.
   About an hour, and it is the measurement that would say whether a translated search
   miscalls human transcripts as viral.
-- Settle what the HKU1 patient's four non-aligning contigs are. They carry HKU1 protein
-  hits at 76–88% amino-acid identity and no nucleotide alignment to `NC_006577.2`, which
-  is either a diverged region of that strain or a second betacoronavirus in the same
-  patient. `diagnose-contigs --sample --dated-reference` is the tool; what it needs is a
-  second dated reference to try, and the question is independent of everything else here.
+- ~~Settle what the HKU1 patient's four non-aligning contigs are.~~ **Settled**, and the
+  answer was about the reference set rather than the patient: the virus is HKU1
+  **genotype B**, and RefSeq's single HKU1 genome is genotype A. All 23 contigs align to a
+  2006 genotype B genome at 99.4% identity, the "divergence" is confined to the two genes
+  that define the genotype, and one of the four contigs was never diverged at all — it is a
+  324 bp inverted-repeat chimera that `minimap2 -x asm20` cannot place. See
+  [`hku1-coinfection.md`](hku1-coinfection.md); it also revises this cohort's non-endemic
+  betacoronavirus false-alarm count to zero, and identifies the largest viral call in the
+  negatives as a cloned gene fragment present in all twenty.
 - A combined Day 3 + Day 4 runner would classify and assemble each negative in one visit and
   save a whole fetch-and-host-filter pass (163 min). Day 3 had already deleted its negatives'
   reads and ran in a different container, so Day 4 re-staged them.
