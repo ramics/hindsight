@@ -23,8 +23,8 @@ AXIS = "#9b9a93"
 INK = "#0b0b0b"
 INK_2 = "#52514e"
 MUTED = "#7c7b74"
-ARM_A = "#2a78d6"  # categorical slot 1
-ARM_B = "#eb6834"  # categorical slot 2
+KRAKEN = "#2a78d6"  # categorical slot 1
+ASSEMBLY = "#eb6834"  # categorical slot 2
 FLOOR = "#ece9e2"
 
 W, H = 1040, 584
@@ -99,12 +99,12 @@ def build(prov: dict) -> str:
     s: list[str] = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" '
         f'viewBox="0 0 {W} {H}" role="img" aria-label="Two panels: alarm margin and '
-        f'read recovery against dilution for both detection arms">',
+        f'read recovery against dilution for both detection pipelines">',
         f'<rect width="{W}" height="{H}" fill="{SURFACE}"/>',
         text(
             PAD_L - 2,
             40,
-            "Detection and recovery against dilution, both arms",
+            "Detection and recovery against dilution",
             size=19,
             fill=INK,
             weight=700,
@@ -112,7 +112,7 @@ def build(prov: dict) -> str:
         text(
             PAD_L - 2,
             66,
-            "Left: both arms alarm at every usable dose. "
+            "Left: both pipelines alarm at every usable dose. "
             "Right: the curves that cross are recovery, not detection.",
             size=13,
             fill=INK_2,
@@ -122,8 +122,8 @@ def build(prov: dict) -> str:
     # ---- legend -------------------------------------------------------------
     lx, ly = PAD_L - 2, 100
     for colour, label, width in (
-        (ARM_A, "Arm A — Kraken2", 150),
-        (ARM_B, "Arm B — MEGAHIT + DIAMOND", 232),
+        (KRAKEN, "Kraken2", 110),
+        (ASSEMBLY, "MEGAHIT + DIAMOND", 200),
     ):
         s.append(f'<rect x="{lx}" y="{ly - 8}" width="20" height="3" rx="1.5" fill="{colour}"/>')
         s.append(marker(lx + 10, ly - 6.5, colour, r=4.2))
@@ -148,7 +148,7 @@ def build(prov: dict) -> str:
         x0,
         y0,
         "Does it alarm?",
-        "evidence as a multiple of the arm's own alarm threshold",
+        "evidence as a multiple of each pipeline's own alarm threshold",
         "× the alarm threshold",
     )
 
@@ -184,30 +184,30 @@ def build(prov: dict) -> str:
         (fx(d), fy(lv["arm_b_best_bitscore"] / b_thresh))
         for d, lv in zip(dose, levels, strict=False)
     ]
-    s.append(polyline(a_pts, ARM_A))
-    s.append(polyline(b_pts, ARM_B))
+    s.append(polyline(a_pts, KRAKEN))
+    s.append(polyline(b_pts, ASSEMBLY))
     for x, y in a_pts:
-        s.append(marker(x, y, ARM_A))
+        s.append(marker(x, y, KRAKEN))
     for x, y in b_pts:
-        s.append(marker(x, y, ARM_B))
+        s.append(marker(x, y, ASSEMBLY))
 
     # the one silent point
     silent = next(i for i, lv in enumerate(levels) if not lv["arm_a_alarm"])
     sx, sy = a_pts[silent]
     s.append(
-        f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="9" fill="none" stroke="{ARM_A}" '
+        f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="9" fill="none" stroke="{KRAKEN}" '
         f'stroke-width="1.4" stroke-dasharray="3 3"/>'
     )
-    s.append(text(sx + 16, sy + 4, "4 labelled reads against a", size=11, fill=ARM_A, weight=600))
-    s.append(text(sx + 16, sy + 17, "threshold of 12 — silent", size=11, fill=ARM_A))
+    s.append(text(sx + 16, sy + 4, "4 labelled reads against a", size=11, fill=KRAKEN, weight=600))
+    s.append(text(sx + 16, sy + 17, "threshold of 12 — silent", size=11, fill=KRAKEN))
 
     s.append(
         text(
             fx(dose[0]) - 6,
             fy(levels[0]["arm_a_reads"] / a_thresh) - 14,
-            "Arm A",
+            "Kraken2",
             size=12,
-            fill=ARM_A,
+            fill=KRAKEN,
             weight=650,
             anchor="end",
         )
@@ -216,9 +216,9 @@ def build(prov: dict) -> str:
         text(
             fx(dose[2]) + 10,
             fy(levels[2]["arm_b_best_bitscore"] / b_thresh) - 14,
-            "Arm B",
+            "MEGAHIT + DIAMOND",
             size=12,
-            fill=ARM_B,
+            fill=ASSEMBLY,
             weight=650,
         )
     )
@@ -231,7 +231,7 @@ def build(prov: dict) -> str:
         x1,
         y0,
         "How much does it recover?",
-        "share of the labelled viral fragments each arm finds",
+        "share of the labelled viral fragments each one finds",
         "% of labelled fragments recovered",
     )
     s.append(
@@ -251,12 +251,12 @@ def build(prov: dict) -> str:
         n = lv["viral_fragments"]
         ra.append((gx(d), gy(100 * lv["arm_a_reads"] / n)))
         rb.append((gx(d), gy(100 * lv["arm_b_reads_recovered"] / n)))
-    s.append(polyline(ra, ARM_A))
-    s.append(polyline(rb, ARM_B))
+    s.append(polyline(ra, KRAKEN))
+    s.append(polyline(rb, ASSEMBLY))
     for x, y in ra:
-        s.append(marker(x, y, ARM_A))
+        s.append(marker(x, y, KRAKEN))
     for x, y in rb:
-        s.append(marker(x, y, ARM_B))
+        s.append(marker(x, y, ASSEMBLY))
 
     # crossover: between the 100- and 10-fragment rungs
     a3, a4 = 100 * levels[3]["arm_a_reads"] / 100, 100 * levels[4]["arm_a_reads"] / 10
@@ -271,15 +271,25 @@ def build(prov: dict) -> str:
         f'stroke="{INK}" stroke-width="1.4" stroke-dasharray="5 4"/>'
     )
     s.append(text(cx + 10, gy(88), "the curves cross here", size=11.5, fill=INK, weight=600))
-    s.append(text(cx + 10, gy(88) + 14, "— in recovery. Both arms", size=11, fill=MUTED))
+    s.append(text(cx + 10, gy(88) + 14, "— in recovery. Both methods", size=11, fill=MUTED))
     s.append(text(cx + 10, gy(88) + 27, "still alarm either side of it.", size=11, fill=MUTED))
 
-    s.append(text(gx(dose[1]) + 6, gy(98.2) - 12, "Arm B", size=12, fill=ARM_B, weight=650))
-    s.append(text(gx(dose[1]) + 6, gy(42.3) - 12, "Arm A", size=12, fill=ARM_A, weight=650))
     s.append(
-        text(gx(dose[4]) + 2, gy(10) + 24, "1 read of 10", size=11, fill=ARM_B, anchor="middle")
+        text(
+            x1 + PANEL_W,
+            gy(98.2) - 12,
+            "MEGAHIT + DIAMOND",
+            size=12,
+            fill=ASSEMBLY,
+            weight=650,
+            anchor="end",
+        )
     )
-    s.append(text(gx(dose[4]) + 2, gy(40) - 16, "4 of 10", size=11, fill=ARM_A, anchor="middle"))
+    s.append(text(gx(dose[1]) + 6, gy(42.3) - 12, "Kraken2", size=12, fill=KRAKEN, weight=650))
+    s.append(
+        text(gx(dose[4]) + 2, gy(10) + 24, "1 read of 10", size=11, fill=ASSEMBLY, anchor="middle")
+    )
+    s.append(text(gx(dose[4]) + 2, gy(40) - 16, "4 of 10", size=11, fill=KRAKEN, anchor="middle"))
 
     # =========================== shared x axis ===============================
     ticks = [(lv["per_million"], lv["viral_fragments"]) for lv in levels]
@@ -321,8 +331,9 @@ def build(prov: dict) -> str:
         text(
             PAD_L - 2,
             H - 28,
-            f"Scored at {prov['parameters']['clade'].title()}: Arm A alarms at "
-            f"\u2265{a_thresh:g} reads, Arm B at bitscore \u2265{b_thresh:g}. Both thresholds "
+            f"Scored at {prov['parameters']['clade'].title()}: Kraken2 alarms at "
+            f"\u2265{a_thresh:g} reads, the assembly at bitscore "
+            f"\u2265{b_thresh:g}. Both thresholds "
             "are set from the 20 pre-COVID negatives alone,",
             size=11,
             fill=MUTED,
@@ -332,7 +343,7 @@ def build(prov: dict) -> str:
         text(
             PAD_L - 2,
             H - 13,
-            "and both arms raise 0 false alarms on them. Drawn from "
+            "and both raise 0 false alarms on them. Drawn from "
             "results/day5-provenance.json by scripts/day6_figure.py.",
             size=11,
             fill=MUTED,

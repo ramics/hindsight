@@ -4,7 +4,7 @@
 sample, using only what was knowable before it existed — and down to what abundance?**
 
 This repository is the benchmark that answers it, and the tool that makes the answer
-honest. Every reference either detection arm consults comes from RefSeq release 97
+honest. Every reference either detection pipeline consults comes from RefSeq release 97
 (4 November 2019), at the exact accession versions that were public then, paired with
 the taxonomy as it stood on 2019-11-01. SARS-CoV-2 is not in it. Neither is RaTG13,
 nor anything else learned since. Nothing was deleted to make it so; those records had
@@ -12,10 +12,10 @@ not been written yet.
 
 ## What it shows
 
-**Both arms would have caught it.** Against a database that had never seen the virus or
+**Both pipelines would have caught it.** Against a database that had never seen the virus or
 any of its post-2019 relatives:
 
-| | Arm A — Kraken2 | Arm B — MEGAHIT + DIAMOND |
+| | Kraken2 | MEGAHIT + DIAMOND |
 | --- | --- | --- |
 | index sample | **25,928 of 62,117 viral fragments** placed in Coronaviridae (41.7%) | **99.68% of the genome in one 29,809 bp contig at 100% identity** |
 | detection statistic | reads placed in Coronaviridae | best bitscore of a Coronaviridae contig |
@@ -23,7 +23,7 @@ any of its post-2019 relatives:
 | false alarms, 20 pre-COVID BALF samples | **0 of 20** | **0 of 20** |
 | limit of detection | **7.7 labelled viral reads per million** | **≤ 0.77 per million** |
 
-The assembly arm did not merely find a signal. It reconstructed the genome: a single
+The assembly pipeline did not merely find a signal. It reconstructed the genome: a single
 29,809 bp contig covering 99.68% of SARS-CoV-2 at 100% nucleotide identity to the
 reference nobody had yet deposited, out of a database whose nearest protein match sat at
 79.9% amino-acid identity.
@@ -34,32 +34,33 @@ time-matched pre-COVID libraries. That limit is a property of **this benchmark's
 rather than of either method: see [the caveats](#what-this-does-not-show-and-why-it-matters)
 before quoting it.
 
-![Two panels. Left: each arm's evidence as a multiple of its own alarm threshold, across
-the dilution series; both arms sit above the alarm line at every usable dose. Right: the
-share of labelled viral fragments each arm recovers; the assembly arm recovers ~98% at
-high dose and 10% at the lowest, the classifier a flat ~41% throughout, and the two
-curves cross near 100 spiked fragments.](docs/figures/detection-vs-dilution.svg)
+![Two panels. Left: each pipeline's evidence as a multiple of its own alarm threshold,
+across the dilution series; both sit above the alarm line at every usable dose. Right:
+the share of labelled viral fragments each one recovers; MEGAHIT + DIAMOND recovers ~98%
+at high dose and 10% at the lowest, Kraken2 a flat ~41% throughout, and the two curves
+cross near 100 spiked fragments.](docs/figures/detection-vs-dilution.svg)
 
 ### Detection and recovery are different questions
 
 This is the easiest thing in the benchmark to plot wrongly, so the figure plots both.
 
-**Nothing crosses in detection.** Both arms alarm at every usable rung of the series —
-four of the five. The fifth sits below the series' own floor and is not a measurement of
-either method (see [the caveats](#what-this-does-not-show-and-why-it-matters)); there it
-is the *assembly* arm that alarms, while the classifier goes quiet.
+**Nothing crosses in detection.** Both pipelines alarm at every usable rung of the
+series — four of the five. The fifth sits below the series' own floor and is not a
+measurement of either method (see
+[the caveats](#what-this-does-not-show-and-why-it-matters)); there it is
+MEGAHIT + DIAMOND that alarms, while Kraken2 goes quiet.
 
-**The crossover is in recovery** — the share of the known viral fragments each arm
-finds. Above ~1,000 fragments the assembly arm recovers more than twice what the
-classifier does, because a contig recruits reads that would never classify alone; below
-~100 it collapses, because the assembler runs out of coverage while Kraken2's per-read
-rate stays flat at ~41% all the way down.
+**The crossover is in recovery** — the share of the known viral fragments each one
+finds. Above ~1,000 fragments the assembly recovers more than twice what the classifier
+does, because a contig recruits reads that would never classify alone; below ~100 it
+collapses, because the assembler runs out of coverage while Kraken2's per-read rate stays
+flat at ~41% all the way down.
 
-At the lowest rung the assembly arm recovers **1 read of 10** and the classifier **4 of
-10**, and the assembly arm is the one that alarms. An alarm needs one piece of evidence
-above the cohort's noise: a 462 bp contig matching a coronavirus replicase at bitscore
-270 is that, and four reads in a cohort whose negatives reach eleven is not. **The arm
-that recovers less can be the arm that detects.** That is why the two arms carry separate
+At the lowest rung MEGAHIT + DIAMOND recovers **1 read of 10** and Kraken2 **4 of 10**,
+and MEGAHIT + DIAMOND is the one that alarms. An alarm needs one piece of evidence above
+the cohort's noise: a 462 bp contig matching a coronavirus replicase at bitscore 270 is
+that, and four reads in a cohort whose negatives reach eleven is not. **The method that
+recovers less can be the method that detects.** That is why the two carry separate
 statistics rather than one shared threshold.
 
 The figure is drawn from `results/day5-provenance.json` by
@@ -133,8 +134,8 @@ Five stages, each a day's work, each with its own provenance record and its own 
 | --- | --- | --- | --- |
 | **Database** | RefSeq release 97 at its own versions, with the 2019-11-01 taxonomy | this file | `db/nov2019/provenance.json` |
 | **Reads** | index sample + 20 negatives, QC, host filter, ground-truth label, frozen dilution series | [`docs/day2-samples.md`](docs/day2-samples.md) | [`results/day2-provenance.json`](results/day2-provenance.json) |
-| **Arm A** | Kraken2 at default settings | [`docs/day3-arm-a.md`](docs/day3-arm-a.md) | [`results/day3-provenance.json`](results/day3-provenance.json) |
-| **Arm B** | MEGAHIT assembly + DIAMOND translated search | [`docs/day4-arm-b.md`](docs/day4-arm-b.md) | [`results/day4-provenance.json`](results/day4-provenance.json) |
+| **Kraken2** | a read classifier at its own default settings | [`docs/day3-arm-a.md`](docs/day3-arm-a.md) | [`results/day3-provenance.json`](results/day3-provenance.json) |
+| **MEGAHIT + DIAMOND** | de novo assembly, then translated search | [`docs/day4-arm-b.md`](docs/day4-arm-b.md) | [`results/day4-provenance.json`](results/day4-provenance.json) |
 | **Scoring** | thresholds from the negatives, limits, 128 operating points | [`docs/day5-scoring.md`](docs/day5-scoring.md) | [`results/day5-provenance.json`](results/day5-provenance.json) |
 
 **The reads.** `SRR10971381` (the Wu et al. BALF metatranscriptome) and 20 time-matched
@@ -148,13 +149,13 @@ are not directly comparable.) The dilution series thins those labelled fragments
 fixed seeds, stored as parts rather than as five copies of a 21 GB library.
 
 The label is the one place the pipeline is allowed to know something from 2020. **The
-arms never see it**, and never see the modern reference — they see only the November
-2019 database. Knowing the answer is the benchmark's job; it is what the arms are not
+pipelines never see it**, and never see the modern reference — they see only the
+November 2019 database. Knowing the answer is the benchmark's job; it is what they are not
 allowed to do.
 
 **The thresholds are drawn from the negatives and never from the positive.** A threshold
 placed after looking at the answer is not a detection limit. The worst negative gives
-Arm A 11 Coronaviridae reads, so the rule is 12; Arm B's rule can only be picked from the
+Kraken2 11 Coronaviridae reads, so the rule is 12; the assembly rule can only be picked from the
 bitscore ladder `50/100/250/500/1000` that was fixed before the series ran, and the
 negatives select 250. Three scoring choices are argued in full in
 [`docs/day5-scoring.md`](docs/day5-scoring.md) and all three are reversible by flag:
@@ -166,8 +167,8 @@ negatives select 250. Three scoring choices are argued in full in
 2. **Two patients' genuine endemic coronavirus infections are not false alarms.** The
    November 2019 database holds all four endemic human coronaviruses and names them
    correctly; a pipeline reporting HKU1 in an HKU1 patient was right. Counting a correct
-   answer as a false alarm costs Arm A a factor of ten to a hundred and leaves Arm B
-   unthresholdable.
+   answer as a false alarm costs Kraken2 a factor of ten to a hundred and leaves the
+   assembly search unthresholdable.
 3. **Score DIAMOND's stock mode, not the pre-registered `--very-sensitive`.** Both were
    run on everything. Six comparisons on genuine signal, six identical best bitscores,
    and the only differences anywhere are false positives — at a sixth of the cost.
@@ -189,9 +190,9 @@ request ceiling from 3/s to 10/s and takes a full build from hours to under one.
 ```console
 $ hindsight build --date 2019-12-01 --out db/november-2019   # the dated database
 $ scripts/day2.sh                                            # reads, label, dilution series
-$ scripts/day3.sh                                            # Arm A
-$ scripts/day4.sh                                            # Arm B
-$ scripts/day5.sh                                            # scoring, both arms
+$ scripts/day3.sh                                            # Kraken2
+$ scripts/day4.sh                                            # MEGAHIT + DIAMOND
+$ scripts/day5.sh                                            # scoring, both pipelines
 $ python scripts/day6_figure.py                              # the figure above
 ```
 
@@ -231,15 +232,15 @@ disk** — a small cloud container, nothing rented, no GPU.
 | --- | --- |
 | Database build (release 97, nucleotide + protein + taxonomy) | under 1 h with an API key |
 | Reads: fetch, QC, host filter, label, series, 21 samples | 147 min |
-| Arm A, including 20 negatives at native depth | 191 min, of which classification is 24.5 min for 250 M read pairs |
-| Arm B, including 20 negatives at native depth | ~14 h, dominated by one 34.6-min assembly per sample |
+| Kraken2, including 20 negatives at native depth | 191 min, of which classification is 24.5 min for 250 M read pairs |
+| MEGAHIT + DIAMOND, including 20 negatives at native depth | ~14 h, dominated by one 34.6-min assembly per sample |
 | Scoring | ~1 s, no tool invoked |
 
-Two facts behind those numbers. **Classification is never the cost** in Arm A — fetching
+Two facts behind those numbers. **Classification is never the cost** — fetching
 and host-filtering is — so a disk ceiling is a staging problem rather than a compute one,
 and the negatives run at native depth on a machine that cannot hold them by classifying
 each as it comes off the filter and keeping only the output. **Assembly is always the
-cost** in Arm B, and it does not compose: Kraken2 scores each read independently, so a
+cost** in the assembly pipeline, and it does not compose: Kraken2 scores each read independently, so a
 dilution level is its parts' results added up, while an assembly is a statement about the
 whole read set and every level needs its own.
 
@@ -264,7 +265,7 @@ diluted at all**, and its effective dose equals the next rung up.
 
 So the benchmark's floor is **~7 viral reads per million, and it belongs to the benchmark
 rather than to either method**. Do not claim a sensitivity limit below it, and do not
-claim either arm is more sensitive than the other at the limit: ≈15 against ≤7.7 effective
+claim either method is more sensitive than the other at the limit: ≈15 against ≤7.7 effective
 reads per million is well inside the floor's own width. The fix is cheap and needs no new
 sequencing — cut a second series into a *negative* library's background, which is
 confirmed free of sarbecovirus reads across 228 million pairs, and two more decades of
@@ -281,9 +282,9 @@ k-mer matching.
 
 **n = 1 on the positive.** One index sample, one virus, one library preparation. The
 dilution series is the generalisation axis, not the sample, and nothing here says how
-either arm behaves on a different novel pathogen in a different matrix.
+either method behaves on a different novel pathogen in a different matrix.
 
-**Arm B's read-level search is a mechanism result, not a limit.** It detects a flat ~93%
+**The read-level translated search is a mechanism result, not a limit.** It detects a flat ~93%
 of the labelled fragments at every dose — and from 100 fragments downward it is below its
 own noise floor of 177 background fragments. Nine true reads among 177 false ones is not
 a detection by any operational standard, and the read half has no independent false-alarm
@@ -291,7 +292,7 @@ rate (it is off for the negatives), so it cannot be thresholded at all.
 
 **RefSeq, not GenBank or nr/nt.** This reconstructs the curated RefSeq viral set, which
 is what Kraken2's standard viral library and comparable reference sets are built from.
-Wu et al. searched much larger databases, so Arm B is a faithful automation of their
+Wu et al. searched much larger databases, so the assembly pipeline is a faithful automation of their
 *method*, not a replay of their *search space*. GenBank has no equivalent dated catalog,
 so a time-correct nr is not reconstructible this way.
 
@@ -370,7 +371,7 @@ The benchmark's own commands are the same shape:
 hindsight samples ...              # fetch, QC, host filter, label, freeze the series
 hindsight arm-a ...                # Kraken2 arm; `diagnose-background` explains its own noise
 hindsight arm-b ...                # assembly arm; `diagnose-contigs` checks a contig's identity
-hindsight score run|report         # thresholds and limits, from the two arms' records
+hindsight score run|report         # thresholds and limits, from both records
 ```
 
 ## Notes from the archive
@@ -397,7 +398,8 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
   One taxon out of 9,305, reported in the provenance rather than surfacing later as an
   unexplained Kraken2 build warning.
 - **A mapping quality means "unique among the sequences you gave the aligner"**, not
-  "this read came from here". Arm B's read-counting step built its index from 23 flagged
+  "this read came from here". The assembly pipeline's read-counting step built its index
+  from 23 flagged
   contigs out of an assembly of 7,438, and one negative's read count came out 498 times
   too high. It now runs in two passes — subset index as a candidate filter, then
   re-adjudication against the whole assembly — and records the ratio between them for
