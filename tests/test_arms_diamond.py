@@ -531,3 +531,50 @@ def test_megahit_read_count_comes_from_its_own_log(tmp_path):
     # MEGAHIT counts single reads across both mates; the benchmark's unit is the pair.
     assert diamond._megahit_reads_in(log) == 10_900_000
     assert diamond._megahit_reads_in(tmp_path / "absent.log") == 0
+
+
+# The readback is the only step in the arm that needs the reads themselves, and the
+# negatives are pruned as each one finishes. On a resumed run the assembly and the
+# protein search come back from cache and the reads are gone, so these two tests pin the
+# only two honest outcomes: reuse the mapping if it was recorded, and say what to do if
+# it was not. Day 4 hit this on the tenth of twenty negatives — the first one with any
+# contigs in the clade, since a sample with none never reaches the aligner.
+def test_readback_reuses_a_recorded_mapping_rather_than_the_reads(tmp_path, capsys):
+    (tmp_path / ".s_nonhost.readback.json").write_text(
+        '{"name": "s_nonhost", "contigs_used": 3, "reads_aligned": 23}\n'
+    )
+    record = diamond.count_reads_on_contigs(
+        tmp_path / "contigs.fa",
+        ["k141_1"],
+        tmp_path / "gone_1.fastq.gz",
+        tmp_path / "gone_2.fastq.gz",
+        tmp_path,
+        name="s_nonhost",
+    )
+    assert record["reads_aligned"] == 23
+    assert "reusing the cached read mapping" in capsys.readouterr().out
+
+
+def test_readback_on_pruned_reads_names_the_restage_instead_of_failing_in_bowtie2(tmp_path):
+    with pytest.raises(diamond.DiamondError, match=r"samples run --only SRR13677700"):
+        diamond.count_reads_on_contigs(
+            tmp_path / "contigs.fa",
+            ["k141_1"],
+            tmp_path / "gone_1.fastq.gz",
+            tmp_path / "gone_2.fastq.gz",
+            tmp_path,
+            name="SRR13677700_nonhost",
+        )
+
+
+def test_readback_with_no_clade_contigs_needs_neither_reads_nor_a_marker(tmp_path):
+    record = diamond.count_reads_on_contigs(
+        tmp_path / "contigs.fa",
+        [],
+        tmp_path / "gone_1.fastq.gz",
+        tmp_path / "gone_2.fastq.gz",
+        tmp_path,
+        name="clean_nonhost",
+    )
+    assert record["reads_aligned"] == 0
+    assert "nothing to map" in record["note"]

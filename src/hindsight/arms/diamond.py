@@ -750,12 +750,31 @@ def count_reads_on_contigs(
         record["reads_aligned"] = 0
         return record
 
+    # This is the one step in the arm that needs the reads themselves, and the negatives
+    # are pruned as each finishes, so resumability and prune-as-you-go collide here and
+    # nowhere else: a resumed run finds the assembly and the blastx output cached and the
+    # reads gone. Only a negative with contigs in the clade reaches this far, which is
+    # why it survived nine clean samples before showing itself. Persisting the record
+    # makes the two features compatible.
+    marker = out_dir / f".{name}.readback.json"
+    if marker.exists():
+        cached = json.loads(marker.read_text())
+        log(f"{name}: reusing the cached read mapping ({cached.get('reads_aligned', 0)} reads)")
+        return cached
+    if not r1.exists() or not r2.exists():
+        accession = name.removesuffix("_nonhost")
+        raise DiamondError(
+            f"{name}: the reads have been pruned and there is no cached read mapping at "
+            f"{marker}. Re-stage the sample, then run this stage again:\n"
+            f"  hindsight samples run --only {accession}"
+        )
+
     subset = out_dir / f"{name}.clade-contigs.fa"
     kept = _write_contig_subset(contigs, set(names), subset)
     record["contig_bases"] = kept
     index = out_dir / f"{name}.clade-contigs"
     build_log = out_dir / f"{name}.bowtie2-build.log"
-    with build_log.open("ab") as errlog:
+    with build_log.open("wb") as errlog:
         completed = subprocess.run(  # noqa: S603
             ["bowtie2-build", "--threads", str(threads), str(subset), str(index)],
             stdout=errlog,
@@ -770,7 +789,7 @@ def count_reads_on_contigs(
     start = time.monotonic()
     mapqs: Counter[int] = Counter()
     aligned: set[str] = set()
-    with align_log.open("ab") as errlog:
+    with align_log.open("wb") as errlog:
         bowtie = subprocess.Popen(  # noqa: S603
             [
                 "bowtie2",
@@ -819,6 +838,7 @@ def count_reads_on_contigs(
         record["detected"] = len(hit_truth)
         record["false_positive"] = len(aligned) - len(hit_truth)
         record["sensitivity"] = len(hit_truth) / len(truth_ids) if truth_ids else None
+    marker.write_text(json.dumps(record, indent=2) + "\n")
     # The index and the subset FASTA are rebuildable from the contigs and the name list,
     # and at twenty negatives they are not worth keeping.
     for stale in out_dir.glob(f"{name}.clade-contigs*.bt2"):
