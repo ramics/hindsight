@@ -3,7 +3,7 @@
     "name": "hindsight arm-b",
     "version": "0.1.0"
   },
-  "generated_at": "2026-11-19T01:39:53+00:00",
+  "generated_at": "2026-11-19T09:17:58+00:00",
   "stages": [
     "negatives"
   ],
@@ -15,8 +15,8 @@
     "instance_type": null,
     "work_dir_disk": {
       "total_gib": 252.0,
-      "used_gib": 18.8,
-      "free_gib": 20.0
+      "used_gib": 20.2,
+      "free_gib": 18.6
     }
   },
   "tools": [
@@ -1159,7 +1159,7 @@
       }
     }
   },
-  "wall_clock_seconds": 16182.4,
+  "wall_clock_seconds": 704.1,
   "runs": [
     {
       "generated_at": "2026-11-18T12:45:34+00:00",
@@ -1222,6 +1222,16 @@
         "SRR13677922",
         "SRR13677975",
         "SRR13677977"
+      ]
+    },
+    {
+      "generated_at": "2026-11-19T09:17:58+00:00",
+      "stages": [
+        "negatives"
+      ],
+      "wall_clock_seconds": 704.1,
+      "negatives": [
+        "SRR13677922"
       ]
     }
   ],
@@ -15401,48 +15411,58 @@
         "name": "SRR13677922_nonhost",
         "contigs_used": 23,
         "contig_bases": 20755,
-        "seconds": 261.8,
-        "reads_aligned": 1435005,
-        "mapq_distribution": {
-          "0": 939,
-          "1": 4,
-          "2": 40057,
-          "9": 28363,
-          "11": 44,
-          "12": 36373,
-          "14": 63,
-          "16": 19056,
-          "17": 137,
-          "18": 992,
-          "19": 1629,
-          "21": 3088,
-          "22": 981917,
-          "24": 485444,
-          "25": 3017,
-          "28": 361387,
-          "31": 16,
-          "32": 58,
-          "33": 30,
-          "34": 59,
-          "35": 38,
-          "36": 274757,
-          "37": 443,
-          "38": 35,
-          "39": 28,
-          "40": 18,
-          "41": 150228,
-          "42": 431,
-          "44": 4234
-        },
-        "mate_alignments": 2392885,
-        "alignment_summary": [
+        "candidate_reads": 1435005,
+        "candidate_mate_alignments": 2392885,
+        "pass1_alignment_summary": [
           "    13796217 pairs aligned 0 times concordantly or discordantly; of these:",
           "      27592434 mates make up the pairs; of these:",
           "        27109905 (98.25%) aligned 0 times",
           "        437968 (1.59%) aligned exactly 1 time",
           "        44561 (0.16%) aligned >1 times",
           "8.11% overall alignment rate"
-        ]
+        ],
+        "seconds": 690.5,
+        "reads_aligned": 3041,
+        "mapq_distribution": {
+          "0": 167,
+          "1": 44,
+          "2": 78,
+          "9": 68,
+          "11": 98,
+          "12": 22,
+          "14": 26,
+          "16": 14,
+          "17": 51,
+          "18": 68,
+          "21": 66,
+          "22": 9,
+          "24": 3,
+          "25": 77,
+          "28": 12,
+          "31": 49,
+          "32": 63,
+          "33": 75,
+          "34": 52,
+          "35": 46,
+          "36": 23,
+          "37": 130,
+          "38": 81,
+          "39": 55,
+          "40": 68,
+          "41": 46,
+          "42": 77,
+          "44": 4067
+        },
+        "mate_alignments": 5635,
+        "alignment_summary": [
+          "2392885 reads; of these:",
+          "  2392885 (100.00%) were unpaired; of these:",
+          "    1867 (0.08%) aligned 0 times",
+          "    4948 (0.21%) aligned exactly 1 time",
+          "    2386070 (99.72%) aligned >1 times",
+          "99.92% overall alignment rate"
+        ],
+        "subset_index_inflation": 471.9
       },
       "sensitivity_comparison": {
         "sensitivity": "default",
@@ -16310,10 +16330,10 @@
         "source": "sra-odp"
       },
       "nonhost_pairs": 14751395,
+      "pruned_bytes": 932164717,
       "false_alarm_contigs": 23,
       "endemic_human_coronavirus_contigs": 17,
-      "false_alarm_contigs_excluding_endemic": 6,
-      "pruned_bytes": 932164717
+      "false_alarm_contigs_excluding_endemic": 6
     },
     {
       "assembly": {
