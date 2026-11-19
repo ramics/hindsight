@@ -270,29 +270,36 @@ negatives, why every dilution level costs its own assembly, what `--very-sensiti
 out to be worth, the read-mapping error and what generalises from it, and the measurement
 behind every runtime decision.
 
-### What the HKU1 negative actually had
+Scoring the two arms against each other needs no machine at all, because both recorded
+every clade at every dilution level rather than only their own headline:
 
-One negative's loose end from Arm B turned out to be about the reference set rather than
-about the patient. Four of its 23 Coronaviridae contigs had good HKU1 protein hits and no
-nucleotide alignment to the dated HKU1 genome, which reads as a second, diverged
-betacoronavirus — and is not. RefSeq curates **one genome per species**, and its single
-HKU1 genome is genotype A; against a genotype B genome published in 2006, all 23 contigs
-align at 99.4% identity. The patient had one ordinary endemic infection whose genotype the
-database does not represent, and the "divergence" was in exactly the two genes that define
-the genotype.
+```console
+$ scripts/day5.sh
+Arm A rule: at least 12 reads placed in coronaviridae
+  false alarms: 0 of 20 samples; limit of detection 7.71 viral reads per million
+Arm B rule: at least one coronaviridae contig at bitscore >= 250
+  false alarms: 0 of 20 samples; limit of detection 0.771 viral reads per million
+```
 
-Two things fell out of chasing it. Arm A's seven non-endemic betacoronavirus reads across
-the whole negative cohort are that same infection, misassigned to rodent and bovine
-relatives because no genotype B is in the database — so the cohort's non-endemic
-false-alarm count at genus level is zero, not seven. And the single largest viral call
-anywhere in the cohort, 11,227 reads of a horse lentivirus in a human lung, is a cloned
-1.7 kb fragment of its *pol* gene: one window, edges one base wide, no coverage of *gag*,
-*env* or either LTR, and the same window in all twenty samples. A read count cannot see
-that; where the reads sit on the reference can.
+**Both arms would have caught it, with no false alarm in twenty pre-COVID samples, down
+to about 8 viral reads per million — and that floor belongs to the benchmark rather than
+to either method.** The dilution series was cut from the index patient's own background,
+and that background holds ~90 coronavirus reads of its own that the ground-truth label
+missed and the dilution never thinned, so 90% of the lowest rung's dose was never
+diluted. The series has four usable rungs, not five. Fixing it is cheap and needs no new
+sequencing: spike into a *negative* library's background instead.
 
-[`docs/hku1-coinfection.md`](docs/hku1-coinfection.md) has it in full, and both checks are
-commands: `hindsight arm-b diagnose-strain` for one-strain-or-two, `hindsight arm-a
-diagnose-taxon` for organism-or-reagent.
+The other reversal is that the crossover does not decide who alarms. At the lowest rung
+the assembly arm recovers one read of ten against the classifier's four, and it is the
+assembly arm that alarms — one 462 bp contig matching a coronavirus replicase at bitscore
+270 clears the cohort's noise, and four reads do not. Recovery and detection are
+different questions.
+
+[`docs/day5-scoring.md`](docs/day5-scoring.md) has the scoring in full: the three
+decisions this day owns (the clade, which false alarms count, and dropping a
+pre-registered DIAMOND setting on its own evidence), the 128 operating points behind the
+two headline rows, what twenty negatives can and cannot establish, and why the read-level
+search's flat 93% is a mechanism result rather than a limit.
 
 ## What this does not give you, and why it matters
 

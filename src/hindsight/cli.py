@@ -1214,3 +1214,106 @@ def samples_report_cmd(provenance: Path) -> None:
 
 if __name__ == "__main__":  # pragma: no cover
     main()
+
+
+@main.group("score")
+def score_grp() -> None:
+    """Day 5: score both arms in one frame and draw the detection threshold.
+
+    Reads the two arms' provenance records and writes the benchmark's headline output —
+    a limit of detection per method, in viral reads per million, at a stated false-alarm
+    rate measured on the twenty pre-COVID negatives. It runs no tool and touches no
+    reads, which is the point: the clade, the false-alarm framing and both arms'
+    thresholds can be moved by a reader in seconds, because Days 3 and 4 recorded every
+    clade at every dilution level rather than only their own headline.
+    """
+
+
+_SCORE_CONFIG_OPTION = click.option(
+    "--config",
+    "config_path",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=Path("config/day5.toml"),
+    show_default=True,
+)
+
+
+@score_grp.command("run")
+@_SCORE_CONFIG_OPTION
+@click.option("--clade", default=None, help="Override the clade that counts as a detection.")
+@click.option(
+    "--framing",
+    type=click.Choice(["all", "excluding_endemic"]),
+    default=None,
+    help="Whether the endemic human coronaviruses count as false alarms.",
+)
+@click.option(
+    "--budget",
+    "budget",
+    type=int,
+    default=None,
+    help="How many of the twenty negatives may alarm. Default 0.",
+)
+@click.option(
+    "--arm-b-sensitivity",
+    type=click.Choice(["as_run", "comparison"]),
+    default=None,
+    help="Score Arm B's --very-sensitive run (as_run) or DIAMOND's stock mode (comparison).",
+)
+@click.option(
+    "--out",
+    "out",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=None,
+    help="Where to write the record. Default: the config's provenance path.",
+)
+def score_run_cmd(
+    config_path: Path,
+    clade: str | None,
+    framing: str | None,
+    budget: int | None,
+    arm_b_sensitivity: str | None,
+    out: Path | None,
+) -> None:
+    """Score both arms and write results/day5-provenance.json."""
+    import dataclasses as _dc
+
+    from .arms.day5 import load_config as load_score_config
+    from .arms.day5 import report as score_report
+    from .arms.day5 import score as run_score
+
+    config = load_score_config(config_path)
+    overrides: dict = {}
+    if clade:
+        overrides["clade"] = clade
+    if framing:
+        overrides["framing"] = framing
+    if budget is not None:
+        overrides["false_alarm_budget"] = budget
+    if arm_b_sensitivity:
+        overrides["arm_b_sensitivity"] = arm_b_sensitivity
+    if out:
+        overrides["provenance"] = out
+    if overrides:
+        config = _dc.replace(config, **overrides)
+    record = run_score(config)
+    for line in score_report(record):
+        click.echo(line)
+    click.echo("")
+    click.echo(f"wrote {config.provenance}")
+
+
+@score_grp.command("report")
+@click.option(
+    "--provenance",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=Path("results/day5-provenance.json"),
+    show_default=True,
+)
+def score_report_cmd(provenance: Path) -> None:
+    """Print the cross-arm tables from a record that has already been written."""
+    from .arms.day5 import report as score_report
+
+    record = json.loads(provenance.read_text())
+    for line in score_report(record):
+        click.echo(line)
