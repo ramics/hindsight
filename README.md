@@ -219,8 +219,8 @@ dated database:
 ```console
 $ scripts/day4.sh
 index sample: 99.68% of the SARS-CoV-2 genome in one 29,809 bp contig at 100.0% identity
-  viral050000: 49,078 of 50,000 detected
-  viral010000:  9,829 of 10,000 detected
+  viral050000: 49,077 of 50,000 detected
+  viral010000:  9,824 of 10,000 detected
   viral001000:    936 of  1,000 detected
   viral000100:     41 of    100 detected
   viral000010:      1 of     10 detected
@@ -246,9 +246,29 @@ is not a detection rule. Bitscore separates it cleanly — the floor tops out at
 weakest genuine contig scores 270 — so the arm records a signal-strength profile and
 leaves the threshold to the negatives, rather than picking one that fits the answer.
 
-[`docs/day4-arm-b.md`](docs/day4-arm-b.md) has that arm in full: the crossover, why every
-dilution level costs its own assembly, what `--very-sensitive` turns out to be worth, and
-the measurement behind every runtime decision.
+On twenty pre-COVID negatives at native depth — 228,407,636 non-host read pairs, the same
+cohort and count Arm A used — **the arm places no contig in Sarbecovirus at all**. It
+alarms at family level on three of the twenty, and two of those three are correct answers:
+real HKU1 and NL63 infections that the November 2019 database contains and names. The
+third is the background floor appearing in a real library, one 951 bp contig at a bitscore
+of 46.6, and it is gone at any threshold above 100. The NL63 patient is invisible to
+Arm A's headline, because NL63 is an alphacoronavirus and Day 3 reported at genus level —
+a second, independent argument for scoring at family.
+
+One correction in that arm is worth more than most of its results. The step that converts
+contigs into reads built its aligner index from the flagged contigs alone, and **mapping
+quality means "unique among the sequences you gave the aligner", not "this read came from
+here"**. Given 23 contigs out of an assembly of 7,438, reads belonging to the other 7,415
+had nowhere else to go: one negative's endemic coronavirus read count came out 498 times
+too high. It now runs in two passes, using the subset index only as a candidate filter and
+re-adjudicating against the whole assembly, and records the ratio between the two for
+every sample. Nine of the ten were already right; the index sample's 98.1% recovery and
+the dilution series' false-positive floor both stand as first measured.
+
+[`docs/day4-arm-b.md`](docs/day4-arm-b.md) has that arm in full: the crossover, the
+negatives, why every dilution level costs its own assembly, what `--very-sensitive` turns
+out to be worth, the read-mapping error and what generalises from it, and the measurement
+behind every runtime decision.
 
 ## What this does not give you, and why it matters
 
@@ -318,7 +338,7 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 ## Development
 
 ```bash
-uv run pytest             # 285 offline tests
+uv run pytest             # 294 offline tests
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```

@@ -200,3 +200,38 @@ def test_pruning_deletes_reads_and_leaves_the_record(tmp_path):
     assert freed == 375
     assert not (sample / "sra" / "a.sra").exists()
     assert (sample / "nonhost" / ".keep.done").exists()
+
+
+# The aggregate matters more than the best contig whenever the virus arrives in pieces:
+# one contig covering 8% of a reference says almost nothing, while nineteen tiling half
+# of it at 95% identity says the organism was there and the assembler fragmented it.
+def test_aggregate_alignment_unions_overlapping_spans_rather_than_adding_them():
+    alignments = [
+        {
+            "reference_span": [100, 600],
+            "reference_length": 1000,
+            "matching_bases": 490,
+            "alignment_length": 500,
+        },
+        # Overlaps the first: a shared gene must not be counted twice.
+        {
+            "reference_span": [400, 800],
+            "reference_length": 1000,
+            "matching_bases": 380,
+            "alignment_length": 400,
+        },
+    ]
+    agg = day4._aggregate_alignment(alignments, "NC_000000.1")
+    assert agg["reference_covered_bases"] == 700
+    assert agg["reference_covered_percent"] == 70.0
+    assert agg["reference_spans"] == [[100, 800]]
+    # 870 of 900 aligned bases match: weighted by length, not a mean of percentages.
+    assert agg["weighted_nucleotide_identity_percent"] == 96.67
+    assert agg["aligned_bases"] == 900
+
+
+def test_aggregate_alignment_of_nothing_reports_nothing_rather_than_dividing_by_zero():
+    agg = day4._aggregate_alignment([], "NC_000000.1")
+    assert agg["contigs"] == 0
+    assert agg["weighted_nucleotide_identity_percent"] is None
+    assert agg["reference_covered_percent"] is None

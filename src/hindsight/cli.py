@@ -696,7 +696,25 @@ def _arm_b_echo_summary(record: dict) -> None:
     show_default=True,
     help="Which clade's contigs to describe.",
 )
-def arm_b_diagnose_cmd(config_path: Path, clade: str) -> None:
+@click.option(
+    "--sample",
+    "sample",
+    default=None,
+    help="A negative's run accession. Default: the index sample.",
+)
+@click.option(
+    "--dated-reference",
+    "dated_reference",
+    default=None,
+    help=(
+        "Align to this accession.version from the dated manifest instead of the modern "
+        "reference. Answers how far the thing in the patient sat from what the database "
+        "actually held, and involves no post-2019 sequence."
+    ),
+)
+def arm_b_diagnose_cmd(
+    config_path: Path, clade: str, sample: str | None, dated_reference: str | None
+) -> None:
     """Say what the arm's clade contigs actually are, by aligning them to the virus.
 
     The arm scores itself on a November 2019 database and reports "something
@@ -717,6 +735,8 @@ def arm_b_diagnose_cmd(config_path: Path, clade: str) -> None:
         taxonomy,
         clades,
         clade=clade,
+        accession=sample,
+        dated_reference=dated_reference,
         log=lambda msg: click.echo(msg, err=True),
     )
     click.echo(json.dumps(record, indent=2))

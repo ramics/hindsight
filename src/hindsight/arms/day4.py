@@ -585,6 +585,42 @@ def _index_read_level(
     return composed
 
 
+def _fetch_dated_reference(arm: ArmConfig, accession: str, *, log=print) -> Path:
+    """Fetch one nucleotide record at the version the dated manifest names.
+
+    The manifest is consulted first rather than trusted to the caller, so a typo or a
+    newer version cannot quietly pull a sequence the database never held. E-utilities
+    honours the version suffix, which is the property the whole leakage argument rests
+    on and which ``tests/test_fetch.py`` asserts against the live service.
+    """
+    manifest = arm.source_db / "manifest.tsv"
+    if not manifest.exists():
+        raise diamond.DiamondError(f"{manifest} is missing; build the dated database first")
+    wanted = None
+    for line in manifest.read_text().splitlines()[1:]:
+        fields = line.split("\t")
+        if fields and fields[0] == accession:
+            wanted = fields[0]
+            break
+    if wanted is None:
+        raise diamond.DiamondError(
+            f"{accession} is not in {manifest}: the dated database never held it, so "
+            f"aligning to it would not be a dated comparison"
+        )
+    dest = arm.work_dir / "ref" / "dated" / f"{accession}.fna"
+    if dest.exists() and dest.stat().st_size > 0:
+        return dest
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    log(f"fetching {accession} from NCBI at the version the manifest names")
+    from ..ncbi import NcbiClient
+
+    text = NcbiClient().efetch("nuccore", [accession])
+    if not text.lstrip().startswith(">"):
+        raise diamond.DiamondError(f"{accession}: NCBI did not return FASTA")
+    dest.write_text(text)
+    return dest
+
+
 def diagnose_contigs(
     arm: ArmConfig,
     samples_config: registry.Config,
@@ -592,6 +628,8 @@ def diagnose_contigs(
     clades,
     *,
     clade: str = HEADLINE_CLADE,
+    accession: str | None = None,
+    dated_reference: str | None = None,
     log=print,
 ) -> dict:
     """Ask what the arm's clade contigs actually are, by aligning them to the virus.
@@ -610,19 +648,35 @@ def diagnose_contigs(
 
     A clade contig that does *not* align is just as informative, and is reported as
     such: it is a genuine false positive rather than a fragment of the virus.
+
+    ``accession`` points it at a negative instead of the index sample, and
+    ``dated_reference`` at an ``accession.version`` from the dated manifest rather than
+    the modern reference. Together those answer a different and sharper question: when
+    an arm under-reports a virus whose own species the database holds, how far from the
+    dated reference was the thing in the patient? Day 4 needed it for the HKU1 negative,
+    where the contigs sit at 95.1% nucleotide identity to ``NC_006577.2`` — close enough
+    that a 35-mer classifier should find them, which is why its count is believable and
+    an inflated read mapping was not. A dated reference consults nothing post-2019, so
+    that mode carries no leakage caveat at all.
     """
     out_dir = arm.out_dir / "diagnostics"
     out_dir.mkdir(parents=True, exist_ok=True)
-    accession = samples_config.index_run
+    accession = accession or samples_config.index_run
     name = f"{accession}_nonhost"
-    contigs = arm.out_dir / "index" / "assembly" / f"{name}.contigs.fa"
-    hits = arm.out_dir / "index" / "search" / f"{name}.{arm.sensitivity}.blastx.tsv.gz"
+    stage = "index" if accession == samples_config.index_run else "negatives"
+    contigs = arm.out_dir / stage / "assembly" / f"{name}.contigs.fa"
+    hits = arm.out_dir / stage / "search" / f"{name}.{arm.sensitivity}.blastx.tsv.gz"
     for required in (contigs, hits):
         if not required.exists():
-            raise diamond.DiamondError(f"{required} is missing; run the index stage first")
-    reference = arm.work_dir / "ref" / "truth" / f"{samples_config.truth_reference}.fna"
-    if not reference.exists():
-        raise diamond.DiamondError(f"{reference} is missing; re-run the Day 2 pipeline")
+            raise diamond.DiamondError(f"{required} is missing; run the {stage} stage first")
+    if dated_reference:
+        reference = _fetch_dated_reference(arm, dated_reference, log=log)
+        reference_name = dated_reference
+    else:
+        reference = arm.work_dir / "ref" / "truth" / f"{samples_config.truth_reference}.fna"
+        reference_name = samples_config.truth_reference
+        if not reference.exists():
+            raise diamond.DiamondError(f"{reference} is missing; re-run the Day 2 pipeline")
 
     lengths = diamond.contig_lengths(contigs)
     calls = diamond.assign_contigs(
@@ -637,10 +691,14 @@ def diagnose_contigs(
     ]
     record: dict = {
         "clade": clade,
-        "truth_reference": samples_config.truth_reference,
+        "sample": accession,
+        "reference": reference_name,
+        "reference_is_dated": bool(dated_reference),
         "contigs_examined": len(chosen),
         "note": (
-            "post-2019 reference, consulted after the arm finished and only to describe "
+            "dated reference; no post-2019 information is involved"
+            if dated_reference
+            else "post-2019 reference, consulted after the arm finished and only to describe "
             "what it produced; nothing here feeds back into the arm's score"
         ),
     }
@@ -648,10 +706,10 @@ def diagnose_contigs(
         record["conclusion"] = f"the arm placed no contig in {clade}; nothing to align"
         return record
 
-    subset = out_dir / f"{clade}-contigs.fa"
+    subset = out_dir / f"{accession}.{clade}-contigs.fa"
     diamond._write_contig_subset(contigs, {c.contig for c in chosen}, subset)
-    log(f"aligning {len(chosen)} {clade} contigs to {samples_config.truth_reference}")
-    paf = out_dir / f"{clade}-contigs.paf"
+    log(f"aligning {len(chosen)} {clade} contigs to {reference_name}")
+    paf = out_dir / f"{accession}.{clade}-contigs.paf"
     with paf.open("wb") as out:
         completed = subprocess.run(  # noqa: S603
             [
@@ -715,8 +773,14 @@ def diagnose_contigs(
     )
     record["contigs_aligning"] = sum(1 for r in rows if r["aligns_to_the_virus"])
     record["contigs_not_aligning"] = sum(1 for r in rows if not r["aligns_to_the_virus"])
+    # The aggregate matters as much as the best contig, and more when the virus arrives
+    # in pieces: one contig covering 8% of the reference says almost nothing on its own,
+    # while nineteen tiling 95% of it at 95% identity says the organism was there and the
+    # assembler merely fragmented it.
+    record["aggregate"] = _aggregate_alignment(aligned.values(), reference_name)
     if best:
         aln = best["alignment"]
+        agg = record["aggregate"]
         record["best_reconstruction"] = {
             "contig": best["contig"],
             "contig_length": best["length"],
@@ -725,22 +789,73 @@ def diagnose_contigs(
             "best_hit_in_the_dated_database": best["best_hit_taxon"],
             "best_hit_identity_percent": best["best_hit_identity_percent"],
         }
+        if aln["reference_covered_percent"] >= 50:
+            shape = (
+                f"The arm therefore recovered the genome, not merely a signal — from a "
+                f"database whose closest relative matched it at "
+                f"{best['best_hit_identity_percent']}% amino acid identity."
+            )
+        else:
+            shape = (
+                f"No single contig is the genome, but {record['contigs_aligning']} of them "
+                f"tile {agg['reference_covered_percent']}% of {reference_name} at "
+                f"{agg['weighted_nucleotide_identity_percent']}% weighted identity over "
+                f"{agg['aligned_bases']:,} bases, so the organism was present and the "
+                f"assembler fragmented it."
+            )
+        unaligned = (
+            f" The other {record['contigs_not_aligning']} contig(s) placed in {clade} do "
+            f"not align to {reference_name} at all: against a dated reference that is as "
+            f"likely to be a diverged region of the same organism as a false positive, "
+            f"and their protein hits say which."
+            if dated_reference
+            else f" The other {record['contigs_not_aligning']} contig(s) placed in {clade} "
+            f"do not align to the virus at all and are genuine false positives."
+        )
         record["conclusion"] = (
             f"{best['contig']} is {best['length']:,} bp and covers "
-            f"{aln['reference_covered_percent']}% of {samples_config.truth_reference} at "
-            f"{aln['nucleotide_identity_percent']}% nucleotide identity. The arm therefore "
-            f"recovered the genome, not merely a signal — from a database whose closest "
-            f"relative matched it at {best['best_hit_identity_percent']}% amino acid "
-            f"identity. The other {record['contigs_not_aligning']} contig(s) placed in "
-            f"{clade} do not align to the virus at all and are genuine false positives."
+            f"{aln['reference_covered_percent']}% of {reference_name} at "
+            f"{aln['nucleotide_identity_percent']}% nucleotide identity. {shape}{unaligned}"
         )
     else:
         record["conclusion"] = (
             f"none of the {len(rows)} contigs the arm placed in {clade} align to "
-            f"{samples_config.truth_reference}: every one is a false positive."
+            f"{reference_name}: every one is a false positive."
         )
     log(record["conclusion"])
     return record
+
+
+def _aggregate_alignment(alignments, reference_name: str) -> dict:
+    """Union of the reference spans, plus identity weighted by aligned bases.
+
+    The union rather than the sum, because two contigs covering the same gene must not
+    be counted twice, and the weighted mean rather than the mean of the percentages,
+    because a 300 bp contig's identity should not weigh as much as a 2,500 bp one's.
+    """
+    spans = sorted((a["reference_span"][0], a["reference_span"][1]) for a in alignments)
+    merged: list[list[int]] = []
+    for start, end in spans:
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    covered = sum(end - start for start, end in merged)
+    ref_len = next((a["reference_length"] for a in alignments), 0)
+    matches = sum(a["matching_bases"] for a in alignments)
+    aligned_bases = sum(a["alignment_length"] for a in alignments)
+    return {
+        "reference": reference_name,
+        "contigs": len(spans),
+        "aligned_bases": aligned_bases,
+        "matching_bases": matches,
+        "weighted_nucleotide_identity_percent": (
+            round(100 * matches / aligned_bases, 2) if aligned_bases else None
+        ),
+        "reference_covered_bases": covered,
+        "reference_covered_percent": round(100 * covered / ref_len, 2) if ref_len else None,
+        "reference_spans": [[s, e] for s, e in merged],
+    }
 
 
 def _truth_ids(sample_dir: Path) -> set[str]:
