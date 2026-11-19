@@ -342,14 +342,13 @@ unaccounted for, five never examined, and zero contigs.
 **The thresholds quoted above are the as-scored ones, and they are upper bounds.** With
 those deductions Kraken2's threshold falls from 12 reads to 3 and its limit from 7.71 to
 0.77 viral reads per million, a full decade, and MEGAHIT + DIAMOND's false alarms go to
-zero. That figure is in the record as a secondary number rather than the headline, because
-every deduction rests on a diagnostic the method does not itself run, each was made after
-it was known which samples set the threshold, and all of them move the number in the
-method's
-favour. Each one being individually correct is what makes a threshold fitted to its own
-cohort persuasive, not what makes it safe. The defensible version declares the diagnostic
-in advance and applies it to every alarm, which is a Day 7 item. Both columns are in
-[`results/day5-provenance.json`](results/day5-provenance.json).
+zero. That figure is in the record as a secondary number rather than the headline,
+because every deduction rests on a diagnostic the method does not itself run, each was
+made after it was known which samples set the threshold, and all of them move the number
+in the method's favour. Each one being individually correct is what makes a threshold
+fitted to its own cohort persuasive, not what makes it safe. The defensible version
+declares the diagnostic in advance and applies it to every alarm, which is a Day 7 item.
+Both columns are in [`results/day5-provenance.json`](results/day5-provenance.json).
 
 Note also where that decade would land. The rung it buys is the bottom one, whose dose is
 90% undiluted background and which sits below the floor described under Figure 1. Even
