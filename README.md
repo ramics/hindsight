@@ -330,7 +330,9 @@ per-read bound is much tighter and is a different statement: 0 sarbecovirus read
 things they are. The cohort is also *cleaner* than the positive — host-depleted before
 submission, 0.075% human against the index sample's 15.8% — so these are specificity
 figures on unusually clean input, and that flatters a translated search more than exact
-k-mer matching.
+k-mer matching. And they are **coronavirus** false-alarm rates: both thresholds are
+scored inside one clade, so nothing here bounds how often a pathogen-agnostic pipeline
+would alarm on something else.
 
 **n = 1 on the positive.** One index sample, one virus, one library preparation. The
 dilution series is the generalisation axis, not the sample, and nothing here says how
