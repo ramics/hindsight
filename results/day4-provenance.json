@@ -3,9 +3,9 @@
     "name": "hindsight arm-b",
     "version": "0.1.0"
   },
-  "generated_at": "2026-11-19T09:17:58+00:00",
+  "generated_at": "2026-11-19T09:30:58+00:00",
   "stages": [
-    "negatives"
+    "index"
   ],
   "machine": {
     "platform": "Linux-6.18.44-fc-v653-x86_64-with-glibc2.39",
@@ -15,8 +15,8 @@
     "instance_type": null,
     "work_dir_disk": {
       "total_gib": 252.0,
-      "used_gib": 20.2,
-      "free_gib": 18.6
+      "used_gib": 20.5,
+      "free_gib": 18.4
     }
   },
   "tools": [
@@ -565,33 +565,9 @@
       "name": "SRR10971381_nonhost",
       "contigs_used": 4,
       "contig_bases": 32056,
-      "seconds": 121.6,
-      "reads_aligned": 61233,
-      "mapq_distribution": {
-        "0": 2,
-        "2": 66,
-        "9": 56,
-        "11": 18,
-        "12": 30,
-        "14": 6,
-        "16": 16,
-        "17": 48,
-        "18": 36,
-        "19": 2,
-        "21": 16,
-        "22": 69,
-        "24": 89,
-        "25": 21,
-        "28": 127,
-        "36": 269,
-        "37": 9,
-        "38": 12,
-        "41": 617,
-        "42": 1869,
-        "44": 119058
-      },
-      "mate_alignments": 122436,
-      "alignment_summary": [
+      "candidate_reads": 61233,
+      "candidate_mate_alignments": 122436,
+      "pass1_alignment_summary": [
         "    10860765 pairs aligned 0 times concordantly or discordantly; of these:",
         "      21721530 mates make up the pairs; of these:",
         "        21721478 (100.00%) aligned 0 times",
@@ -599,14 +575,50 @@
         "        12 (0.00%) aligned >1 times",
         "0.56% overall alignment rate"
       ],
+      "seconds": 663.0,
+      "reads_aligned": 61226,
+      "mapq_distribution": {
+        "0": 5,
+        "2": 102,
+        "9": 111,
+        "12": 66,
+        "14": 1,
+        "16": 14,
+        "17": 18,
+        "18": 44,
+        "19": 7,
+        "21": 75,
+        "22": 86,
+        "24": 135,
+        "25": 106,
+        "28": 233,
+        "36": 621,
+        "37": 76,
+        "38": 98,
+        "39": 14,
+        "40": 42,
+        "41": 1102,
+        "42": 3002,
+        "44": 116355
+      },
+      "mate_alignments": 122313,
+      "alignment_summary": [
+        "122436 reads; of these:",
+        "  122436 (100.00%) were unpaired; of these:",
+        "    105 (0.09%) aligned 0 times",
+        "    121534 (99.26%) aligned exactly 1 time",
+        "    797 (0.65%) aligned >1 times",
+        "99.91% overall alignment rate"
+      ],
+      "subset_index_inflation": 1.0,
       "truth_fragments": 62117,
-      "detected": 60926,
-      "false_positive": 307,
-      "sensitivity": 0.9808265048215464,
+      "detected": 60923,
+      "false_positive": 303,
+      "sensitivity": 0.9807782088639181,
       "per_million": {
-        "raw_spots": 2165.0135395993148,
-        "non_redacted_spots": 4267.7048978209,
-        "post_qc_pairs": 4719.096135833024
+        "raw_spots": 2164.7660407869557,
+        "non_redacted_spots": 4267.217024708612,
+        "post_qc_pairs": 4718.55666082852
       }
     },
     "accession": "SRR10971381",
@@ -1159,7 +1171,7 @@
       }
     }
   },
-  "wall_clock_seconds": 704.1,
+  "wall_clock_seconds": 761.7,
   "runs": [
     {
       "generated_at": "2026-11-18T12:45:34+00:00",
@@ -1233,6 +1245,14 @@
       "negatives": [
         "SRR13677922"
       ]
+    },
+    {
+      "generated_at": "2026-11-19T09:30:58+00:00",
+      "stages": [
+        "index"
+      ],
+      "wall_clock_seconds": 761.7,
+      "negatives": []
     }
   ],
   "series": {
