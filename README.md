@@ -323,6 +323,17 @@ sequencing — cut a second series into a *negative* library's background, which
 confirmed free of sarbecovirus reads across 228 million pairs, and two more decades of
 dose axis become visible.
 
+**The alarm thresholds are upper bounds, because some "false alarms" are not false.**
+Each threshold is one read above the worst negative, so it is only as good as the reason
+that negative's reads were counted against the benchmark. At least one of them is now
+known not to be a false alarm at all: a patient's genuine HKU1 infection of a genotype
+RefSeq does not carry (it curates one genome per species) was assigned to rodent and
+bovine relatives, because for those k-mers a rodent embecovirus really is the nearest
+thing the database holds. The cohort's remaining family-level reads have not had the
+same examination. Every correction of this kind can only lower a threshold, so the
+limits quoted here are conservative, and a careful pass over the rest would make
+Kraken2 look better rather than worse.
+
 **Twenty negatives bound specificity coarsely.** 0 alarms in 20 samples bounds the
 per-sample false-alarm rate at **under 14%** with 95% confidence, and no better. The
 per-read bound is much tighter and is a different statement: 0 sarbecovirus reads in
