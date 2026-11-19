@@ -146,21 +146,49 @@ def parse_filereport(text: str) -> list[Run]:
     return [_parse_row(header, ln.split("\t")) for ln in lines[1:]]
 
 
-def filereport(accession: str, *, session: requests.Session | None = None) -> list[Run]:
-    """Ask ENA what a run, experiment, sample or project contains."""
+def filereport(
+    accession: str,
+    *,
+    session: requests.Session | None = None,
+    attempts: int = 5,
+    log=None,
+) -> list[Run]:
+    """Ask ENA what a run, experiment, sample or project contains.
+
+    Retried, because this is a one-line metadata lookup standing in front of hours of
+    work: a cohort run asks ENA once per sample, and an unretried read timeout on the
+    eleventh of twenty negatives takes the whole run down after the ten before it have
+    already been fetched, assembled and searched. The file downloads have always had
+    their own retry loop; this call was the gap.
+    """
     sess = session or requests.Session()
-    response = sess.get(
-        PORTAL,
-        params={
-            "accession": accession,
-            "result": "read_run",
-            "fields": ",".join(FILEREPORT_FIELDS),
-            "format": "tsv",
-        },
-        timeout=120,
-    )
-    response.raise_for_status()
-    return parse_filereport(response.text)
+    last: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            response = sess.get(
+                PORTAL,
+                params={
+                    "accession": accession,
+                    "result": "read_run",
+                    "fields": ",".join(FILEREPORT_FIELDS),
+                    "format": "tsv",
+                },
+                timeout=120,
+            )
+            response.raise_for_status()
+            return parse_filereport(response.text)
+        except (requests.RequestException, OSError) as exc:
+            last = exc
+            if attempt == attempts:
+                break
+            delay = min(60.0, 5.0 * 2 ** (attempt - 1))
+            if log is not None:
+                log(
+                    f"{accession}: ENA metadata attempt {attempt} failed ({exc}); "
+                    f"retrying in {delay:.0f}s"
+                )
+            time.sleep(delay)
+    raise RuntimeError(f"{accession}: ENA metadata unavailable after {attempts} attempts") from last
 
 
 def md5_file(path: Path, *, chunk: int = 1 << 20) -> str:

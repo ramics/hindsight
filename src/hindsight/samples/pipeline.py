@@ -328,7 +328,7 @@ def process_sample(
     result = SampleResult(accession=spec.accession, role=spec.role)
 
     # ---- fetch -----------------------------------------------------------------
-    runs = ena.filereport(spec.accession)
+    runs = ena.filereport(spec.accession, log=log)
     if not runs:
         raise RuntimeError(f"ENA knows nothing about {spec.accession}")
     run = runs[0]

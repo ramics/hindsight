@@ -1,0 +1,111 @@
+# Day 4 of the benchmark: Arm B, MEGAHIT plus DIAMOND against the November 2019
+# protein set.
+#
+# As with Day 3, this file holds only what Arm B adds. The samples, their seeds and the
+# pinned read tools stay in config/day2.toml and are read from there, so no two days can
+# drift apart in what they think the cohort is.
+
+[arm]
+samples_config = "config/day2.toml"
+work_dir = "work"
+out_dir = "work/arm-b"
+provenance = "results/day4-provenance.json"
+
+[database]
+# The same cutoff as Arm A, for the same reason. `hindsight build --date 2019-12-01`
+# selects RefSeq release 97 (4 November 2019); release 98 (6 January 2020) is the first
+# excluded.
+cutoff = "2019-12-01"
+# A `hindsight build` output directory. Arm B reads `viral.faa` — the protein records at
+# the versions release 97 held — plus the dated seqid2taxid map and taxonomy. Build it
+# with `--molecules protein`; the nucleotide set Arm A uses is not needed here.
+source_db = "db/nov2019"
+dmnd_db = "work/diamond/nov2019.dmnd"
+
+[assembly]
+# MEGAHIT's defaults, k-mer list included. This arm is meant to be the method Wu et al.
+# used, and they used it as it comes. 200 is MEGAHIT's own minimum contig length.
+min_contig_len = 200
+# Fraction of total memory MEGAHIT may use. 0.8 of 15 GiB is comfortable for a 12 M-pair
+# metatranscriptome; MEGAHIT's succinct de Bruijn graph is the reason this arm fits on a
+# small machine at all.
+memory_fraction = 0.8
+
+[search]
+threads = 4
+
+# DIAMOND runs at --very-sensitive, and this is the one place Arm B deliberately departs
+# from Arm A's "tool defaults, no tuning" rule. The reasoning, since it will be
+# challenged:
+#
+# Kraken2's defaults are what a 2019 surveillance pipeline would have run, so Arm A at
+# defaults is a faithful measurement. DIAMOND's default mode is tuned for high-identity
+# matches between close homologues — it is a BLASTP replacement for well-conserved
+# proteins — and SARS-CoV-2's proteins sit 10-25% diverged from anything in a November
+# 2019 database. Running the *homology* arm in a mode that cannot see homology at that
+# distance would measure the mode, not the method, and would hand the paper a
+# false-negative result that says nothing about translated search.
+#
+# The honest way to hold both positions is to measure the difference rather than argue
+# about it, so the index sample and the series are also searched at DIAMOND's stock
+# sensitivity and both numbers are recorded. If they agree, the choice did not matter
+# and the write-up says so; if they differ, that difference is itself a finding about
+# how such a pipeline must be configured.
+sensitivity = "very-sensitive"
+comparison_sensitivity = "default"
+
+# DIAMOND's own default e-value. Left at the default on purpose: a threshold chosen
+# after seeing the answer is not a detection limit. Every hit's bitscore, identity and
+# alignment length is kept, so Day 5 can impose something stricter without a re-run.
+evalue = 0.001
+# More than the number of sarbecovirus and bat coronavirus proteins a 2019 database holds
+# that a real coronavirus contig ties across, which is what the LCA needs to see.
+max_target_seqs = 25
+# Hits within this percentage of a contig's best bitscore enter its LCA. 10% is the
+# convention MEGAN established. It is load-bearing here: a sarbecovirus contig hits
+# SARS-CoV and several bat coronaviruses at near-identical scores, and a single-best-hit
+# rule would make the arm's answer turn on which near-tie won.
+lca_top_percent = 10.0
+
+[read_level]
+# The second half of the arm: the same protein search run on the individual reads, with
+# no assembly step.
+#
+# This is not a spare wheel. It is the only way to answer the question Day 5 will ask
+# about Arm B — when the arm stops firing down the dilution series, did the protein
+# search run out of homology, or did the assembler run out of coverage? Those have
+# opposite implications for required sequencing depth, and the contig half alone cannot
+# tell them apart.
+#
+# It is affordable for the same reason Arm A's series was: a translated search scores
+# each read from the read alone, so a level is the shared background's hits plus that
+# level's viral reads' hits. One expensive background run, five trivial ones.
+enabled = true
+sensitivity = "very-sensitive"
+
+[negatives]
+# Native depth, as Day 3 established is possible: each negative is fetched, filtered,
+# assembled, searched and then deleted, so peak disk is one sample rather than twenty.
+# 0 means no cap.
+max_pairs = 0
+prune_after_search = true
+# The read half is off for the negatives. Searching 228 million read pairs at
+# --very-sensitive is tens of hours of CPU, and what the negatives are for is the
+# false-alarm rate of the arm as an operational pipeline — which alarms on a contig.
+# Day 7 can turn this on given a machine with the cores for it; the figure it would
+# produce is a read-level false-alarm rate, which Day 5 does not need to place a
+# threshold for the contig arm.
+read_level = false
+
+[tools]
+# apt's Ubuntu 24.04 builds, which is what environment/Dockerfile installs. bowtie2 is
+# pinned again here because Arm B uses it too, to map reads back onto the contigs the
+# search flagged, and it must be the same aligner version the host filter used.
+diamond = "2.1.9"
+megahit = "1.2.9"
+bowtie2 = "2.5.2"
+# Diagnostics only. `arm-b diagnose-contigs` aligns the arm's clade contigs to the
+# modern SARS-CoV-2 reference after the arm has finished, to report how much of the
+# genome was reconstructed and at what identity. Nothing the arm is scored on depends
+# on it, and the arm runs without minimap2 installed.
+minimap2 = "2.26"
