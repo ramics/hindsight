@@ -1,0 +1,1017 @@
+{
+ "tool": "hindsight (coinfection follow-up)",
+ "generated_at": "2026-11-19T12:21:09Z",
+ "question": "Day 4 left four Coronaviridae contigs in SRR13677922 with HKU1 protein hits and no nucleotide alignment to NC_006577.2: a diverged region of one virus, or a second betacoronavirus? And what else, if anything, was in that patient's library?",
+ "answer": "One virus, human coronavirus HKU1 genotype B. No coinfection. Separately: Arm A's seven non-endemic betacoronavirus reads in this sample are the same HKU1 misassigned, and the cohort's largest viral call is a cloned fragment of an EIAV gene present in all twenty negatives.",
+ "leakage": "no post-cutoff sequence is used anywhere. References outside the dated database are outside it by RefSeq's one-genome-per-species curation policy, not by date; each is checked against the cutoff at NCBI and its publication date is recorded below.",
+ "reproduction": {
+  "note": "the Day 4 container was gone; the sample was re-staged and re-assembled from scratch",
+  "matches_day4": {
+   "raw_pairs": 14756419,
+   "qc_pairs": 14752099,
+   "host_pairs": 704,
+   "nonhost_pairs": 14751395,
+   "contigs": 7438,
+   "assembly_bases": 4539007,
+   "longest_contig": 14415,
+   "n50": 653,
+   "diamond_hit_rows": 10107
+  },
+  "does_not_match": "MEGAHIT's contig names shift between runs though the assembly is identical; Day 4's k141_681 is this run's k141_628, the same 2,509 bp sequence"
+ },
+ "strain_panel": {
+  "clade": "coronaviridae",
+  "sample": "SRR13677922",
+  "cutoff": "2019-12-01",
+  "contigs_examined": 23,
+  "note": "every reference in the panel is checked against the cutoff at NCBI and its publication date recorded; a reference outside the dated database is outside it by RefSeq's one-genome-per-species curation policy, not by date",
+  "panel": [
+   {
+    "reference": "NC_006577.2",
+    "source": "dated-manifest",
+    "published": null,
+    "before_cutoff": true,
+    "contigs_aligned": 22,
+    "contigs_total": 23,
+    "aligned_bases": 16713,
+    "weighted_identity_percent": 94.72,
+    "reference_covered_percent": 55.42,
+    "placed_by_short_read_preset": [
+     "k141_1616",
+     "k141_273",
+     "k141_61"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616"
+    ]
+   },
+   {
+    "reference": "AY597011.1",
+    "source": "pre-cutoff-genbank",
+    "published": "2004-12-21",
+    "before_cutoff": true,
+    "contigs_aligned": 22,
+    "contigs_total": 23,
+    "aligned_bases": 16726,
+    "weighted_identity_percent": 94.73,
+    "reference_covered_percent": 55.43,
+    "placed_by_short_read_preset": [
+     "k141_1616",
+     "k141_273",
+     "k141_61"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616"
+    ]
+   },
+   {
+    "reference": "DQ415914.1",
+    "source": "pre-cutoff-genbank",
+    "published": "2006-06-30",
+    "before_cutoff": true,
+    "contigs_aligned": 22,
+    "contigs_total": 23,
+    "aligned_bases": 16737,
+    "weighted_identity_percent": 94.56,
+    "reference_covered_percent": 55.57,
+    "placed_by_short_read_preset": [
+     "k141_1616",
+     "k141_273",
+     "k141_61"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616"
+    ]
+   },
+   {
+    "reference": "DQ415911.1",
+    "source": "pre-cutoff-genbank",
+    "published": "2006-06-30",
+    "before_cutoff": true,
+    "contigs_aligned": 23,
+    "contigs_total": 23,
+    "aligned_bases": 17685,
+    "weighted_identity_percent": 99.36,
+    "reference_covered_percent": 58.76,
+    "placed_by_short_read_preset": [
+     "k141_1616"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616",
+     "k141_1670"
+    ]
+   },
+   {
+    "reference": "DQ415902.1",
+    "source": "pre-cutoff-genbank",
+    "published": "2006-06-30",
+    "before_cutoff": true,
+    "contigs_aligned": 23,
+    "contigs_total": 23,
+    "aligned_bases": 17714,
+    "weighted_identity_percent": 99.1,
+    "reference_covered_percent": 58.96,
+    "placed_by_short_read_preset": [
+     "k141_1616"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616",
+     "k141_1670"
+    ]
+   },
+   {
+    "reference": "DQ415913.1",
+    "source": "pre-cutoff-genbank",
+    "published": "2006-06-30",
+    "before_cutoff": true,
+    "contigs_aligned": 23,
+    "contigs_total": 23,
+    "aligned_bases": 17741,
+    "weighted_identity_percent": 97.18,
+    "reference_covered_percent": 59.17,
+    "placed_by_short_read_preset": [
+     "k141_1616"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616",
+     "k141_1670"
+    ]
+   },
+   {
+    "reference": "DQ415897.1",
+    "source": "pre-cutoff-genbank",
+    "published": "2006-06-30",
+    "before_cutoff": true,
+    "contigs_aligned": 23,
+    "contigs_total": 23,
+    "aligned_bases": 17681,
+    "weighted_identity_percent": 97.47,
+    "reference_covered_percent": 58.85,
+    "placed_by_short_read_preset": [
+     "k141_1616"
+    ],
+    "contigs_in_both_orientations": [
+     "k141_1616",
+     "k141_1670"
+    ]
+   }
+  ],
+  "best_reference": "DQ415911.1",
+  "contigs": [
+   {
+    "contig": "k141_7524",
+    "length": 2652,
+    "kmer_coverage": 26.8443,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 97.8,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 97.58,
+     "AY597011.1": 97.58,
+     "DQ415914.1": 97.58,
+     "DQ415911.1": 97.87,
+     "DQ415902.1": 97.74,
+     "DQ415913.1": 97.62,
+     "DQ415897.1": 97.58
+    }
+   },
+   {
+    "contig": "k141_628",
+    "length": 2509,
+    "kmer_coverage": 102.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 90.5,
+    "best_hit_subject": "YP_173242.1",
+    "identity_per_reference": {
+     "NC_006577.2": 92.93,
+     "AY597011.1": 92.97,
+     "DQ415914.1": 92.89,
+     "DQ415911.1": 99.84,
+     "DQ415902.1": 99.72,
+     "DQ415913.1": 99.32,
+     "DQ415897.1": 99.32
+    }
+   },
+   {
+    "contig": "k141_1417",
+    "length": 2052,
+    "kmer_coverage": 22.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 99.1,
+    "best_hit_subject": "YP_173236.1",
+    "identity_per_reference": {
+     "NC_006577.2": 98.96,
+     "AY597011.1": 98.96,
+     "DQ415914.1": 98.96,
+     "DQ415911.1": 99.69,
+     "DQ415902.1": 99.69,
+     "DQ415913.1": 98.34,
+     "DQ415897.1": 98.55
+    }
+   },
+   {
+    "contig": "k141_2306",
+    "length": 1943,
+    "kmer_coverage": 65.2508,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 96.3,
+    "best_hit_subject": "YP_173236.1",
+    "identity_per_reference": {
+     "NC_006577.2": 94.18,
+     "AY597011.1": 94.18,
+     "DQ415914.1": 94.18,
+     "DQ415911.1": 99.72,
+     "DQ415902.1": 99.49,
+     "DQ415913.1": 94.35,
+     "DQ415897.1": 94.35
+    }
+   },
+   {
+    "contig": "k141_1504",
+    "length": 1292,
+    "kmer_coverage": 7.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 77.5,
+    "best_hit_subject": "YP_173238.1",
+    "identity_per_reference": {
+     "NC_006577.2": 86.18,
+     "AY597011.1": 86.18,
+     "DQ415914.1": 86.05,
+     "DQ415911.1": 98.99,
+     "DQ415902.1": 98.92,
+     "DQ415913.1": 98.53,
+     "DQ415897.1": 98.45
+    }
+   },
+   {
+    "contig": "k141_4511",
+    "length": 1244,
+    "kmer_coverage": 8.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 93.7,
+    "best_hit_subject": "YP_173236.1",
+    "identity_per_reference": {
+     "NC_006577.2": 93.57,
+     "AY597011.1": 93.57,
+     "DQ415914.1": 93.73,
+     "DQ415911.1": 99.52,
+     "DQ415902.1": 99.6,
+     "DQ415913.1": 93.81,
+     "DQ415897.1": 93.73
+    }
+   },
+   {
+    "contig": "k141_1670",
+    "length": 835,
+    "kmer_coverage": 38.6326,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 88.9,
+    "best_hit_subject": "YP_173238.1",
+    "identity_per_reference": {
+     "NC_006577.2": 88.32,
+     "AY597011.1": 88.32,
+     "DQ415914.1": 88.32,
+     "DQ415911.1": 99.49,
+     "DQ415902.1": 99.49,
+     "DQ415913.1": 98.98,
+     "DQ415897.1": 98.98
+    }
+   },
+   {
+    "contig": "k141_658",
+    "length": 814,
+    "kmer_coverage": 26.8559,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 99.5,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 99.12,
+     "AY597011.1": 99.12,
+     "DQ415914.1": 99.47,
+     "DQ415911.1": 99.47,
+     "DQ415902.1": 99.47,
+     "DQ415913.1": 98.95,
+     "DQ415897.1": 98.95
+    }
+   },
+   {
+    "contig": "k141_2318",
+    "length": 779,
+    "kmer_coverage": 9.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 98.3,
+    "best_hit_subject": "YP_173236.1",
+    "identity_per_reference": {
+     "NC_006577.2": 95.78,
+     "AY597011.1": 95.78,
+     "DQ415914.1": 96.06,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 100.0,
+     "DQ415913.1": 95.92,
+     "DQ415897.1": 95.92
+    }
+   },
+   {
+    "contig": "k141_852",
+    "length": 767,
+    "kmer_coverage": 9.0,
+    "best_hit_taxon": "Rat coronavirus Parker",
+    "best_hit_identity_percent": 91.2,
+    "best_hit_subject": "YP_003029845.1",
+    "identity_per_reference": {
+     "NC_006577.2": 97.42,
+     "AY597011.1": 97.42,
+     "DQ415914.1": 97.08,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 99.66,
+     "DQ415913.1": 97.25,
+     "DQ415897.1": 97.25
+    }
+   },
+   {
+    "contig": "k141_2941",
+    "length": 676,
+    "kmer_coverage": 8.8935,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 95.0,
+    "best_hit_subject": "YP_460023.1",
+    "identity_per_reference": {
+     "NC_006577.2": 92.49,
+     "AY597011.1": 92.49,
+     "DQ415914.1": 92.49,
+     "DQ415911.1": 99.82,
+     "DQ415902.1": 99.64,
+     "DQ415913.1": 97.47,
+     "DQ415897.1": 97.47
+    }
+   },
+   {
+    "contig": "k141_6444",
+    "length": 548,
+    "kmer_coverage": 9.9263,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 97.8,
+    "best_hit_subject": "YP_459934.1",
+    "identity_per_reference": {
+     "NC_006577.2": 98.16,
+     "AY597011.1": 98.16,
+     "DQ415914.1": 98.16,
+     "DQ415911.1": 99.27,
+     "DQ415902.1": 99.27,
+     "DQ415913.1": 98.17,
+     "DQ415897.1": 98.17
+    }
+   },
+   {
+    "contig": "k141_61",
+    "length": 535,
+    "kmer_coverage": 10.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 76.3,
+    "best_hit_subject": "YP_173238.1",
+    "identity_per_reference": {
+     "NC_006577.2": 85.29,
+     "AY597011.1": 85.29,
+     "DQ415914.1": 85.29,
+     "DQ415911.1": 98.46,
+     "DQ415902.1": 98.27,
+     "DQ415913.1": 97.89,
+     "DQ415897.1": 97.89
+    }
+   },
+   {
+    "contig": "k141_1250",
+    "length": 521,
+    "kmer_coverage": 30.6368,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 96.8,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 98.42,
+     "AY597011.1": 98.42,
+     "DQ415914.1": 97.89,
+     "DQ415911.1": 98.94,
+     "DQ415902.1": 98.68,
+     "DQ415913.1": 98.68,
+     "DQ415897.1": 98.68
+    }
+   },
+   {
+    "contig": "k141_273",
+    "length": 490,
+    "kmer_coverage": 3.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 85.1,
+    "best_hit_subject": "YP_173238.1",
+    "identity_per_reference": {
+     "NC_006577.2": 89.93,
+     "AY597011.1": 89.93,
+     "DQ415914.1": 89.93,
+     "DQ415911.1": 98.89,
+     "DQ415902.1": 98.89,
+     "DQ415913.1": 98.52,
+     "DQ415897.1": 98.52
+    }
+   },
+   {
+    "contig": "k141_8053",
+    "length": 471,
+    "kmer_coverage": 4.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 99.0,
+    "best_hit_subject": "YP_459942.1",
+    "identity_per_reference": {
+     "NC_006577.2": 95.53,
+     "AY597011.1": 95.53,
+     "DQ415914.1": 95.53,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 100.0,
+     "DQ415913.1": 95.53,
+     "DQ415897.1": 95.53
+    }
+   },
+   {
+    "contig": "k141_2668",
+    "length": 445,
+    "kmer_coverage": 4.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 98.0,
+    "best_hit_subject": "YP_173236.1",
+    "identity_per_reference": {
+     "NC_006577.2": 98.43,
+     "AY597011.1": 98.43,
+     "DQ415914.1": 98.88,
+     "DQ415911.1": 99.78,
+     "DQ415902.1": 99.78,
+     "DQ415913.1": 98.88,
+     "DQ415897.1": 98.88
+    }
+   },
+   {
+    "contig": "k141_1548",
+    "length": 419,
+    "kmer_coverage": 7.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 97.9,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 91.37,
+     "AY597011.1": 91.37,
+     "DQ415914.1": 86.01,
+     "DQ415911.1": 99.52,
+     "DQ415902.1": 92.26,
+     "DQ415913.1": 85.48,
+     "DQ415897.1": 96.21
+    }
+   },
+   {
+    "contig": "k141_6196",
+    "length": 417,
+    "kmer_coverage": 2.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 100.0,
+    "best_hit_subject": "YP_459941.1",
+    "identity_per_reference": {
+     "NC_006577.2": 96.4,
+     "AY597011.1": 96.4,
+     "DQ415914.1": 96.37,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 100.0,
+     "DQ415913.1": 96.16,
+     "DQ415897.1": 96.16
+    }
+   },
+   {
+    "contig": "k141_1480",
+    "length": 392,
+    "kmer_coverage": 9.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 80.8,
+    "best_hit_subject": "YP_173237.1",
+    "identity_per_reference": {
+     "NC_006577.2": null,
+     "AY597011.1": null,
+     "DQ415914.1": null,
+     "DQ415911.1": 99.49,
+     "DQ415902.1": 99.74,
+     "DQ415913.1": 98.98,
+     "DQ415897.1": 98.98
+    }
+   },
+   {
+    "contig": "k141_2393",
+    "length": 327,
+    "kmer_coverage": 4.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 100.0,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 99.39,
+     "AY597011.1": 99.39,
+     "DQ415914.1": 99.39,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 100.0,
+     "DQ415913.1": 99.08,
+     "DQ415897.1": 99.08
+    }
+   },
+   {
+    "contig": "k141_1616",
+    "length": 324,
+    "kmer_coverage": 3.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 88.0,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 99.48,
+     "AY597011.1": 99.48,
+     "DQ415914.1": 99.48,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 100.0,
+     "DQ415913.1": 99.48,
+     "DQ415897.1": 99.48
+    }
+   },
+   {
+    "contig": "k141_8136",
+    "length": 303,
+    "kmer_coverage": 2.0,
+    "best_hit_taxon": "Human coronavirus HKU1",
+    "best_hit_identity_percent": 100.0,
+    "best_hit_subject": "YP_460024.1",
+    "identity_per_reference": {
+     "NC_006577.2": 100.0,
+     "AY597011.1": 100.0,
+     "DQ415914.1": 99.34,
+     "DQ415911.1": 100.0,
+     "DQ415902.1": 100.0,
+     "DQ415913.1": 99.67,
+     "DQ415897.1": 99.67
+    }
+   }
+  ],
+  "coverage_range": {
+   "minimum": 2.0,
+   "maximum": 102.0,
+   "contigs_with_coverage": 23
+  },
+  "duplicated_regions": [],
+  "unplaced_by_every_reference": [],
+  "conclusion": "23 of 23 coronaviridae contigs align to DQ415911.1 (published 2006-06-30, before the 2019-12-01 cutoff), 17,685 bases at 99.36% identity. Every contig is accounted for by this one reference and no region is covered twice, so this is a single diverged strain rather than a coinfection. 1 of them only under the short-read preset, which is an aligner limit on short or split contigs rather than divergence."
+ },
+ "equine_infectious_anemia_virus": {
+  "verdict": "a cloned ~1.7 kb fragment of pol spanning the reverse-transcriptase region, not the virus: one window, sharp edges, zero coverage of gag, env or either LTR",
+  "reference_annotation": {
+   "accession": "NC_001450.1",
+   "length": 8359,
+   "gag": [
+    525,
+    1985
+   ],
+   "pol": [
+    1766,
+    5182
+   ],
+   "env": [
+    5372,
+    7951
+   ],
+   "ltr_5prime": [
+    61,
+    381
+   ],
+   "ltr_3prime": [
+    7969,
+    8289
+   ]
+  },
+  "samples_examined": {
+   "SRR13677922": {
+    "sample": "SRR13677922",
+    "taxid": 11665,
+    "taxon": "Equine infectious anemia virus",
+    "clades": [
+     "viruses"
+    ],
+    "descendant_taxa_included": 9,
+    "fragments_assigned": 11227,
+    "cutoff": "2019-12-01",
+    "note": "a diagnostic, run after the arm; nothing here feeds back into the arm's score",
+    "fragments_extracted": [
+     11227,
+     11227
+    ],
+    "reference": {
+     "accession": "NC_001450.1",
+     "source": "dated-manifest",
+     "published": null,
+     "before_cutoff": true
+    },
+    "reads_examined": 22454,
+    "reads_mapped": 20857,
+    "identity_percent": 98.81,
+    "mapped_fraction": 0.9289,
+    "coverage": {
+     "reference_length": 8359,
+     "covered_bases": 1688,
+     "covered_percent": 20.19,
+     "mean_depth": 298.0,
+     "max_depth": 4819,
+     "windows": 1,
+     "largest_windows": [
+      {
+       "start": 2293,
+       "end": 3980,
+       "bases": 1688,
+       "median_depth": 1181,
+       "max_depth": 4819,
+       "left_edge_width_bases": 1,
+       "right_edge_width_bases": 1,
+       "edges_are_steps": true
+      }
+     ]
+    },
+    "conclusion": "11,227 fragments were assigned to Equine infectious anemia virus; 20,857 reads align to NC_001450.1 at 98.81% identity, covering 20.19% of it (1,688 of 8,359 bases) at a mean depth of 298.0. 100.0% of the covered bases are one 1,688 bp window (2,293-3,980) at median depth 1181, and its coverage stops within 1 and 1 bases at its two ends. A genome in a patient is not covered that way: this is a cloned fragment of the reference -- a vector, a plasmid or a spiked control -- and not the organism."
+   },
+   "SRR13677559": {
+    "sample": "SRR13677559",
+    "taxid": 11665,
+    "taxon": "Equine infectious anemia virus",
+    "clades": [
+     "viruses"
+    ],
+    "descendant_taxa_included": 9,
+    "fragments_assigned": 499690,
+    "cutoff": "2019-12-01",
+    "note": "a diagnostic, run after the arm; nothing here feeds back into the arm's score",
+    "fragments_extracted": [
+     499690,
+     499690
+    ],
+    "reference": {
+     "accession": "NC_001450.1",
+     "source": "dated-manifest",
+     "published": null,
+     "before_cutoff": true
+    },
+    "reads_examined": 999380,
+    "reads_mapped": 994175,
+    "identity_percent": 98.69,
+    "mapped_fraction": 0.9948,
+    "coverage": {
+     "reference_length": 8359,
+     "covered_bases": 1695,
+     "covered_percent": 20.28,
+     "mean_depth": 14444.2,
+     "max_depth": 248535,
+     "windows": 1,
+     "largest_windows": [
+      {
+       "start": 2286,
+       "end": 3980,
+       "bases": 1695,
+       "median_depth": 57802,
+       "max_depth": 248535,
+       "left_edge_width_bases": 1,
+       "right_edge_width_bases": 1,
+       "edges_are_steps": true
+      }
+     ]
+    },
+    "conclusion": "499,690 fragments were assigned to Equine infectious anemia virus; 994,175 reads align to NC_001450.1 at 98.69% identity, covering 20.28% of it (1,695 of 8,359 bases) at a mean depth of 14444.2. 100.0% of the covered bases are one 1,695 bp window (2,286-3,980) at median depth 57802, and its coverage stops within 1 and 1 bases at its two ends. A genome in a patient is not covered that way: this is a cloned fragment of the reference -- a vector, a plasmid or a spiked control -- and not the organism."
+   }
+  },
+  "cohort": {
+   "negatives_with_a_call": 20,
+   "negatives_total": 20,
+   "reads_total": 3284717,
+   "per_sample": {
+    "SRR13677553": {
+     "reads": 206616,
+     "nonhost_pairs": 16208470
+    },
+    "SRR13677559": {
+     "reads": 499690,
+     "nonhost_pairs": 7352366
+    },
+    "SRR13677560": {
+     "reads": 251413,
+     "nonhost_pairs": 8626459
+    },
+    "SRR13677589": {
+     "reads": 712900,
+     "nonhost_pairs": 16647038
+    },
+    "SRR13677700": {
+     "reads": 306844,
+     "nonhost_pairs": 10530048
+    },
+    "SRR13677717": {
+     "reads": 20343,
+     "nonhost_pairs": 13485565
+    },
+    "SRR13677722": {
+     "reads": 235034,
+     "nonhost_pairs": 10593553
+    },
+    "SRR13677730": {
+     "reads": 9047,
+     "nonhost_pairs": 14405840
+    },
+    "SRR13677740": {
+     "reads": 12723,
+     "nonhost_pairs": 18327802
+    },
+    "SRR13677744": {
+     "reads": 16309,
+     "nonhost_pairs": 18279498
+    },
+    "SRR13677748": {
+     "reads": 3178,
+     "nonhost_pairs": 23767399
+    },
+    "SRR13677777": {
+     "reads": 291,
+     "nonhost_pairs": 144001
+    },
+    "SRR13677842": {
+     "reads": 62531,
+     "nonhost_pairs": 3144022
+    },
+    "SRR13677843": {
+     "reads": 26551,
+     "nonhost_pairs": 9407026
+    },
+    "SRR13677844": {
+     "reads": 221631,
+     "nonhost_pairs": 6392282
+    },
+    "SRR13677878": {
+     "reads": 14119,
+     "nonhost_pairs": 14773932
+    },
+    "SRR13677921": {
+     "reads": 52953,
+     "nonhost_pairs": 1973266
+    },
+    "SRR13677922": {
+     "reads": 11227,
+     "nonhost_pairs": 14751395
+    },
+    "SRR13677975": {
+     "reads": 172670,
+     "nonhost_pairs": 9936172
+    },
+    "SRR13677977": {
+     "reads": 448647,
+     "nonhost_pairs": 9661502
+    }
+   }
+  }
+ },
+ "viral_census_SRR13677922": {
+  "nonhost_pairs": 14751395,
+  "classified": 19239,
+  "classified_fraction": 0.001304,
+  "database": "viral-only curated RefSeq release 97; bacteria and fungi are out of scope",
+  "species_calls_over_20_reads": [
+   {
+    "reads": 11227,
+    "rank": "S",
+    "taxid": 11665,
+    "taxon": "Equine infectious anemia virus"
+   },
+   {
+    "reads": 2399,
+    "rank": "S",
+    "taxid": 290028,
+    "taxon": "Human coronavirus HKU1"
+   },
+   {
+    "reads": 724,
+    "rank": "S",
+    "taxid": 906669,
+    "taxon": "Escherichia phage HK639"
+   },
+   {
+    "reads": 401,
+    "rank": "S",
+    "taxid": 56947,
+    "taxon": "Choristoneura fumiferana granulovirus"
+   },
+   {
+    "reads": 363,
+    "rank": "S",
+    "taxid": 1643326,
+    "taxon": "Bacillus phage phi4J1"
+   },
+   {
+    "reads": 247,
+    "rank": "S",
+    "taxid": 1273738,
+    "taxon": "Escherichia phage PBECO 4"
+   },
+   {
+    "reads": 198,
+    "rank": "S",
+    "taxid": 1923505,
+    "taxon": "Wenling narna-like virus 5"
+   },
+   {
+    "reads": 139,
+    "rank": "S",
+    "taxid": 260149,
+    "taxon": "Aeromonas virus 65"
+   },
+   {
+    "reads": 127,
+    "rank": "S",
+    "taxid": 2560751,
+    "taxon": "Serratia virus BF"
+   },
+   {
+    "reads": 127,
+    "rank": "S1",
+    "taxid": 1962671,
+    "taxon": "Serratia phage BF"
+   },
+   {
+    "reads": 111,
+    "rank": "S",
+    "taxid": 1923120,
+    "taxon": "Hubei picorna-like virus 4"
+   },
+   {
+    "reads": 70,
+    "rank": "S",
+    "taxid": 1513235,
+    "taxon": "Cafeteria roenbergensis virus"
+   },
+   {
+    "reads": 70,
+    "rank": "S1",
+    "taxid": 693272,
+    "taxon": "Cafeteria roenbergensis virus BV-PW1"
+   },
+   {
+    "reads": 60,
+    "rank": "S",
+    "taxid": 762660,
+    "taxon": "Acinetobacter phage Ac42"
+   },
+   {
+    "reads": 59,
+    "rank": "S",
+    "taxid": 2169883,
+    "taxon": "Erwinia virus EaH2"
+   },
+   {
+    "reads": 59,
+    "rank": "S1",
+    "taxid": 1029988,
+    "taxon": "Erwinia phage phiEaH2"
+   },
+   {
+    "reads": 45,
+    "rank": "S",
+    "taxid": 382359,
+    "taxon": "Synechococcus phage syn9"
+   },
+   {
+    "reads": 44,
+    "rank": "S",
+    "taxid": 1981160,
+    "taxon": "Escherichia virus 24B"
+   },
+   {
+    "reads": 44,
+    "rank": "S1",
+    "taxid": 866553,
+    "taxon": "Escherichia phage vB_EcoP_24B"
+   },
+   {
+    "reads": 43,
+    "rank": "S",
+    "taxid": 2169967,
+    "taxon": "Escherichia virus DE3"
+   },
+   {
+    "reads": 43,
+    "rank": "S1",
+    "taxid": 482822,
+    "taxon": "Enterobacteria phage DE3"
+   },
+   {
+    "reads": 32,
+    "rank": "S",
+    "taxid": 2560689,
+    "taxon": "Pseudomonas virus pf16"
+   },
+   {
+    "reads": 32,
+    "rank": "S1",
+    "taxid": 1815630,
+    "taxon": "Pseudomonas phage pf16"
+   },
+   {
+    "reads": 32,
+    "rank": "S",
+    "taxid": 2169966,
+    "taxon": "Kunsagivirus C"
+   },
+   {
+    "reads": 32,
+    "rank": "S1",
+    "taxid": 1966007,
+    "taxon": "Bakunsa virus"
+   },
+   {
+    "reads": 29,
+    "rank": "S",
+    "taxid": 1414655,
+    "taxon": "Pepper chlorotic spot virus"
+   },
+   {
+    "reads": 28,
+    "rank": "S",
+    "taxid": 2170215,
+    "taxon": "Escherichia virus Pollock"
+   },
+   {
+    "reads": 28,
+    "rank": "S1",
+    "taxid": 1540097,
+    "taxon": "Escherichia phage Pollock"
+   },
+   {
+    "reads": 27,
+    "rank": "S",
+    "taxid": 1407493,
+    "taxon": "Shigella phage SfIV"
+   },
+   {
+    "reads": 26,
+    "rank": "S",
+    "taxid": 1558469,
+    "taxon": "Vibrio phage QH"
+   },
+   {
+    "reads": 24,
+    "rank": "S",
+    "taxid": 1883374,
+    "taxon": "Erwinia phage vB_EamM_Kwan"
+   },
+   {
+    "reads": 22,
+    "rank": "S",
+    "taxid": 1542477,
+    "taxon": "Prochlorococcus phage P-TIM68"
+   },
+   {
+    "reads": 21,
+    "rank": "S",
+    "taxid": 1932912,
+    "taxon": "Dyoupsilonpapillomavirus 1"
+   },
+   {
+    "reads": 21,
+    "rank": "S1",
+    "taxid": 1163701,
+    "taxon": "Eidolon helvum papillomavirus 1"
+   },
+   {
+    "reads": 20,
+    "rank": "S",
+    "taxid": 10678,
+    "taxon": "Escherichia virus P1"
+   }
+  ]
+ },
+ "arm_a_false_alarms_revised": {
+  "day3_reported": {
+   "non_endemic_betacoronavirus_reads": 7,
+   "per_million_nonhost": 0.031,
+   "all_in": "SRR13677922"
+  },
+  "revised": {
+   "non_endemic_betacoronavirus_reads": 0,
+   "reason": "all 7 are HKU1 genotype B sequence, 99.3-100% identical to DQ415911.1 against 91.9-98.3% to the genotype A reference; Kraken2 assigned them to rodent and bovine embecoviruses because the database holds no genotype B",
+   "taxa": {
+    "Betacoronavirus HKU24": 5,
+    "Betacoronavirus 1": 1,
+    "Rat coronavirus Parker": 1
+   },
+   "genome_positions_on_DQ415911": [
+    [
+     17531,
+     18030
+    ],
+    [
+     21443,
+     21619
+    ]
+   ]
+  },
+  "not_examined": "this sample contributes 8 of the cohort 35 non-endemic reads at family level; the other 27 are in other samples and were not re-examined"
+ }
+}

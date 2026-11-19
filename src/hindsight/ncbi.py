@@ -253,6 +253,43 @@ class NcbiClient:
             return text
         raise NcbiError(f"efetch failed for {len(ids)} ids in db={db}") from last
 
+    def esummary(self, db: str, ids: list[str]) -> str:
+        """Fetch the document summaries for ``ids``, as XML.
+
+        efetch's ``rettype=docsum`` does not carry the record's creation date, and that
+        date is what lets a reference outside the dated database still be shown to
+        predate the cutoff. So this is a separate surface rather than a parameter.
+        """
+        if not ids:
+            return ""
+        params = {
+            "db": db,
+            "id": ",".join(ids),
+            "retmode": "xml",
+            "tool": "hindsight",
+        }
+        if self.api_key:
+            params["api_key"] = self.api_key
+        last: Exception | None = None
+        for attempt in range(self.max_attempts):
+            self._limiter.wait()
+            try:
+                response = self._request("POST", f"{EUTILS_BASE}/esummary.fcgi", data=params)
+            except NcbiError as exc:
+                last = exc
+                continue
+            text = response.text
+            if _looks_like_rate_limit(text):
+                last = RateLimitedError(text.strip()[:200])
+                self._sleep_backoff(attempt)
+                continue
+            if not text.strip():
+                last = NcbiError("empty response from esummary")
+                self._sleep_backoff(attempt)
+                continue
+            return text
+        raise NcbiError(f"esummary failed for {len(ids)} ids in db={db}") from last
+
 
 def _looks_like_rate_limit(text: str) -> bool:
     head = text[:400].lstrip()

@@ -336,6 +336,33 @@ of this kind can only ever take reads out of the false-alarm column, so a carefu
 over the rest would move the thresholds down and make this benchmark's methods look
 better, never worse.
 
+The same correction has now taken a threshold-setting read out of **both** arms. Arm B's
+bitscore threshold of 250 is selected by exactly one contig in the whole cohort, whose
+best hit is a rat coronavirus at 91.2% amino-acid identity — and which is **100.00%
+identical at nucleotide level** to the genotype B genome. Attributing a contig by its best
+hit rather than by its LCA cannot catch that one, because the best hit is itself wrong:
+the rat protein really is the closest in the dated database, and HKU1's own replicase ties
+it at the identical bitscore. A translated search against an incomplete reference set can
+be confidently wrong about *which* relative a sequence is while being right that it is a
+coronavirus, and no rule applied to its own hit table fixes that.
+
+**The negatives bound coronavirus false alarms, not pathogen-agnostic ones.** All twenty
+carry *Equine infectious anemia virus* — 3,284,717 reads in total, up to 499,690 in one
+sample, and the largest viral call in most of them. It is not the virus: the reads are
+98.8% identical to the genome but confined to a single 1.7 kb window inside *pol*, with no
+coverage of *gag*, *env* or either long terminal repeat, depth that stops within one base
+at both ends, and the same window in unrelated patients. It is a cloned gene fragment,
+presumably a laboratory reagent. That leaves the coronavirus limits untouched — they are
+drawn per clade — but a *pathogen-agnostic* pipeline run on this cohort reports a
+notifiable equine pathogen in 20 of 20 clinical samples, and any alarm keyed on a read
+count fires every time. A read count cannot see the difference; where the reads sit on the
+reference can.
+
+[`docs/hku1-coinfection.md`](docs/hku1-coinfection.md) has both of these in full, and both
+checks are commands rather than arguments: `hindsight arm-b diagnose-strain` for one
+diverged strain against two organisms, `hindsight arm-a diagnose-taxon` for an organism
+against a laboratory sequence.
+
 **Twenty negatives bound specificity coarsely.** 0 alarms in 20 samples bounds the
 per-sample false-alarm rate at **under 14%** with 95% confidence, and no better. The
 per-read bound is much tighter and is a different statement: 0 sarbecovirus reads in

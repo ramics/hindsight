@@ -400,6 +400,71 @@ def arm_a_diagnose_cmd(config_path: Path, taxid: int) -> None:
     click.echo(json.dumps(record, indent=2))
 
 
+@arm_a_grp.command("diagnose-taxon")
+@_ARM_CONFIG_OPTION
+@click.option("--taxid", type=int, required=True, help="The taxon whose call to examine.")
+@click.option(
+    "--reference",
+    required=True,
+    help=(
+        "An accession.version for that taxon to align its reads to. Either in the dated "
+        "manifest or checked at NCBI to predate the cutoff."
+    ),
+)
+@click.option(
+    "--sample",
+    "sample",
+    default=None,
+    help="A negative's run accession. Default: the index sample.",
+)
+@click.option(
+    "--descendants/--no-descendants",
+    default=True,
+    show_default=True,
+    help="Include reads assigned below the taxon as well as to it exactly.",
+)
+@click.option(
+    "--allow-post-cutoff",
+    is_flag=True,
+    default=False,
+    help="Permit a reference published on or after the cutoff. The record says when it was.",
+)
+def arm_a_diagnose_taxon_cmd(
+    config_path: Path,
+    taxid: int,
+    reference: str,
+    sample: str | None,
+    descendants: bool,
+    allow_post_cutoff: bool,
+) -> None:
+    """Say whether the reads a classifier put in a taxon look like an organism.
+
+    A read count cannot distinguish an infection from a cloned fragment of the same
+    organism's sequence, and in this cohort that distinction is worth 11,227 reads. This
+    aligns the taxon's reads to a reference for it and reports where on that reference
+    they sit: coverage spanning the genome is an organism, while a bounded high-identity
+    window with stepped edges is a construct.
+    """
+    from .arms.day3 import prepare_database
+    from .arms.taxon import diagnose_taxon
+
+    arm = _arm_config(config_path)
+    samples_config = _samples_config(arm.samples_config)
+    _, clades = prepare_database(arm, log=lambda msg: click.echo(msg, err=True))
+    record = diagnose_taxon(
+        arm,
+        samples_config,
+        clades,
+        taxid=taxid,
+        reference=reference,
+        accession=sample,
+        include_descendants=descendants,
+        allow_post_cutoff=allow_post_cutoff,
+        log=lambda msg: click.echo(msg, err=True),
+    )
+    click.echo(json.dumps(record, indent=2))
+
+
 @arm_a_grp.command("report")
 @click.option(
     "--provenance",
@@ -737,6 +802,77 @@ def arm_b_diagnose_cmd(
         clade=clade,
         accession=sample,
         dated_reference=dated_reference,
+        log=lambda msg: click.echo(msg, err=True),
+    )
+    click.echo(json.dumps(record, indent=2))
+
+
+@arm_b_grp.command("diagnose-strain")
+@_ARM_B_CONFIG_OPTION
+@click.option(
+    "--clade",
+    default="coronaviridae",
+    show_default=True,
+    help="Which clade's contigs to resolve.",
+)
+@click.option(
+    "--sample",
+    "sample",
+    default=None,
+    help="A negative's run accession. Default: the index sample.",
+)
+@click.option(
+    "--reference",
+    "references",
+    multiple=True,
+    required=True,
+    help=(
+        "An accession.version to align to; repeatable, and meant to be repeated. Each one "
+        "is either in the dated manifest or checked at NCBI to predate the cutoff, and its "
+        "publication date is recorded in the output."
+    ),
+)
+@click.option(
+    "--allow-post-cutoff",
+    is_flag=True,
+    default=False,
+    help=(
+        "Permit a reference published on or after the cutoff. Off by default because it "
+        "puts post-cutoff sequence into the diagnosis; the record says when it was used."
+    ),
+)
+def arm_b_diagnose_strain_cmd(
+    config_path: Path,
+    clade: str,
+    sample: str | None,
+    references: tuple[str, ...],
+    allow_post_cutoff: bool,
+) -> None:
+    """Decide whether a clade's contigs are one diverged strain or more than one organism.
+
+    ``diagnose-contigs`` aligns to one reference, which cannot tell a very diverged region
+    of a virus from a second virus. This aligns to a panel and reports which reference
+    accounts for every contig, whether any region of it is covered twice by contigs that
+    disagree, and whether the contigs split into two coverage classes. The panel is the
+    point: RefSeq curates one genome per species, so a known genotype of a known virus can
+    sit outside the dated database on curation grounds while being years older than the
+    cutoff.
+    """
+    from .arms.day4 import prepare_database
+    from .arms.strain import diagnose_strain
+
+    arm = _arm_b_config(config_path)
+    samples_config = _samples_config(arm.samples_config)
+    _, taxonomy, clades = prepare_database(arm, log=lambda msg: click.echo(msg, err=True))
+    record = diagnose_strain(
+        arm,
+        samples_config,
+        taxonomy,
+        clades,
+        references=list(references),
+        clade=clade,
+        accession=sample,
+        allow_post_cutoff=allow_post_cutoff,
         log=lambda msg: click.echo(msg, err=True),
     )
     click.echo(json.dumps(record, indent=2))
