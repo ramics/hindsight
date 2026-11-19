@@ -217,15 +217,32 @@ unrelated samples at exactly the same count, and still unexplained. **The arm's 
 is better than this day credited it with, and the quantity that is actually unexplained
 is 28 reads in 228 million, not 35.**
 
-Two consequences. Arm B's one counted contig in this sample, `k141_852`, has its best hit
-on *Rat coronavirus Parker* at 91.2% — the same signature as those reads, so it is likely
-the same genotype B sequence, which would take Arm B's cohort false-alarm count to zero
-and let its threshold fall from bitscore 250 to the unfiltered rule. That does not change
-Arm B's limit, which already sits at the series floor; it changes how strong the
-specificity claim is allowed to be. And the mechanism is general: a divergent strain of an
-organism the database holds only one genotype of will scatter reads onto whatever
-relatives *are* there. The other 27 reads deserve the same pass before Day 6 quotes the
-figure — `Sparrow coronavirus HKU17` at 11 reads in two unrelated samples first.
+**Arm B's one counted contig is the same thing, confirmed.** `k141_852` is **100.00%
+identical at nucleotide level to `DQ415911` over its 767 bases**, against 97.42% to the
+genotype A reference. So **Arm B's measured false-alarm count across the cohort is zero
+contigs**, and its threshold could fall from bitscore 250 to the arm's unfiltered rule.
+That does not move Arm B's limit, which already sits at the series floor; it moves how
+strong the specificity claim is allowed to be.
+
+**And it exposes the limit of this day's attribution rule.** Decision 2 attributes a
+contig to its best hit, which cannot catch this contig, because *the best hit is itself
+wrong*: *Rat coronavirus Parker*'s ORF1a genuinely is the closest protein in the dated
+database at 91.2%, and HKU1's own ORF1ab comes second at 98.1% over 106 residues with the
+**identical bitscore of 226**. Attribution by best hit picks the rat because a coin landed
+that way. Best-hit attribution is still the better of the two rules available inside the
+arm's own output — it is what takes the HKU1 patient's counted contigs from six to one —
+but the thing that settles the last one is a nucleotide check against a genotype the
+database does not hold, which is outside the arm entirely. A protein search against an
+incomplete reference set can be confidently wrong about *which* relative a sequence is,
+while being right that it is a coronavirus, and no rule over its own hit table fixes that.
+
+The mechanism is general: a divergent strain of an organism the database holds only one
+genotype of will scatter reads onto whatever relatives *are* there. The other 27 reads
+deserve the same pass before Day 6 quotes the figure, and `Sparrow coronavirus HKU17` at
+11 reads in two unrelated samples is first in line, because those two samples are what
+sets Arm A's threshold. One read in this sample — a single *Coronavirus AcCoV-JC34* call —
+aligns to neither HKU1 genotype and remains unexplained, which is why this sample still
+contributes 1 to the cohort's 28 rather than 0.
 
 ### One read that does not reconcile, and why it is here
 
