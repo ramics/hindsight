@@ -19,6 +19,7 @@ from hindsight.arms import day5
 
 REAL_DAY3 = Path("results/day3-provenance.json")
 REAL_DAY4 = Path("results/day4-provenance.json")
+REAL_DAY5 = Path("results/day5-provenance.json")
 
 
 # ------------------------------------------------------------------- the thresholds
@@ -229,8 +230,8 @@ def test_config_rejects_what_it_cannot_honour(tmp_path):
 
 
 requires_records = pytest.mark.skipif(
-    not (REAL_DAY3.exists() and REAL_DAY4.exists()),
-    reason="needs the committed Day 3 and Day 4 provenance records",
+    not (REAL_DAY3.exists() and REAL_DAY4.exists() and REAL_DAY5.exists()),
+    reason="needs the committed provenance records",
 )
 
 
@@ -262,9 +263,15 @@ def test_scoring_the_real_records_runs_no_tool(tmp_path, monkeypatch):
 
 
 @requires_records
-def test_the_headline_numbers_are_the_ones_the_write_up_quotes():
-    out = Path("results/day5-provenance.json")
-    record = day5.score(day5.Scoring(day3=REAL_DAY3, day4=REAL_DAY4, provenance=out))
+def test_the_headline_numbers_are_the_ones_the_write_up_quotes(tmp_path):
+    # Scored into tmp_path, never over the committed record. An earlier version of this
+    # test wrote to results/day5-provenance.json, which meant any pytest run rewrote the
+    # project's own evidence with the local machine's timestamp and disk figures — and,
+    # worse, made the assertion unfalsifiable: it regenerated the file it was meant to be
+    # checking. The committed record is compared against, below, rather than refreshed.
+    record = day5.score(
+        day5.Scoring(day3=REAL_DAY3, day4=REAL_DAY4, provenance=tmp_path / "day5.json")
+    )
     arm_a = record["arm_a"]["headline"]
     arm_b = record["arm_b"]["headline"]
     assert arm_a["threshold_reads"] == 12
@@ -297,8 +304,29 @@ def test_the_series_background_offsets_the_dose_axis():
 
 
 @requires_records
+def test_the_committed_record_has_not_drifted_from_the_inputs(tmp_path):
+    """The committed record must still be what scoring the committed inputs produces.
+
+    This is the half that the old self-rewriting test could not do. Everything except
+    the provenance preamble — when it ran, on what machine, and the paths and digests of
+    its inputs — is compared, so a Day 3 or Day 4 record that changes without Day 5's
+    being re-run fails here instead of going unnoticed.
+    """
+    committed_text = REAL_DAY5.read_text()
+    committed = json.loads(committed_text)
+    fresh = day5.score(
+        day5.Scoring(day3=REAL_DAY3, day4=REAL_DAY4, provenance=tmp_path / "day5.json")
+    )
+    preamble = {"generated_at", "machine", "inputs"}
+    assert {k: v for k, v in committed.items() if k not in preamble} == {
+        k: v for k, v in fresh.items() if k not in preamble
+    }
+    assert REAL_DAY5.read_text() == committed_text, "scoring must not touch the record"
+
+
+@requires_records
 def test_every_decision_is_recorded_with_its_alternatives():
-    record = json.loads(Path("results/day5-provenance.json").read_text())
+    record = json.loads(REAL_DAY5.read_text())
     decisions = record["decisions"]
     assert decisions["clade"]["chose"] == "coronaviridae"
     assert decisions["framing"]["chose"] == "excluding_endemic"
