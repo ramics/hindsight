@@ -3,7 +3,7 @@
   "name": "hindsight score",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-19T10:52:01+00:00",
+ "generated_at": "2026-11-19T10:54:59+00:00",
  "machine": {
   "platform": "Linux-6.18.44-fc-v653-x86_64-with-glibc2.39",
   "machine": "x86_64",
@@ -12,8 +12,8 @@
   "instance_type": null,
   "work_dir_disk": {
    "total_gib": 252.0,
-   "used_gib": 9.1,
-   "free_gib": 29.7
+   "used_gib": 9.2,
+   "free_gib": 29.6
   }
  },
  "inputs": {

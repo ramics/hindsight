@@ -245,7 +245,7 @@ def test_scoring_the_real_records_runs_no_tool(tmp_path, monkeypatch):
 
     def guard(real):
         def wrapper(args, *rest, **kwargs):
-            parts = args if isinstance(args, (list, tuple)) else [args]
+            parts = args if isinstance(args, list | tuple) else [args]
             names = {Path(str(part)).name for part in parts}
             if names & forbidden:
                 raise AssertionError(f"Day 5 scores from the records and ran {names & forbidden}")
