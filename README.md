@@ -34,34 +34,46 @@ time-matched pre-COVID libraries. That limit is a property of **this benchmark's
 rather than of either method: see [the caveats](#what-this-does-not-show-and-why-it-matters)
 before quoting it.
 
-![Two panels. Left: each pipeline's evidence as a multiple of its own alarm threshold,
-across the dilution series; both sit above the alarm line at every usable dose. Right:
-the share of labelled viral fragments each one recovers; MEGAHIT + DIAMOND recovers ~98%
-at high dose and 10% at the lowest, Kraken2 a flat ~41% throughout, and the two curves
-cross near 100 spiked fragments.](docs/figures/detection-vs-dilution.svg)
+![Two panels. A: each pipeline's evidence as a multiple of its own alarm threshold
+across the dilution series, on log axes; both curves lie above the alarm line at every
+dose except Kraken2 at the lowest, which is inside the shaded floor region. B: the share
+of labelled viral fragments each pipeline recovers; MEGAHIT + DIAMOND falls from 98% to
+10% while Kraken2 stays flat near 41%, and the two curves cross between the 10- and
+100-fragment rungs.](docs/figures/detection-vs-dilution.svg)
 
-### Detection and recovery are different questions
+**Figure 1. Detection and recovery across the dilution series.** The index sample's
+labelled SARS-CoV-2 fragments, thinned to five doses in that sample's own background and
+scored against a November 2019 reference frame. Shading marks the region below the
+series' own floor (6.9 labelled reads per million), where the dose is mostly background
+the dilution never thinned and no rung is a usable measurement.
+**(A) Detection.** Each pipeline's evidence — Coronaviridae reads for Kraken2, best
+Coronaviridae contig bitscore for MEGAHIT + DIAMOND — expressed as a multiple of that
+pipeline's own alarm threshold, both thresholds set from the twenty pre-COVID negatives
+alone and neither raising a false alarm on them. Both pipelines clear the alarm line at
+every usable dose. The single point below it is Kraken2 at the lowest rung, inside the
+floor, where four labelled reads do not reach its threshold of twelve while
+MEGAHIT + DIAMOND still alarms on one 462 bp contig at bitscore 270.
+**(B) Recovery.** The share of labelled fragments each pipeline finds. MEGAHIT + DIAMOND
+recovers 98% of them while coverage is sufficient for assembly and 10% at the lowest
+dose; Kraken2 recovers a flat ~41% throughout, because it classifies each read
+independently. The two curves therefore cross between the 10- and 100-fragment rungs.
+**That crossing is in recovery and not in detection**: it does not change which pipeline
+alarms, and at the lowest dose the pipeline that recovers less is the one that alarms.
 
-This is the easiest thing in the benchmark to plot wrongly, so the figure plots both.
+### Why the two questions come apart
 
-**Nothing crosses in detection.** Both pipelines alarm at every usable rung of the
-series — four of the five. The fifth sits below the series' own floor and is not a
-measurement of either method (see
-[the caveats](#what-this-does-not-show-and-why-it-matters)); there it is
-MEGAHIT + DIAMOND that alarms, while Kraken2 goes quiet.
+Above ~1,000 fragments the assembly recovers more than twice what the classifier does,
+because a contig recruits reads that would never classify alone; below ~100 it collapses,
+because the assembler runs out of coverage, while Kraken2's per-read rate stays flat at
+~41% all the way down. That is the whole of the recovery crossing, and it is a statement
+about how each method uses coverage.
 
-**The crossover is in recovery** — the share of the known viral fragments each one
-finds. Above ~1,000 fragments the assembly recovers more than twice what the classifier
-does, because a contig recruits reads that would never classify alone; below ~100 it
-collapses, because the assembler runs out of coverage while Kraken2's per-read rate stays
-flat at ~41% all the way down.
-
-At the lowest rung MEGAHIT + DIAMOND recovers **1 read of 10** and Kraken2 **4 of 10**,
-and MEGAHIT + DIAMOND is the one that alarms. An alarm needs one piece of evidence above
-the cohort's noise: a 462 bp contig matching a coronavirus replicase at bitscore 270 is
-that, and four reads in a cohort whose negatives reach eleven is not. **The method that
-recovers less can be the method that detects.** That is why the two carry separate
-statistics rather than one shared threshold.
+Detection asks something else: is there one piece of evidence above the cohort's noise? A
+462 bp contig matching a coronavirus replicase at bitscore 270 is that; four reads, in a
+cohort whose worst negative reaches eleven, is not. **The method that recovers less can be
+the method that detects**, which is why the two carry separate statistics rather than one
+shared threshold, and why a single curve of "detection" against dose would be the wrong
+plot.
 
 The figure is drawn from `results/day5-provenance.json` by
 [`scripts/day6_figure.py`](scripts/day6_figure.py) and invents no number; re-score with a
@@ -219,9 +231,19 @@ index sample: 99.68% of the SARS-CoV-2 genome in one 29,809 bp contig at 100.0% 
 $ scripts/day5.sh
 Kraken2 rule: at least 12 reads placed in coronaviridae
   false alarms: 0 of 20 samples; limit of detection 7.71 viral reads per million
+  (viral000100)
 MEGAHIT + DIAMOND rule: at least one coronaviridae contig at bitscore >= 250
   false alarms: 0 of 20 samples; limit of detection 0.771 viral reads per million
+  (viral000010) (the series' lowest rung; the limit is at or below it)
 ```
+
+Those two limits are the rungs' **labelled** doses, which is how the scorer reports them
+and is the conservative choice for both methods — it credits neither with the virus the
+background already carried. The 0.771 figure is the bottom rung's label and not a
+sensitivity claim: that rung sits below the series' floor, which is why the scorer prints
+it as an upper bound rather than a point, and why the headline limit quoted above is
+~8 reads per million for both. See
+[the caveats](#what-this-does-not-show-and-why-it-matters).
 
 ### What it costs
 

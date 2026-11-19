@@ -53,7 +53,8 @@ def test_every_plotted_point_comes_from_the_record(provenance):
 
     # Five rungs per arm, in both panels: twenty markers and no more, so a stray series
     # cannot be drawn without the count changing.
-    assert svg.count("<circle") == 4 * len(levels) + 1 + 2  # markers, the ringed point, legend
+    # Four series of five markers, the ring around the one silent point, two legend dots.
+    assert svg.count("<circle") == 4 * len(levels) + 1 + 2
     assert str(int(a_thresh)) in svg and str(int(b_thresh)) in svg
 
     # The figure's claim is the alarm line: every rung above it alarms in the record.
@@ -64,9 +65,9 @@ def test_every_plotted_point_comes_from_the_record(provenance):
         assert level["arm_b_alarm"] == (margin_b >= 1)
 
 
-def test_the_crossover_marker_sits_where_the_recovery_curves_actually_cross(provenance):
-    # Drawn by interpolation rather than by eye, because the rung spacing is logarithmic
-    # and a marker placed at the midpoint of two rungs is a different claim.
+def test_the_captions_crossing_claim_is_true_of_the_record(provenance):
+    # The figure no longer marks the crossing; the README's caption states where it is,
+    # which is a claim about the record and can go stale the same way a marker could.
     levels = provenance["cross_arm"]["levels"]
     low, above = levels[4], levels[3]
 
@@ -79,8 +80,8 @@ def test_the_crossover_marker_sits_where_the_recovery_curves_actually_cross(prov
         recovery(above, "arm_b_reads_recovered"),
     )
 
-    # Arm B is behind at the bottom rung and ahead at the one above it: that bracket is
-    # the whole reason a crossover exists, and it is what the figure annotates.
+    # The assembly is behind at the bottom rung and ahead at the one above it, so the
+    # crossing lies between those two rungs — which is what the caption says.
     assert b_low < a_low
     assert b_above > a_above
 

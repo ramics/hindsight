@@ -74,11 +74,12 @@ def marker(x, y, colour, r=4.6):
     )
 
 
-def panel_frame(x0, y0, title, subtitle, y_label):
+def panel_frame(x0, y0, letter, title, subtitle, y_label):
     out = [
         f'<rect x="{x0 - 0.5:.1f}" y="{y0 - 0.5:.1f}" width="{PANEL_W + 1}" '
         f'height="{PANEL_H + 1}" fill="none" stroke="{GRID}" stroke-width="1"/>',
-        text(x0, y0 - 44, title, size=15.5, fill=INK, weight=650),
+        text(x0, y0 - 44, letter, size=15.5, fill=INK, weight=700),
+        text(x0 + 20, y0 - 44, title, size=15.5, fill=INK, weight=650),
         text(x0, y0 - 25, subtitle, size=12.5, fill=MUTED),
         f'<text x="{x0 - 52:.1f}" y="{y0 + PANEL_H / 2:.1f}" font-family="{FONT}" '
         f'font-size="12" fill="{MUTED}" text-anchor="middle" '
@@ -104,7 +105,7 @@ def build(prov: dict) -> str:
         text(
             PAD_L - 2,
             40,
-            "Detection and recovery against dilution",
+            "Detection and recovery across the dilution series",
             size=19,
             fill=INK,
             weight=700,
@@ -112,8 +113,7 @@ def build(prov: dict) -> str:
         text(
             PAD_L - 2,
             66,
-            "Left: both pipelines alarm at every usable dose. "
-            "Right: the curves that cross are recovery, not detection.",
+            "SARS-CoV-2 reads in a November 2019 reference frame, against 20 pre-COVID negatives.",
             size=13,
             fill=INK_2,
         ),
@@ -147,6 +147,7 @@ def build(prov: dict) -> str:
     s += panel_frame(
         x0,
         y0,
+        "A",
         "Does it alarm?",
         "evidence as a multiple of each pipeline's own alarm threshold",
         "× the alarm threshold",
@@ -230,6 +231,7 @@ def build(prov: dict) -> str:
     s += panel_frame(
         x1,
         y0,
+        "B",
         "How much does it recover?",
         "share of the labelled viral fragments each one finds",
         "% of labelled fragments recovered",
@@ -257,22 +259,6 @@ def build(prov: dict) -> str:
         s.append(marker(x, y, KRAKEN))
     for x, y in rb:
         s.append(marker(x, y, ASSEMBLY))
-
-    # crossover: between the 100- and 10-fragment rungs
-    a3, a4 = 100 * levels[3]["arm_a_reads"] / 100, 100 * levels[4]["arm_a_reads"] / 10
-    b3, b4 = (
-        100 * levels[3]["arm_b_reads_recovered"] / 100,
-        100 * levels[4]["arm_b_reads_recovered"] / 10,
-    )
-    t = (a4 - b4) / ((a4 - b4) + (b3 - a3))  # 0 at the 10-fragment rung, 1 at the 100
-    cx = gx(dose[4]) + t * (gx(dose[3]) - gx(dose[4]))
-    s.append(
-        f'<line x1="{cx:.1f}" y1="{y0 + 14:.1f}" x2="{cx:.1f}" y2="{y0 + PANEL_H - 10:.1f}" '
-        f'stroke="{INK}" stroke-width="1.4" stroke-dasharray="5 4"/>'
-    )
-    s.append(text(cx + 10, gy(88), "the curves cross here", size=11.5, fill=INK, weight=600))
-    s.append(text(cx + 10, gy(88) + 14, "— in recovery. Both methods", size=11, fill=MUTED))
-    s.append(text(cx + 10, gy(88) + 27, "still alarm either side of it.", size=11, fill=MUTED))
 
     s.append(
         text(
