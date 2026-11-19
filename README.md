@@ -43,9 +43,11 @@ of labelled viral fragments each pipeline recovers; MEGAHIT + DIAMOND falls from
 
 **Figure 1. Detection and recovery across the dilution series.** The index sample's
 labelled SARS-CoV-2 fragments, thinned to five doses in that sample's own background and
-scored against a November 2019 reference frame. Shading marks the region below the
-series' own floor (6.9 labelled reads per million), where the dose is mostly background
-the dilution never thinned and no rung is a usable measurement.
+scored against a November 2019 reference frame. Because the series was diluted into the
+index patient's own reads, and those reads already carried ~90 coronavirus fragments of
+their own, no rung can hold less virus than that residue: shading marks the doses below
+6.9 labelled reads per million, where most of what is present was never diluted and the
+rung measures the benchmark rather than either pipeline.
 **(A) Detection.** Each pipeline's evidence — Coronaviridae reads for Kraken2, best
 Coronaviridae contig bitscore for MEGAHIT + DIAMOND — expressed as a multiple of that
 pipeline's own alarm threshold, both thresholds set from the twenty pre-COVID negatives
@@ -240,7 +242,8 @@ MEGAHIT + DIAMOND rule: at least one coronaviridae contig at bitscore >= 250
 Those two limits are the rungs' **labelled** doses, which is how the scorer reports them
 and is the conservative choice for both methods — it credits neither with the virus the
 background already carried. The 0.771 figure is the bottom rung's label and not a
-sensitivity claim: that rung sits below the series' floor, which is why the scorer prints
+sensitivity claim: that rung sits below the floor described under Figure 1, which is why
+the scorer prints
 it as an upper bound rather than a point, and why the headline limit quoted above is
 ~8 reads per million for both. See
 [the caveats](#what-this-does-not-show-and-why-it-matters).

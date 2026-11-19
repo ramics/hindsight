@@ -134,7 +134,7 @@ def build(prov: dict) -> str:
         text(
             lx + 27,
             ly - 2,
-            f"below the series' own floor ({floor:.1f} /M) — not a usable rung",
+            f"doses below {floor:.1f} /M: mostly background the dilution never thinned",
             size=12.5,
             fill=MUTED,
         )
