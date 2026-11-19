@@ -270,6 +270,30 @@ negatives, why every dilution level costs its own assembly, what `--very-sensiti
 out to be worth, the read-mapping error and what generalises from it, and the measurement
 behind every runtime decision.
 
+### What the HKU1 negative actually had
+
+One negative's loose end from Arm B turned out to be about the reference set rather than
+about the patient. Four of its 23 Coronaviridae contigs had good HKU1 protein hits and no
+nucleotide alignment to the dated HKU1 genome, which reads as a second, diverged
+betacoronavirus — and is not. RefSeq curates **one genome per species**, and its single
+HKU1 genome is genotype A; against a genotype B genome published in 2006, all 23 contigs
+align at 99.4% identity. The patient had one ordinary endemic infection whose genotype the
+database does not represent, and the "divergence" was in exactly the two genes that define
+the genotype.
+
+Two things fell out of chasing it. Arm A's seven non-endemic betacoronavirus reads across
+the whole negative cohort are that same infection, misassigned to rodent and bovine
+relatives because no genotype B is in the database — so the cohort's non-endemic
+false-alarm count at genus level is zero, not seven. And the single largest viral call
+anywhere in the cohort, 11,227 reads of a horse lentivirus in a human lung, is a cloned
+1.7 kb fragment of its *pol* gene: one window, edges one base wide, no coverage of *gag*,
+*env* or either LTR, and the same window in all twenty samples. A read count cannot see
+that; where the reads sit on the reference can.
+
+[`docs/hku1-coinfection.md`](docs/hku1-coinfection.md) has it in full, and both checks are
+commands: `hindsight arm-b diagnose-strain` for one-strain-or-two, `hindsight arm-a
+diagnose-taxon` for organism-or-reagent.
+
 ## What this does not give you, and why it matters
 
 Stated plainly, because a benchmark whose database has unexamined properties is not a
