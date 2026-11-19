@@ -217,9 +217,9 @@ index sample: 99.68% of the SARS-CoV-2 genome in one 29,809 bp contig at 100.0% 
   viral000010:      1 of     10 detected
 
 $ scripts/day5.sh
-Arm A rule: at least 12 reads placed in coronaviridae
+Kraken2 rule: at least 12 reads placed in coronaviridae
   false alarms: 0 of 20 samples; limit of detection 7.71 viral reads per million
-Arm B rule: at least one coronaviridae contig at bitscore >= 250
+MEGAHIT + DIAMOND rule: at least one coronaviridae contig at bitscore >= 250
   false alarms: 0 of 20 samples; limit of detection 0.771 viral reads per million
 ```
 
