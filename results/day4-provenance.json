@@ -3,9 +3,9 @@
     "name": "hindsight arm-b",
     "version": "0.1.0"
   },
-  "generated_at": "2026-11-19T09:30:58+00:00",
+  "generated_at": "2026-11-19T09:45:47+00:00",
   "stages": [
-    "index"
+    "series"
   ],
   "machine": {
     "platform": "Linux-6.18.44-fc-v653-x86_64-with-glibc2.39",
@@ -15,8 +15,8 @@
     "instance_type": null,
     "work_dir_disk": {
       "total_gib": 252.0,
-      "used_gib": 20.5,
-      "free_gib": 18.4
+      "used_gib": 20.6,
+      "free_gib": 18.2
     }
   },
   "tools": [
@@ -1171,7 +1171,7 @@
       }
     }
   },
-  "wall_clock_seconds": 761.7,
+  "wall_clock_seconds": 788.9,
   "runs": [
     {
       "generated_at": "2026-11-18T12:45:34+00:00",
@@ -1252,6 +1252,14 @@
         "index"
       ],
       "wall_clock_seconds": 761.7,
+      "negatives": []
+    },
+    {
+      "generated_at": "2026-11-19T09:45:47+00:00",
+      "stages": [
+        "series"
+      ],
+      "wall_clock_seconds": 788.9,
       "negatives": []
     }
   ],
@@ -1654,32 +1662,9 @@
           "name": "viral050000",
           "contigs_used": 4,
           "contig_bases": 32115,
-          "seconds": 113.0,
-          "reads_aligned": 49385,
-          "mapq_distribution": {
-            "0": 2,
-            "2": 66,
-            "9": 57,
-            "11": 18,
-            "12": 26,
-            "14": 6,
-            "16": 15,
-            "17": 40,
-            "18": 36,
-            "21": 14,
-            "22": 12,
-            "24": 31,
-            "25": 16,
-            "28": 67,
-            "36": 130,
-            "37": 13,
-            "38": 10,
-            "41": 375,
-            "42": 1299,
-            "44": 96524
-          },
-          "mate_alignments": 98757,
-          "alignment_summary": [
+          "candidate_reads": 49385,
+          "candidate_mate_alignments": 98757,
+          "pass1_alignment_summary": [
             "    10861379 pairs aligned 0 times concordantly or discordantly; of these:",
             "      21722758 mates make up the pairs; of these:",
             "        21722719 (100.00%) aligned 0 times",
@@ -1687,14 +1672,49 @@
             "        13 (0.00%) aligned >1 times",
             "0.45% overall alignment rate"
           ],
+          "seconds": 152.8,
+          "reads_aligned": 49380,
+          "mapq_distribution": {
+            "0": 4,
+            "2": 95,
+            "9": 106,
+            "12": 66,
+            "14": 1,
+            "16": 13,
+            "17": 15,
+            "18": 37,
+            "21": 64,
+            "22": 25,
+            "24": 50,
+            "25": 84,
+            "28": 116,
+            "36": 301,
+            "37": 78,
+            "38": 84,
+            "39": 14,
+            "40": 42,
+            "41": 779,
+            "42": 2255,
+            "44": 94413
+          },
+          "mate_alignments": 98642,
+          "alignment_summary": [
+            "98757 reads; of these:",
+            "  98757 (100.00%) were unpaired; of these:",
+            "    98 (0.10%) aligned 0 times",
+            "    97939 (99.17%) aligned exactly 1 time",
+            "    720 (0.73%) aligned >1 times",
+            "99.90% overall alignment rate"
+          ],
+          "subset_index_inflation": 1.0,
           "truth_fragments": 50000,
-          "detected": 49078,
-          "false_positive": 307,
-          "sensitivity": 0.98156,
+          "detected": 49077,
+          "false_positive": 303,
+          "sensitivity": 0.98154,
           "per_million": {
-            "raw_spots": 1746.1041211946526,
-            "non_redacted_spots": 3441.9448071935913,
-            "post_qc_pairs": 3805.996156780068
+            "raw_spots": 1745.9273363286818,
+            "non_redacted_spots": 3441.5963263991,
+            "post_qc_pairs": 3805.610817491136
           }
         },
         "name": "viral050000",
@@ -2475,31 +2495,9 @@
           "name": "viral010000",
           "contigs_used": 5,
           "contig_bases": 32437,
-          "seconds": 98.6,
-          "reads_aligned": 10185,
-          "mapq_distribution": {
-            "0": 2,
-            "2": 111,
-            "9": 62,
-            "11": 18,
-            "12": 26,
-            "14": 6,
-            "16": 14,
-            "17": 48,
-            "18": 37,
-            "21": 3,
-            "22": 41,
-            "24": 14,
-            "25": 1,
-            "28": 26,
-            "36": 21,
-            "37": 4,
-            "41": 56,
-            "42": 267,
-            "44": 19592
-          },
-          "mate_alignments": 20349,
-          "alignment_summary": [
+          "candidate_reads": 10185,
+          "candidate_mate_alignments": 20349,
+          "pass1_alignment_summary": [
             "    10860582 pairs aligned 0 times concordantly or discordantly; of these:",
             "      21721164 mates make up the pairs; of these:",
             "        21721127 (100.00%) aligned 0 times",
@@ -2507,14 +2505,49 @@
             "        12 (0.00%) aligned >1 times",
             "0.09% overall alignment rate"
           ],
+          "seconds": 124.4,
+          "reads_aligned": 10137,
+          "mapq_distribution": {
+            "0": 2,
+            "2": 69,
+            "9": 77,
+            "12": 55,
+            "14": 1,
+            "16": 7,
+            "17": 9,
+            "18": 14,
+            "21": 32,
+            "22": 9,
+            "24": 17,
+            "25": 37,
+            "28": 20,
+            "36": 57,
+            "37": 43,
+            "38": 46,
+            "39": 17,
+            "40": 42,
+            "41": 177,
+            "42": 411,
+            "44": 19110
+          },
+          "mate_alignments": 20252,
+          "alignment_summary": [
+            "20349 reads; of these:",
+            "  20349 (100.00%) were unpaired; of these:",
+            "    78 (0.38%) aligned 0 times",
+            "    19810 (97.35%) aligned exactly 1 time",
+            "    461 (2.27%) aligned >1 times",
+            "99.62% overall alignment rate"
+          ],
+          "subset_index_inflation": 1.0,
           "truth_fragments": 10000,
-          "detected": 9829,
-          "false_positive": 356,
-          "sensitivity": 0.9829,
+          "detected": 9824,
+          "false_positive": 313,
+          "sensitivity": 0.9824,
           "per_million": {
-            "raw_spots": 360.11077198273847,
-            "non_redacted_spots": 709.8553783794013,
-            "post_qc_pairs": 784.9361315542167
+            "raw_spots": 358.41363726941773,
+            "non_redacted_spots": 706.5099627522818,
+            "post_qc_pairs": 781.2368743804708
           }
         },
         "name": "viral010000",
@@ -3963,33 +3996,9 @@
           "name": "viral001000",
           "contigs_used": 24,
           "contig_bases": 28263,
-          "seconds": 97.1,
-          "reads_aligned": 1243,
-          "mapq_distribution": {
-            "0": 2,
-            "2": 40,
-            "9": 62,
-            "11": 20,
-            "12": 18,
-            "14": 6,
-            "16": 16,
-            "17": 40,
-            "18": 34,
-            "21": 12,
-            "22": 2,
-            "24": 19,
-            "25": 2,
-            "28": 26,
-            "36": 18,
-            "37": 5,
-            "38": 6,
-            "39": 2,
-            "41": 14,
-            "42": 40,
-            "44": 2094
-          },
-          "mate_alignments": 2478,
-          "alignment_summary": [
+          "candidate_reads": 1243,
+          "candidate_mate_alignments": 2478,
+          "pass1_alignment_summary": [
             "    10860505 pairs aligned 0 times concordantly or discordantly; of these:",
             "      21721010 mates make up the pairs; of these:",
             "        21720998 (100.00%) aligned 0 times",
@@ -3997,14 +4006,52 @@
             "        5 (0.00%) aligned >1 times",
             "0.01% overall alignment rate"
           ],
+          "seconds": 116.1,
+          "reads_aligned": 1239,
+          "mapq_distribution": {
+            "0": 2,
+            "2": 22,
+            "9": 77,
+            "11": 5,
+            "12": 37,
+            "14": 6,
+            "16": 3,
+            "17": 6,
+            "18": 41,
+            "21": 24,
+            "22": 5,
+            "24": 18,
+            "25": 24,
+            "28": 21,
+            "33": 2,
+            "34": 2,
+            "36": 16,
+            "37": 37,
+            "38": 45,
+            "39": 19,
+            "40": 42,
+            "41": 32,
+            "42": 56,
+            "44": 1924
+          },
+          "mate_alignments": 2466,
+          "alignment_summary": [
+            "2478 reads; of these:",
+            "  2478 (100.00%) were unpaired; of these:",
+            "    6 (0.24%) aligned 0 times",
+            "    2072 (83.62%) aligned exactly 1 time",
+            "    400 (16.14%) aligned >1 times",
+            "99.76% overall alignment rate"
+          ],
+          "subset_index_inflation": 1.0,
           "truth_fragments": 1000,
           "detected": 936,
-          "false_positive": 307,
+          "false_positive": 303,
           "sensitivity": 0.936,
           "per_million": {
-            "raw_spots": 43.94871768036759,
-            "non_redacted_spots": 86.63232551061323,
-            "post_qc_pairs": 95.79534722846257
+            "raw_spots": 43.80728978759086,
+            "non_redacted_spots": 86.35354087501995,
+            "post_qc_pairs": 95.48707579731709
           }
         },
         "name": "viral001000",
@@ -5857,29 +5904,9 @@
           "name": "viral000100",
           "contigs_used": 17,
           "contig_bases": 8182,
-          "seconds": 95.9,
-          "reads_aligned": 253,
-          "mapq_distribution": {
-            "0": 2,
-            "2": 6,
-            "9": 6,
-            "11": 6,
-            "14": 5,
-            "17": 6,
-            "18": 8,
-            "21": 2,
-            "22": 5,
-            "24": 10,
-            "25": 2,
-            "28": 10,
-            "36": 8,
-            "38": 5,
-            "41": 4,
-            "42": 8,
-            "44": 401
-          },
-          "mate_alignments": 494,
-          "alignment_summary": [
+          "candidate_reads": 253,
+          "candidate_mate_alignments": 494,
+          "pass1_alignment_summary": [
             "    10860599 pairs aligned 0 times concordantly or discordantly; of these:",
             "      21721198 mates make up the pairs; of these:",
             "        21721182 (100.00%) aligned 0 times",
@@ -5887,14 +5914,48 @@
             "        4 (0.00%) aligned >1 times",
             "0.00% overall alignment rate"
           ],
+          "seconds": 114.2,
+          "reads_aligned": 249,
+          "mapq_distribution": {
+            "0": 2,
+            "2": 1,
+            "9": 9,
+            "12": 4,
+            "14": 2,
+            "17": 4,
+            "18": 5,
+            "21": 2,
+            "22": 7,
+            "24": 7,
+            "25": 10,
+            "28": 5,
+            "36": 2,
+            "37": 33,
+            "38": 40,
+            "39": 14,
+            "40": 42,
+            "41": 6,
+            "42": 6,
+            "44": 283
+          },
+          "mate_alignments": 484,
+          "alignment_summary": [
+            "494 reads; of these:",
+            "  494 (100.00%) were unpaired; of these:",
+            "    4 (0.81%) aligned 0 times",
+            "    316 (63.97%) aligned exactly 1 time",
+            "    174 (35.22%) aligned >1 times",
+            "99.19% overall alignment rate"
+          ],
+          "subset_index_inflation": 1.0,
           "truth_fragments": 100,
           "detected": 41,
-          "false_positive": 212,
+          "false_positive": 208,
           "sensitivity": 0.41,
           "per_million": {
-            "raw_spots": 8.945314218127915,
-            "non_redacted_spots": 17.63312820127526,
-            "post_qc_pairs": 19.49816801995256
+            "raw_spots": 8.80388632535119,
+            "non_redacted_spots": 17.354343565681972,
+            "post_qc_pairs": 19.189896588807066
           }
         },
         "name": "viral000100",
@@ -7079,19 +7140,9 @@
           "name": "viral000010",
           "contigs_used": 4,
           "contig_bases": 2709,
-          "seconds": 90.9,
-          "reads_aligned": 174,
-          "mapq_distribution": {
-            "18": 4,
-            "24": 4,
-            "28": 8,
-            "36": 2,
-            "41": 2,
-            "42": 6,
-            "44": 322
-          },
-          "mate_alignments": 348,
-          "alignment_summary": [
+          "candidate_reads": 174,
+          "candidate_mate_alignments": 348,
+          "pass1_alignment_summary": [
             "    10860574 pairs aligned 0 times concordantly or discordantly; of these:",
             "      21721148 mates make up the pairs; of these:",
             "        21721148 (100.00%) aligned 0 times",
@@ -7099,14 +7150,41 @@
             "        0 (0.00%) aligned >1 times",
             "0.00% overall alignment rate"
           ],
+          "seconds": 110.1,
+          "reads_aligned": 170,
+          "mapq_distribution": {
+            "14": 1,
+            "18": 2,
+            "24": 2,
+            "25": 6,
+            "28": 4,
+            "36": 1,
+            "37": 28,
+            "38": 31,
+            "39": 13,
+            "40": 42,
+            "41": 2,
+            "42": 4,
+            "44": 203
+          },
+          "mate_alignments": 339,
+          "alignment_summary": [
+            "348 reads; of these:",
+            "  348 (100.00%) were unpaired; of these:",
+            "    3 (0.86%) aligned 0 times",
+            "    216 (62.07%) aligned exactly 1 time",
+            "    129 (37.07%) aligned >1 times",
+            "99.14% overall alignment rate"
+          ],
+          "subset_index_inflation": 1.0,
           "truth_fragments": 10,
           "detected": 1,
-          "false_positive": 173,
+          "false_positive": 169,
           "sensitivity": 0.1,
           "per_million": {
-            "raw_spots": 6.152113335787579,
-            "non_redacted_spots": 12.127131648307886,
-            "post_qc_pairs": 13.409807254829033
+            "raw_spots": 6.0106854430108525,
+            "non_redacted_spots": 11.848347012714601,
+            "post_qc_pairs": 13.101535823683538
           }
         },
         "name": "viral000010",
@@ -7815,24 +7893,42 @@
         "name": "background",
         "contigs_used": 3,
         "contig_bases": 2247,
-        "seconds": 95.4,
-        "reads_aligned": 169,
-        "mapq_distribution": {
-          "24": 4,
-          "28": 6,
-          "36": 2,
-          "42": 6,
-          "44": 320
-        },
-        "mate_alignments": 338,
-        "alignment_summary": [
+        "candidate_reads": 169,
+        "candidate_mate_alignments": 338,
+        "pass1_alignment_summary": [
           "    10860569 pairs aligned 0 times concordantly or discordantly; of these:",
           "      21721138 mates make up the pairs; of these:",
           "        21721138 (100.00%) aligned 0 times",
           "        0 (0.00%) aligned exactly 1 time",
           "        0 (0.00%) aligned >1 times",
           "0.00% overall alignment rate"
-        ]
+        ],
+        "seconds": 120.7,
+        "reads_aligned": 165,
+        "mapq_distribution": {
+          "14": 1,
+          "18": 2,
+          "24": 2,
+          "25": 6,
+          "28": 2,
+          "37": 26,
+          "38": 31,
+          "39": 13,
+          "40": 42,
+          "41": 1,
+          "42": 4,
+          "44": 199
+        },
+        "mate_alignments": 329,
+        "alignment_summary": [
+          "338 reads; of these:",
+          "  338 (100.00%) were unpaired; of these:",
+          "    3 (0.89%) aligned 0 times",
+          "    208 (61.54%) aligned exactly 1 time",
+          "    127 (37.57%) aligned >1 times",
+          "99.11% overall alignment rate"
+        ],
+        "subset_index_inflation": 1.0
       },
       "role": "background (viral fragments removed; any clade hit is a false positive)",
       "sensitivity_comparison": {
