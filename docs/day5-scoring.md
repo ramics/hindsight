@@ -146,10 +146,13 @@ has a cold.
 
 The objection Day 4 raised to this framing is real and is handled by a different knob.
 Excluding the endemic species by name leaves an infection's *spillover*: reads and contigs
-that are genuinely HKU1's but landed one taxon over. At read level the spillover peaks at
-11 reads in a sample, and the threshold sits at 12 — the exclusion does not have to be
-clean, because the threshold absorbs it. At contig level the fix is to attribute a contig
-to its **best hit** rather than to its LCA:
+that are genuinely HKU1's but landed one taxon over. At read level the spillover is 8 of
+the HKU1 patient's reads and the threshold sits at 12 — the exclusion does not have to be
+clean, because the threshold absorbs it, and the two samples that set the threshold at 11
+reads are somebody else's problem entirely (see
+[what the spillover turned out to be](#the-spillover-is-smaller-than-this-day-scored-it)).
+At contig level the fix is to attribute a contig to its **best hit** rather than to its
+LCA:
 
 | `SRR13677922`, 23 Coronaviridae contigs | by LCA | by best hit |
 | --- | --- | --- |
@@ -183,6 +186,63 @@ surface of the benchmark:
 at 28.5% identity — the one Day 4 predicted from the index sample's own background — is
 absent from this table because Day 5 scores DIAMOND's stock mode, which does not produce
 it. That is the third decision.
+
+### The spillover is smaller than this day scored it
+
+Added after scoring, from the coinfection work in
+[`docs/hku1-coinfection.md`](hku1-coinfection.md) (`hindsight arm-b diagnose-strain`),
+which examined `SRR13677922` for an unrelated reason and settled where its stray reads
+came from. **Seven of that sample's eight counted reads are its own HKU1 infection**: they
+are 99.3–100% identical to a 2006 HKU1 **genotype B** genome (`DQ415911`) against
+91.9–98.3% to the genotype A reference, which is the only HKU1 the dated database holds.
+Kraken2 reached for rodent and bovine embecoviruses because no genotype B was in the
+database to reach for — five reads to *Betacoronavirus HKU24*, one to *Betacoronavirus 1*,
+one to *Rat coronavirus Parker*.
+
+So the counted figures above are **upper bounds rather than rates**, and the correction
+moves two numbers while leaving the headline alone:
+
+| | as scored | after the strain check |
+| --- | --- | --- |
+| cohort's unexplained family-level reads | 35 | **28** |
+| cohort's unexplained genus-level reads | 7 | **0** |
+| Arm A's family-level threshold | 12 reads | 12 reads (set by two *other* samples) |
+| Arm A's family-level limit | 7.7 /M | 7.7 /M |
+| Arm A's genus-level threshold | 8 reads | would fall to 1 read |
+
+The headline survives because the binding negatives were never this sample: the threshold
+of 12 comes from `SRR13677700` and `SRR13677975`, which carry 11 reads of *Sparrow
+coronavirus HKU17* each — the oddity Day 3 flagged as worth somebody's attention, two
+unrelated samples at exactly the same count, and still unexplained. **The arm's specificity
+is better than this day credited it with, and the quantity that is actually unexplained
+is 28 reads in 228 million, not 35.**
+
+**Arm B's one counted contig is the same thing, confirmed.** `k141_852` is **100.00%
+identical at nucleotide level to `DQ415911` over its 767 bases**, against 97.42% to the
+genotype A reference. So **Arm B's measured false-alarm count across the cohort is zero
+contigs**, and its threshold could fall from bitscore 250 to the arm's unfiltered rule.
+That does not move Arm B's limit, which already sits at the series floor; it moves how
+strong the specificity claim is allowed to be.
+
+**And it exposes the limit of this day's attribution rule.** Decision 2 attributes a
+contig to its best hit, which cannot catch this contig, because *the best hit is itself
+wrong*: *Rat coronavirus Parker*'s ORF1a genuinely is the closest protein in the dated
+database at 91.2%, and HKU1's own ORF1ab comes second at 98.1% over 106 residues with the
+**identical bitscore of 226**. Attribution by best hit picks the rat because a coin landed
+that way. Best-hit attribution is still the better of the two rules available inside the
+arm's own output — it is what takes the HKU1 patient's counted contigs from six to one —
+but the thing that settles the last one is a nucleotide check against a genotype the
+database does not hold, which is outside the arm entirely. A protein search against an
+incomplete reference set can be confidently wrong about *which* relative a sequence is,
+while being right that it is a coronavirus, and no rule over its own hit table fixes that.
+
+The mechanism is general: a divergent strain of an organism the database holds only one
+genotype of will scatter reads onto whatever relatives *are* there. The other 27 reads
+deserve the same pass before Day 6 quotes the figure, and `Sparrow coronavirus HKU17` at
+11 reads in two unrelated samples is first in line, because those two samples are what
+sets Arm A's threshold. One read in this sample — a single *Coronavirus AcCoV-JC34* call —
+aligns to neither HKU1 genotype and remains unexplained, which is why this sample still
+contributes 1 to the cohort's 28 rather than 0.
 
 ### One read that does not reconcile, and why it is here
 
@@ -380,6 +440,10 @@ Here it costs a flag.
   setting that was pre-registered and then dropped on its own evidence.
 * Quote the per-read specificity bound (0.013 per million) and the per-sample one (<14%)
   as the two different things they are.
+* The unexplained family-level figure is **28 reads in 228 million, not 35**, and both are
+  upper bounds: seven of the original 35 turned out to be the HKU1 patient's own genotype B
+  infection. Run the strain check over the remaining 27 before quoting the number — the
+  sparrow coronavirus pair first, since those two samples are what set Arm A's threshold.
 
 **For Day 7**, in rough order of what the benchmark gains:
 
