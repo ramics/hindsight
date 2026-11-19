@@ -147,7 +147,16 @@ def build_database(
         if not required.exists():
             raise KrakenError(f"{required} is missing; build the database with taxonomy first")
 
-    record: dict = {"db": str(db_dir), "source_db": str(source_db), "masked": bool(mask)}
+    record: dict = {
+        "db": str(db_dir),
+        "source_db": str(source_db),
+        "masked": bool(mask),
+        # None means kraken2-build's own defaults: 35-mers, 31 bp minimizers. Recorded
+        # either way, because "the benchmark ran at defaults" is a claim the provenance
+        # should carry rather than a thing a reader has to infer from a missing field.
+        "kmer_length": kmer_length,
+        "minimizer_length": minimizer_length,
+    }
     if (db_dir / "hash.k2d").exists():
         log(f"kraken2 database already built at {db_dir}")
         record["reused"] = True
