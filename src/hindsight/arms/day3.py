@@ -53,6 +53,8 @@ class ArmConfig:
     confidence: float
     minimum_hit_groups: int
     mask_low_complexity: bool
+    kmer_length: int | None
+    minimizer_length: int | None
     negatives_max_pairs: int
     verify_level: str
     verify_composition: bool
@@ -61,6 +63,10 @@ class ArmConfig:
     out_dir: Path
     provenance: Path
     tool_pins: dict[str, str | None]
+
+
+def _optional_int(value) -> int | None:
+    return None if value is None else int(value)
 
 
 def load_config(path: Path) -> ArmConfig:
@@ -79,6 +85,13 @@ def load_config(path: Path) -> ArmConfig:
         confidence=float(classify.get("confidence", 0.0)),
         minimum_hit_groups=int(classify.get("minimum_hit_groups", 2)),
         mask_low_complexity=bool(database.get("mask_low_complexity", True)),
+        # Unset means Kraken2's own defaults (35-mers, 31 bp minimizers), which is what
+        # the benchmark ran. They are settable so that "would a shorter k have found
+        # more?" is an experiment someone can run rather than a question in a README,
+        # and the database path should change with them: a k=27 index built over a k=35
+        # one would be silently reused.
+        kmer_length=_optional_int(database.get("kmer_length")),
+        minimizer_length=_optional_int(database.get("minimizer_length")),
         negatives_max_pairs=int(negatives.get("max_pairs", 0)),
         verify_level=str(classify.get("verify_level", "viral000010")),
         verify_composition=bool(classify.get("verify_composition", True)),
@@ -99,6 +112,8 @@ def prepare_database(arm: ArmConfig, *, log=print) -> tuple[dict, kraken.CladeSe
         arm.kraken_db,
         threads=arm.threads,
         mask=arm.mask_low_complexity,
+        kmer_length=arm.kmer_length,
+        minimizer_length=arm.minimizer_length,
         log=log,
     )
     taxonomy = kraken.read_taxonomy(arm.source_db / "taxonomy")

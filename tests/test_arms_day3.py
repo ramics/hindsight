@@ -218,3 +218,46 @@ def test_endemic_list_excludes_sars_related_coronavirus():
     assert 694009 not in kraken.ENDEMIC_HUMAN_CORONAVIRUSES.values()
     assert 1335626 not in kraken.ENDEMIC_HUMAN_CORONAVIRUSES.values()  # MERS
     assert 31631 in kraken.ENDEMIC_HUMAN_CORONAVIRUSES.values()  # OC43
+
+
+# ------------------------------------------------- the k-mer length is a settable knob
+
+
+def test_kmer_settings_default_to_kraken2s_own_and_reach_the_builder(tmp_path, monkeypatch):
+    """The README says a shorter k is an experiment someone can run; this is why.
+
+    The knob is worth a test rather than a comment because the failure is silent: a
+    config that sets ``kmer_length`` and a builder that never passes it on would produce
+    a default database under an experiment's name, and every number from it would look
+    like evidence about k.
+    """
+    from hindsight.arms import day3, kraken, taxa
+
+    config = tmp_path / "arm.toml"
+    config.write_text(
+        '[arm]\nsamples_config = "config/day2.toml"\n' '[database]\nsource_db = "db/nov2019"\n'
+    )
+    assert day3.load_config(config).kmer_length is None
+    assert day3.load_config(config).minimizer_length is None
+
+    config.write_text(
+        '[arm]\nsamples_config = "config/day2.toml"\n'
+        '[database]\nsource_db = "db/nov2019"\n'
+        'kraken_db = "work/kraken2/k27"\nkmer_length = 27\nminimizer_length = 24\n'
+    )
+    arm = day3.load_config(config)
+    assert (arm.kmer_length, arm.minimizer_length) == (27, 24)
+
+    seen: dict = {}
+
+    def fake_build(source_db, db_dir, **kwargs):
+        seen.update(kwargs)
+        return {"db": str(db_dir), "files": {}, "inspect": {}}
+
+    taxonomy = taxa.Taxonomy(parents={}, ranks={}, names={})
+    monkeypatch.setattr(kraken, "build_database", fake_build)
+    monkeypatch.setattr(kraken, "read_taxonomy", lambda path: taxonomy)
+    monkeypatch.setattr(kraken, "clade_sets", lambda _taxonomy: taxa.CladeSets(members={}))
+    day3.prepare_database(arm, log=lambda _msg: None)
+    assert seen["kmer_length"] == 27
+    assert seen["minimizer_length"] == 24

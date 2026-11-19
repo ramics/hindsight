@@ -77,6 +77,33 @@ the method that detects**, which is why the two carry separate statistics rather
 shared threshold, and why a single curve of "detection" against dose would be the wrong
 plot.
 
+### Why Kraken2 sees 41% and not 95%
+
+Kraken2 matches **exact k-mers**: at its defaults each read is classified from 35-mers,
+looked up through their 31 bp minimizers. The nearest relatives the November 2019
+database holds are 79–88% identical to this virus at nucleotide level — a mismatch every
+five to eight bases on average — so a match survives only where a conserved stretch runs
+clean for a whole minimizer. 58% of the labelled fragments going unclassified is the
+expected cost of that design against a novel organism, not a defect in the database or
+its date. It is also the gap MEGAHIT + DIAMOND closes from the other side: assemble
+first, then match protein, where homology is still visible at 30% amino-acid identity.
+
+**It is a knob, and it was deliberately not turned.** `k` and the minimizer length are
+build-time settings. `config/day3.toml` exposes them as `kmer_length` and
+`minimizer_length` under `[database]` and leaves both unset, which is Kraken2's own
+default of 35 and 31; the build record carries the setting either way, so running at
+defaults is a claim in the record rather than an inference from a missing field.
+
+Turning them is a real experiment rather than a free improvement, for two reasons. A
+shorter k raises sensitivity and background together, and because the alarm threshold is
+set from the negatives, recovering more viral reads does not by itself lower the limit of
+detection. And testing it fairly means redoing the whole comparison: rebuild (~20 min),
+reclassify everything (~25 min), then re-measure all twenty negatives, whose reads Day 3
+deleted after classifying — about three hours of fetching and host filtering per value of
+k. The one tuning knob this benchmark did measure argues for restraint. DIAMOND's
+`--very-sensitive` was pre-registered as necessary, matched stock mode's best bitscore on
+every genuine signal, and differed only in false positives.
+
 The figure is drawn from `results/day5-provenance.json` by
 [`scripts/day6_figure.py`](scripts/day6_figure.py) and invents no number; re-score with a
 different flag and re-run it, and the figure follows.
@@ -433,7 +460,7 @@ Things that are easy to get wrong, found the hard way and now encoded in tests:
 ## Development
 
 ```bash
-uv run pytest             # 314 offline tests (5 skip without diamond and minimap2)
+uv run pytest             # 315 offline tests (5 skip without diamond and minimap2)
 uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```
