@@ -324,15 +324,17 @@ confirmed free of sarbecovirus reads across 228 million pairs, and two more deca
 dose axis become visible.
 
 **The alarm thresholds are upper bounds, because some "false alarms" are not false.**
-Each threshold is one read above the worst negative, so it is only as good as the reason
-that negative's reads were counted against the benchmark. At least one of them is now
-known not to be a false alarm at all: a patient's genuine HKU1 infection of a genotype
-RefSeq does not carry (it curates one genome per species) was assigned to rodent and
-bovine relatives, because for those k-mers a rodent embecovirus really is the nearest
-thing the database holds. The cohort's remaining family-level reads have not had the
-same examination. Every correction of this kind can only lower a threshold, so the
-limits quoted here are conservative, and a careful pass over the rest would make
-Kraken2 look better rather than worse.
+Seven of the cohort's non-endemic coronavirus reads have since been traced to one
+patient's genuine HKU1 infection, of a genotype RefSeq does not carry — it curates one
+genome per species — which Kraken2 scattered onto rodent and bovine relatives because
+for those k-mers those really are the nearest thing the database holds. That leaves 28
+unexplained family-level reads rather than 35, and none at genus level, and both figures
+are upper bounds because the remaining reads have not had the same strain-level pass.
+It does not move the limits quoted above: Kraken2's threshold of 12 is set by two other
+samples at 11 reads each. But those two have not been examined either, and a correction
+of this kind can only ever take reads out of the false-alarm column, so a careful pass
+over the rest would move the thresholds down and make this benchmark's methods look
+better, never worse.
 
 **Twenty negatives bound specificity coarsely.** 0 alarms in 20 samples bounds the
 per-sample false-alarm rate at **under 14%** with 95% confidence, and no better. The
