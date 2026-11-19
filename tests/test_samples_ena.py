@@ -135,3 +135,44 @@ def test_md5_of_a_known_file(tmp_path):
     path = tmp_path / "x"
     path.write_bytes(b"hindsight")
     assert ena.md5_file(path) == "2b85162ea1dc28002cc8fbebf051acd7"
+
+
+# This lookup is one line of metadata standing in front of hours of work: a cohort run
+# asks ENA once per sample, so an unretried read timeout on the eleventh of twenty
+# negatives throws away the ten already fetched, assembled and searched. It happened.
+class _FlakySession:
+    def __init__(self, failures, text):
+        self.failures = failures
+        self.text = text
+        self.calls = 0
+
+    def get(self, *args, **kwargs):
+        self.calls += 1
+        if self.calls <= self.failures:
+            raise ena.requests.exceptions.ReadTimeout("read timed out")
+        return _Response(self.text)
+
+
+class _Response:
+    def __init__(self, text):
+        self.text = text
+
+    def raise_for_status(self):
+        return None
+
+
+def test_filereport_retries_a_timeout_and_then_succeeds(monkeypatch):
+    monkeypatch.setattr(ena.time, "sleep", lambda _s: None)
+    text = HEADER + "\n" + row("SRR1", [("SRR1_1.fastq.gz", 10, "a"), ("SRR1_2.fastq.gz", 20, "b")])
+    session = _FlakySession(failures=2, text=text)
+    runs = ena.filereport("SRR1", session=session, log=lambda _m: None)
+    assert [r.accession for r in runs] == ["SRR1"]
+    assert session.calls == 3
+
+
+def test_filereport_gives_up_after_its_attempts_and_names_the_accession(monkeypatch):
+    monkeypatch.setattr(ena.time, "sleep", lambda _s: None)
+    session = _FlakySession(failures=99, text="")
+    with pytest.raises(RuntimeError, match=r"SRR9: ENA metadata unavailable after 3 attempts"):
+        ena.filereport("SRR9", session=session, attempts=3)
+    assert session.calls == 3
