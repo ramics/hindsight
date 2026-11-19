@@ -3,7 +3,7 @@
   "name": "hindsight score",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-19T12:58:23+00:00",
+ "generated_at": "2026-11-19T13:05:08+00:00",
  "machine": {
   "platform": "Linux-6.18.44-fc-v653-x86_64-with-glibc2.39",
   "machine": "x86_64",
@@ -751,7 +751,10 @@
     }
    ],
    "reads_adjudicated_away": 29,
-   "unexplained_reads_remaining": 6,
+   "reads_remaining": 6,
+   "reads_remaining_note": "Remaining is not the same as unexplainable. Of these reads, 1 sits in a sample whose alarm was examined, the residue that diagnostic could not account for, and 5 sit in samples nobody has looked at. The sparrow pair is the reason to say so: twenty-two reads that looked real until someone aligned them. Expect the unexamined remainder to shrink, not to be signal.",
+   "reads_remaining_examined": 1,
+   "reads_remaining_unexamined": 5,
    "worst_negative": {
     "accession": "SRR13677589",
     "nonhost_pairs": 16647038,

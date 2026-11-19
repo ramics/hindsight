@@ -84,8 +84,11 @@ bitscore_ladder = [0.0, 50.0, 100.0, 250.0, 500.0, 1000.0]
 
 # --- diagnosed alarms, which are reported and never quoted -------------------------
 #
-# By the end of Day 5 every coronavirus alarm in the twenty negatives had been chased
-# down, and none was the thing a false-alarm rate is meant to count. The entries below
+# By the end of Day 5 every coronavirus alarm large enough to set a threshold had been
+# chased down, and none was the thing a false-alarm rate is meant to count. Six reads in
+# four samples survive: one examined and unaccounted for, five never examined. Those five
+# are not evidence of anything — the one diagnostic anyone ran dissolved all 22 reads it
+# touched — so the record calls them unexamined rather than unexplained. The entries below
 # record those diagnoses and feed exactly one number: `arm_a.adjudicated` in the record,
 # which is explicitly secondary. The headline is always scored on the cohort as measured.
 #

@@ -398,7 +398,12 @@ def test_the_adjudicated_limit_is_the_one_the_write_up_quotes(tmp_path):
     record = day5.score(dataclasses.replace(config, provenance=tmp_path / "day5.json"))
     adjudicated = record["arm_a"]["adjudicated"]
     assert adjudicated["reads_adjudicated_away"] == 29
-    assert adjudicated["unexplained_reads_remaining"] == 6
+    assert adjudicated["reads_remaining"] == 6
+    # Six remain, but only one of them was ever examined: the AcCoV-JC34 read in
+    # SRR13677922. Calling all six "unexplained" would claim a residue of genuine signal
+    # that nobody has looked for, which is exactly what the sparrow pair warns against.
+    assert adjudicated["reads_remaining_examined"] == 1
+    assert adjudicated["reads_remaining_unexamined"] == 5
     assert adjudicated["threshold_reads"] == 3
     assert adjudicated["threshold_reads_as_scored"] == 12
     assert adjudicated["limit_of_detection"]["alarms_at"] == "viral000010"

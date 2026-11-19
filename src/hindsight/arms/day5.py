@@ -683,7 +683,8 @@ def adjudicated_operating_point(day3: dict, day4: dict, config: Scoring) -> dict
     headline = arm_a_operating_point(
         day3, config.clade, config.framing, config.false_alarm_budget, config.denominator
     )
-    unexplained = sum(s["reads"] for s in adjusted)
+    remaining = [s for s in adjusted if s["reads"]]
+    examined = [s for s in remaining if s["adjudication"]]
     return {
         "status": "secondary; the headline is scored on the cohort as measured",
         "why_not_the_headline": (
@@ -694,7 +695,18 @@ def adjudicated_operating_point(day3: dict, day4: dict, config: Scoring) -> dict
         ),
         "deductions": [entry for entry in config.adjudications],
         "reads_adjudicated_away": sum(s["reads_adjudicated_away"] for s in adjusted),
-        "unexplained_reads_remaining": unexplained,
+        "reads_remaining": sum(s["reads"] for s in remaining),
+        "reads_remaining_note": (
+            "Remaining is not the same as unexplainable. Of these reads, "
+            f"{_sit(sum(s['reads'] for s in examined))} in a sample whose alarm was "
+            "examined, the residue that diagnostic could not account for, and "
+            f"{_sit(sum(s['reads'] for s in remaining if not s['adjudication']))} in "
+            "samples nobody has looked at. The sparrow pair is the reason to say so: "
+            "twenty-two reads that looked real until someone aligned them. Expect the "
+            "unexamined remainder to shrink, not to be signal."
+        ),
+        "reads_remaining_examined": sum(s["reads"] for s in examined),
+        "reads_remaining_unexamined": sum(s["reads"] for s in remaining if not s["adjudication"]),
         "worst_negative": adjusted[0] if adjusted else None,
         "threshold_reads": threshold,
         "threshold_reads_as_scored": headline["threshold_reads"],
@@ -703,6 +715,11 @@ def adjudicated_operating_point(day3: dict, day4: dict, config: Scoring) -> dict
         "arm_b": _adjudicated_arm_b(day4, config),
         "negatives": adjusted,
     }
+
+
+def _sit(n: int) -> str:
+    """``3 sit`` or ``1 sits`` — the note below is generated, so it has to agree."""
+    return f"{n} sits" if n == 1 else f"{n} sit"
 
 
 def _adjudicated_arm_b(day4: dict, config: Scoring) -> dict:

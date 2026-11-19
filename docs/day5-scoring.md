@@ -204,8 +204,8 @@ moves two numbers while leaving the headline alone:
 
 | | as scored | after the strain check |
 | --- | --- | --- |
-| cohort's unexplained family-level reads | 35 | **28** |
-| cohort's unexplained genus-level reads | 7 | **0** |
+| cohort's non-endemic family-level reads | 35 | **28** |
+| cohort's non-endemic genus-level reads | 7 | **0** |
 | Arm A's family-level threshold | 12 reads | 12 reads (set by two *other* samples) |
 | Arm A's family-level limit | 7.7 /M | 7.7 /M |
 | Arm A's genus-level threshold | 8 reads | would fall to 1 read |
@@ -216,7 +216,7 @@ coronavirus HKU17* each — the oddity Day 3 flagged as worth somebody's attenti
 unrelated samples at exactly the same count. Those two have since been chased down as
 well, which is [its own section](#what-a-diagnosed-clean-cohort-would-give-and-why-it-is-not-the-headline).
 **The arm's specificity is better than this day credited it with, and the quantity that is
-actually unexplained is 28 reads in 228 million, not 35.**
+not accounted for is 28 reads in 228 million, not 35.**
 
 **Arm B's one counted contig is the same thing, confirmed.** `k141_852` is **100.00%
 identical at nucleotide level to `DQ415911` over its 767 bases**, against 97.42% to the
@@ -270,7 +270,7 @@ number from them, `arm_a.adjudicated`:
 | | as scored | adjudicated |
 | --- | --- | --- |
 | reads deducted | — | 29 of 35 |
-| unexplained reads remaining | 35 | **6** |
+| non-endemic reads remaining | 35 | **6** (1 examined, 5 not) |
 | worst negative | 11 (`SRR13677975`) | 2 (`SRR13677589`) |
 | Arm A threshold | 12 reads | **3 reads** |
 | Arm A limit | 7.7 /M | **0.77 /M**, the series' lowest rung |
@@ -292,9 +292,25 @@ its list. Deleting the `adjudications` section from `config/day5.toml` changes n
 number, which is the test of whether this has been kept at arm's length.
 
 One thing the adjudicated column does establish, and it does not depend on any threshold:
-**after a cohort-wide hunt, the benchmark's twenty negatives contain six coronavirus reads
-nobody can explain, and zero contigs.** Both arms' specificity on this cohort is limited
-by what twenty samples can show, not by anything either method did wrong.
+**after a cohort-wide hunt, the benchmark's twenty negatives hold six non-endemic
+coronavirus reads — one examined and unexplained, five not examined — and zero contigs.**
+
+The wording is deliberate, and the coinfection thread insisted on it. Only one of the six
+was ever looked at: the *Coronavirus AcCoV-JC34* read in `SRR13677922`, which aligns to
+neither HKU1 genotype and is the residue that sample's diagnostic could not account for.
+The other five are two reads each in `SRR13677589` and `SRR13677740` and one in
+`SRR13677744` — and that last one exists only because the scorer takes the larger of two
+reconstructions (see below). Nobody has aligned any of them. The sparrow pair is the
+reason not to call them unexplained: twenty-two reads that looked real until someone
+aligned them, in the two samples that happened to set the threshold. Calling the
+remainder "unexplained" would quietly claim a residue of genuine signal, when the one
+diagnostic anyone has run dissolved everything it touched. Diagnosing the five means
+re-fetching and re-host-filtering those samples, because Day 3 pruned the negatives'
+reads after classification; it is minutes of classifier time behind hours of fetch, and
+it is part of the Day 7 pass rather than a number worth buying now.
+
+Both arms' specificity on this cohort is limited by what twenty samples can show, not by
+anything either method did wrong.
 
 ### One read that does not reconcile, and why it is here
 
@@ -492,9 +508,10 @@ Here it costs a flag.
   setting that was pre-registered and then dropped on its own evidence.
 * Quote the per-read specificity bound (0.013 per million) and the per-sample one (<14%)
   as the two different things they are.
-* The unexplained family-level figure is **28 reads in 228 million, not 35**, and after
-  the sparrow pair was diagnosed as well, **six** — but quote the as-scored threshold and
-  limit, not the adjudicated ones, and say why. The diagnosed-clean column (threshold 3
+* The non-endemic family-level figure is **28 reads in 228 million, not 35**, and after
+  the sparrow pair was diagnosed as well, **six — one examined and unexplained, five
+  never examined**. Write it that way; "unexplained" claims more than the evidence does.
+  Quote the as-scored threshold and limit, not the adjudicated ones, and say why. The diagnosed-clean column (threshold 3
   reads, limit 0.77 /M) belongs in the paper as a sentence about what a pre-declared
   diagnostic pass would be worth, not as the result.
 
