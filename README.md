@@ -2,7 +2,7 @@
 
 **Could we have caught the last pandemic?**
 
-hindsight rebuilds a viral reference database as it actually stood on a date you choose — the real record set, at the accession versions that were public at the time — and then runs detection pipelines against the index SARS-CoV-2 sample using only that.
+hindsight rebuilds a viral reference database as it actually stood on a date you choose: the real record set, at the accession versions that were public at the time. Then it runs detection pipelines against the index SARS-CoV-2 sample using only that.
 
 ```console
 $ hindsight build --date 2019-12-01 --out db/november-2019
@@ -25,13 +25,13 @@ index sample: 25,928 of 62,117 ground-truth viral fragments in Coronaviridae (41
 
 **A standard read classifier placed 25,928 of the index sample's viral reads in Coronaviridae.** It could not name the virus, and it did not need to. Detection rate holds flat at about 41% down the dilution series, because Kraken2 classifies each fragment independently, so what falls is the absolute count: four coronavirus reads survive at 0.77 viral reads per million.
 
-One finding from that arm is the argument for the whole tool, and it was found rather than predicted. 4,922 reads were assigned to *Bat coronavirus BM48-31/BGR/2008*, the nearest relative the database holds — and the **November 2019 taxonomy files that genome under "unclassified coronaviruses"**, where today's tree puts it in Sarbecovirus. Family-level detection is 25,928 reads; genus-level is 20,418. A benchmark that dates its sequences and keeps a modern taxonomy cannot see that difference. A classifier's output is a taxon, and taxa move.
+One finding from that arm is the argument for the whole tool, and it was found rather than predicted. 4,922 reads were assigned to *Bat coronavirus BM48-31/BGR/2008*, the nearest relative the database holds. The **November 2019 taxonomy files that genome under "unclassified coronaviruses"**, where today's tree puts it in Sarbecovirus. So family-level detection is 25,928 reads and genus-level is 20,418, and a benchmark that dates its sequences while keeping a modern taxonomy cannot see the difference. A classifier's output is a taxon, and taxa move.
 
 [`docs/day3-arm-a.md`](docs/day3-arm-a.md) has the arm in full.
 
 ## Why a time-correct database is hard
 
-The question — would a pathogen-agnostic pipeline have flagged SARS-CoV-2 in the index sample, using only what was knowable in December 2019? — needs a database holding everything a real analyst could have consulted then, and only that. The easy routes all leak:
+The question is whether an automated, pathogen-agnostic pipeline would have flagged SARS-CoV-2 in the index sample, using only what was knowable before it existed. Answering it needs a database holding everything a real analyst could have consulted in December 2019, and only that. The easy routes all leak:
 
 | Route | What leaks |
 |---|---|
@@ -51,7 +51,7 @@ For a December 2019 cutoff, release 97:
 | Bat SARS-related and other bat CoV genomes | 14, including BM48-31/BGR/2008 |
 | SARS-CoV-2, RaTG13 | absent |
 
-The nearest relatives a December 2019 analyst could reach — 79–88% identity to the index sample, which is what Wu et al. had — are in. Everything learned from the pandemic is out, because those records had not been written yet. `tests/test_leakage.py` asserts all of it, and its network-marked test streams the full 385,308-row release 97 viral set from NCBI to check.
+The nearest relatives a December 2019 analyst could reach are in, at 79–88% identity to the index sample, which is what Wu et al. actually had. Everything learned from the pandemic is out, because those records had not been written yet. `tests/test_leakage.py` asserts all of it, and its network-marked test streams the full 385,308-row release 97 viral set from NCBI to check.
 
 ## The samples
 
@@ -65,7 +65,7 @@ The label is the one place the pipeline may know something from 2020: fragments 
 uv sync --locked --all-extras     # or: pip install -e ".[dev]"
 ```
 
-Set `NCBI_API_KEY` if you have one; it takes a full build from hours to under one.
+Set `NCBI_API_KEY` if you have one: it raises the E-utilities ceiling from 3/s to 10/s and takes a full build from hours to under one.
 
 ```bash
 hindsight resolve 2019-12-01                 # which release a date selects, and what that excludes
@@ -79,7 +79,9 @@ A build writes `manifest.tsv`, `viral.fna`, `viral.faa`, `seqid2taxid.map` in Kr
 
 ## Limits
 
-Release granularity rather than day granularity; RefSeq rather than GenBank; withdrawn records reported rather than silently dropped; version substitution refused. Each one bears on how a result from this database may be worded, so [`docs/caveats.md`](docs/caveats.md) states all four in full, along with the archive notes — release numbering that skips from 99 to 200, release-note typos, and E-utilities signalling a rate-limit rejection with HTTP 200.
+Four properties bear on how a result from this database may be worded: releases land roughly two months apart, so a cutoff selects the last release before it; this is RefSeq's curated viral set and not the whole of GenBank; a record NCBI has since suppressed is reported in `withdrawn.tsv` instead of silently dropped; and a record returned at the wrong version is refused rather than tolerated.
+
+[`docs/caveats.md`](docs/caveats.md) states all four in full, with the archive notes: release numbering that skips from 99 to 200, typos in the release headers, and E-utilities signalling a rate-limit rejection with HTTP 200.
 
 ## Development
 
