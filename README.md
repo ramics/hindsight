@@ -1,281 +1,85 @@
 # hindsight
 
-Build a viral reference database as it stood on a date you choose — not an
-approximation of it, but the actual record set, at the exact accession versions that
-were public at the time.
+**Could we have caught the last pandemic?**
+
+hindsight rebuilds a viral reference database as it actually stood on a date you choose — the real record set, at the accession versions that were public at the time — and then runs detection pipelines against the index SARS-CoV-2 sample using only that.
 
 ```console
 $ hindsight build --date 2019-12-01 --out db/november-2019
 cutoff 2019-12-01 -> release 97 (2019-11-04); first excluded release: release 98 (2020-01-06)
 manifest: 12179 nucleotide + 373129 protein records across 9305 taxa
-nucleotide: wrote 12179 records to viral.fna (0 withdrawn, 0 version mismatches)
-protein: wrote 373129 records to viral.faa (0 withdrawn, 0 version mismatches)
 taxonomy: taxdmp snapshot 2019-11-01
 ```
 
-hindsight exists for one job: making a detection benchmark honest. If you want to ask
-whether a pipeline would have flagged a novel pathogen before anyone knew it existed,
-every reference the pipeline consults has to predate the discovery. Today's RefSeq
-cannot answer that question, and neither can today's RefSeq with the obvious records
-deleted.
+## The result so far
 
-## The leakage argument
+Kraken2, at its own default settings, against a database that had never seen SARS-CoV-2, RaTG13 or any relative described after 4 November 2019:
 
-The question this tool serves is: **would an automated, pathogen-agnostic pipeline
-have flagged SARS-CoV-2 in the index sample, using only what was knowable before it
-existed?**
-
-Answering it requires a database with a specific property: it must contain everything
-a real analyst could have consulted in December 2019, and nothing they could not. The
-easy approaches all fail:
-
-- **Use today's database and delete SARS-CoV-2.** The genome is gone but its relatives
-  are not. RaTG13 (deposited 27 January 2020), the pangolin coronaviruses, and
-  thousands of SARS-CoV-2-era sequences remain, and they are the records that make
-  the index sample easy to classify. You have deleted the answer and left the
-  answer key.
-- **Use today's database and filter by deposition date.** Better, but the records
-  themselves have moved. Accessions get revised: sequence corrected, annotation
-  rebuilt, taxonomy reassigned. A record first deposited in 2007 may now be at
-  version 3, and version 3 may postdate your cutoff. Taxon names and the shape of the
-  taxonomic tree have also changed, and a classifier's output is a taxon.
-- **Rebuild from a snapshot someone happened to keep.** Not reproducible, and not
-  available for an arbitrary date.
-
-hindsight takes a different route, which works because NCBI never threw anything away.
-
-**RefSeq release catalogs are archived back to release 1 (June 2003).** Each release
-has a dated set of files, and `RefSeq-release<N>.catalog.gz` lists every accession in
-that release — crucially, at the **version** it held in that release. The viral set is
-a filter on one column:
-
-```
-694009  Severe acute respiratory syndrome-related coronavirus  NC_004718.3  complete|viral  na  29751
+```console
+$ scripts/day3.sh
+index sample: 25,928 of 62,117 ground-truth viral fragments in Coronaviridae (41.7%)
+  viral050000: 20,892 of 50,000 detected      viral001000:    420 of  1,000 detected
+  viral010000:  4,232 of 10,000 detected      viral000100:     39 of    100 detected
+                                              viral000010:      4 of     10 detected
 ```
 
-So hindsight:
+**A standard read classifier placed 25,928 of the index sample's viral reads in Coronaviridae.** It could not name the virus, and it did not need to. Detection rate holds flat at about 41% down the dilution series, because Kraken2 classifies each fragment independently, so what falls is the absolute count: four coronavirus reads survive at 0.77 viral reads per million.
 
-1. Picks the last release issued **strictly before** your cutoff date.
-2. Reads that release's catalog and extracts the viral accession set, versions included.
-3. Fetches each record **at that exact version** from E-utilities, which honours the
-   version suffix and returns the revision as it was.
-4. Pairs it with the NCBI taxonomy dump archived nearest before the same release date,
-   so names, ranks and tree structure are contemporaneous too.
-5. Writes a `provenance.json` recording the cutoff, the release, the release NCBI
-   issued next (the one deliberately excluded), the taxonomy snapshot, every count,
-   every withdrawn record, and a SHA-256 of every output.
+One finding from that arm is the argument for the whole tool, and it was found rather than predicted. 4,922 reads were assigned to *Bat coronavirus BM48-31/BGR/2008*, the nearest relative the database holds — and the **November 2019 taxonomy files that genome under "unclassified coronaviruses"**, where today's tree puts it in Sarbecovirus. Family-level detection is 25,928 reads; genus-level is 20,418. A benchmark that dates its sequences and keeps a modern taxonomy cannot see that difference. A classifier's output is a taxon, and taxa move.
 
-For a December 2019 cutoff that gives release 97, November 2019:
+[`docs/day3-arm-a.md`](docs/day3-arm-a.md) has the arm in full.
+
+## Why a time-correct database is hard
+
+The question — would a pathogen-agnostic pipeline have flagged SARS-CoV-2 in the index sample, using only what was knowable in December 2019? — needs a database holding everything a real analyst could have consulted then, and only that. The easy routes all leak:
+
+| Route | What leaks |
+|---|---|
+| Today's database, SARS-CoV-2 deleted | RaTG13, the pangolin coronaviruses and thousands of pandemic-era sequences stay. You have deleted the answer and left the answer key. |
+| Today's database, filtered by deposition date | The records themselves have moved. A 2007 accession may now be at version 3, and version 3 may postdate the cutoff. Taxon names and tree shape have changed too. |
+| A snapshot someone kept | Reproducible for one date, if that. |
+
+hindsight takes a route that works because NCBI never threw anything away. **RefSeq release catalogs are archived back to release 1 (June 2003)**, and each lists every accession at the version it held in that release. So hindsight picks the last release issued strictly before your cutoff, extracts the viral accession set with versions, fetches each record at that exact version, pairs it with the taxonomy dump archived nearest before the release date, and writes a `provenance.json` with every count, every withdrawn record and a SHA-256 of every output.
+
+For a December 2019 cutoff, release 97:
 
 | | |
 | --- | --- |
-| Viral nucleotide records | 12,179 |
-| Viral protein records | 373,129 |
-| Distinct taxa | 9,305 |
-| Coronavirus genomes | 45 |
+| Viral nucleotide / protein records | 12,179 / 373,129 |
+| Distinct taxa, coronavirus genomes | 9,305 / 45 |
 | SARS-CoV | present, `NC_004718.3` |
-| Bat SARS-related and other bat CoV genomes | 14, including `NC_014470.1` (BM48-31/BGR/2008) and `NC_025217.1` (Bat Hp-betacoronavirus/Zhejiang2013) |
-| SARS-CoV-2 (`NC_045512`, `MN908947`) | absent |
-| RaTG13 (`MN996532`) | absent |
+| Bat SARS-related and other bat CoV genomes | 14, including BM48-31/BGR/2008 |
+| SARS-CoV-2, RaTG13 | absent |
 
-That is the shape the benchmark needs. The nearest relatives a December 2019 analyst
-could have reached — 79–88% identity to the index sample, which is what Wu et al.
-actually had — are in. Everything learned from the pandemic is out. Nothing was
-deleted to make it so; those records simply had not been written yet.
+The nearest relatives a December 2019 analyst could reach — 79–88% identity to the index sample, which is what Wu et al. had — are in. Everything learned from the pandemic is out, because those records had not been written yet. `tests/test_leakage.py` asserts all of it, and its network-marked test streams the full 385,308-row release 97 viral set from NCBI to check.
 
-These are not claims in a README. `tests/test_leakage.py` asserts them, and the
-network-marked test in that file streams the full 385,308-row release 97 viral set
-from NCBI and checks the whole thing.
+## The samples
 
-## Install
+`hindsight samples` prepares the other half of the benchmark: the index sample (`SRR10971381`, the Wu et al. BALF metatranscriptome) and 20 time-matched pre-COVID Wuhan BALF negatives from `PRJNA699976`, with read QC, host filtering, ground-truth labelling and a frozen dilution series down to 10 viral fragments. Every stage resumes, every seed is recorded.
+
+The label is the one place the pipeline may know something from 2020: fragments are labelled against the modern reference. The detection arms see only the November 2019 database. Knowing the answer is the benchmark's job, and it is what the arms are barred from doing. [`docs/day2-samples.md`](docs/day2-samples.md) has the account, including two properties of the negative set that travel with every number derived from it.
+
+## Install and use
 
 ```bash
 uv sync --locked --all-extras     # or: pip install -e ".[dev]"
 ```
 
-Set `NCBI_API_KEY` if you have one ([free from your NCBI
-account](https://www.ncbi.nlm.nih.gov/account/settings/)). It raises the E-utilities
-request ceiling from 3/s to 10/s and takes a full build from hours to under one.
-
-## Use
+Set `NCBI_API_KEY` if you have one; it takes a full build from hours to under one.
 
 ```bash
-# Which release does a date select, and what does that exclude?
-hindsight resolve 2019-12-01
-
-# The accession set only — fast, no sequence fetched. Good for sanity-checking a cutoff.
-hindsight build --date 2019-12-01 --out db/nov2019 --manifest-only
-
-# The nucleotide database, for a Kraken2 arm.
-hindsight build --date 2019-12-01 --out db/nov2019 --molecules nucleotide
-
-# Everything: nucleotide, protein, contemporaneous taxonomy.
-hindsight build --date 2019-12-01 --out db/nov2019
-
-# Re-check a built database against its own provenance.
-hindsight verify db/nov2019
-
-# List the archived releases, or the dated taxonomy snapshots.
-hindsight releases --limit 10
-hindsight taxdumps
+hindsight resolve 2019-12-01                 # which release a date selects, and what that excludes
+hindsight build --date 2019-12-01 --out db/nov2019 --manifest-only   # accession set only, no fetch
+hindsight build --date 2019-12-01 --out db/nov2019                   # nucleotide, protein, taxonomy
+hindsight verify db/nov2019                  # re-check a build against its own provenance
+hindsight releases --limit 10                # archived releases, or: hindsight taxdumps
 ```
 
-Interrupt a build and re-run the same command: it resumes from the last completed
-shard. Downloads resume mid-file with HTTP Range, and fetched records are cached by
-shard with a digest, so nothing is retrieved twice.
+A build writes `manifest.tsv`, `viral.fna`, `viral.faa`, `seqid2taxid.map` in Kraken2's format, a contemporaneous `taxonomy/`, `withdrawn.tsv` and `provenance.json`. Builds are deterministic: two builds of the same cutoff are byte-identical. Interrupt and re-run, and it resumes from the last completed shard.
 
-### Outputs
+## Limits
 
-```
-db/nov2019/
-  manifest.tsv        every accession in the release's viral set, with version,
-                      molecule, taxid, organism, RefSeq status and length
-  viral.fna           nucleotide records, at their release-97 versions
-  viral.faa           protein records, for a translated-search arm
-  seqid2taxid.map     accession.version -> taxid, in Kraken2's format
-  taxonomy/           nodes.dmp, names.dmp, merged.dmp, delnodes.dmp, as of 2019-11-01
-  withdrawn.tsv       accessions the release listed that NCBI will no longer serve
-  provenance.json     the full audit record, with SHA-256 of every file above
-```
-
-Builds are deterministic: the manifest is sorted, records are emitted in manifest
-order regardless of the order NCBI answers in, and FASTA is rewrapped to a fixed
-width. Two builds of the same cutoff produce byte-identical files.
-
-## The samples
-
-`hindsight build` is one half of the benchmark. The other half is the reads, and
-`hindsight samples` prepares them:
-
-```console
-$ scripts/day2.sh
-```
-
-That fetches the index sample (`SRR10971381`, the Wu et al. BALF metatranscriptome)
-and 20 time-matched pre-COVID Wuhan BALF negatives from `PRJNA699976`, runs read QC
-and host filtering over both, labels which fragments in the index sample are really
-SARS-CoV-2, and freezes a dilution series — the sample's own viral reads thinned to
-50,000 / 10,000 / 1,000 / 100 / 10 fragments and held in the sample's own background.
-Every stage is resumable, every seed is recorded, and the counts, digests, tool
-versions, timings and machine land in `work/day2-provenance.json`.
-
-The ground-truth label is the one place the pipeline is allowed to know something from
-2020: fragments are labelled by aligning to the modern SARS-CoV-2 reference. The
-detection arms never see that label or that reference — they see only the November
-2019 database above. Knowing the answer is the benchmark's job; it is what the arms
-are not allowed to do.
-
-Two properties of the negative set have to travel with every number derived from it:
-the deposit holds **non-human reads only**, so a false-alarm rate per raw sequenced
-read is not available for those samples, and ENA reports **no collection date** for
-any of the 440 runs, so the 2016-17 window is the paper's at cohort level and is not
-verifiable per run. [`docs/day2-samples.md`](docs/day2-samples.md) has the full
-account, including why the levels are nested, why the negatives are chosen by a seeded
-hash rather than by eye, and what the whole thing costs in wall-clock and disk.
-
-## The arms
-
-With the database and the reads in place, an arm is a detection pipeline run against
-them and scored on what it found. The first one is Kraken2:
-
-```console
-$ scripts/day3.sh
-index sample: 25,928 of 62,117 ground-truth viral fragments in Coronaviridae (41.7%)
-  viral050000: 20,892 of 50,000 detected
-  viral010000:  4,232 of 10,000 detected
-  viral001000:    420 of  1,000 detected
-  viral000100:     39 of    100 detected
-  viral000010:      4 of     10 detected
-```
-
-**A standard read classifier, at its own default settings, against a database that had
-never seen SARS-CoV-2 or any of its relatives discovered after 4 November 2019, placed
-25,928 of the index sample's viral reads in Coronaviridae.** It could not name the
-virus — the virus had no name — and it did not need to.
-
-Down the dilution series the detection *rate* is flat at about 41%, because Kraken2
-classifies each fragment independently, so what falls is the absolute count: four
-coronavirus reads survive at 0.77 viral reads per million. Whether four reads is a
-detection depends on the false-alarm rate, which the 20 pre-COVID negatives measure.
-
-One result from that arm is the argument for this whole tool, and it was found rather
-than predicted. 4,922 of those reads were assigned to *Bat coronavirus
-BM48-31/BGR/2008*, the nearest relative the database holds — and the **November 2019
-taxonomy files that genome under "unclassified coronaviruses", not under
-Betacoronavirus**, where today's tree puts it. Detection at family level is 25,928
-reads; at genus level it is 20,418. A benchmark that dates its sequences but keeps a
-modern taxonomy cannot see that difference, because the modern tree has since moved
-BM48-31 into Sarbecovirus. A classifier's output is a taxon, and taxa move.
-
-[`docs/day3-arm-a.md`](docs/day3-arm-a.md) has the arm in full: the per-clade curve,
-why the negatives run at native depth on a machine that cannot hold them, what the
-index sample's own background turns out to contain, and the one check that the
-composition shortcut behind the series is exact.
-
-## What this does not give you, and why it matters
-
-Stated plainly, because a benchmark whose database has unexamined properties is not a
-benchmark.
-
-**Release granularity, not day granularity.** Releases are roughly two months apart
-(97 is 4 November 2019, 98 is 6 January 2020 — a 63-day gap). A 1 December 2019 cutoff
-therefore yields the database as of 4 November, not 30 November. The error is one-sided
-and that is deliberate: hindsight never includes something published after the cutoff,
-but it may omit something published in the weeks before it. `hindsight resolve` prints
-the blind window so you can quote it. If you need the other direction, move the cutoff
-forward and check what the later release contains.
-
-**RefSeq, not GenBank or nr/nt.** This reconstructs the curated RefSeq viral set,
-which is what Kraken2's standard viral library and comparable reference sets are built
-from. It is not the whole of GenBank. The original Wu et al. analysis searched much
-larger databases, so an arm benchmarked here against `viral.faa` is a faithful
-automation of their *method*, not a replay of their *search space*. GenBank has no
-equivalent dated catalog, so a time-correct nr is not reconstructible this way. Say so
-in the methods.
-
-**Withdrawn records.** A record present in release 97 that NCBI has since suppressed
-cannot be fetched today, no matter how the request is phrased. hindsight records every
-such accession in `withdrawn.tsv` and in the provenance rather than silently shipping a
-smaller database. For release 97 this set is currently empty, but it will not stay that
-way forever, so check it.
-
-**Version substitution is rejected, not tolerated.** If E-utilities ever returns a
-record at a version other than the one requested, hindsight refuses it, counts it in
-`version_mismatches`, and reports it on stderr. A record quietly upgraded to its
-current revision is exactly the leak this tool exists to prevent, and it would be
-invisible in the output FASTA.
-
-**Monthly taxonomy snapshots.** Taxonomy dumps are archived monthly, so the snapshot
-sits up to a month before the release date; the lag is recorded in the provenance
-(3 days for release 97). The `taxdmp` archive starts 2014-08-01 and `new_taxdump`
-starts 2018-12-01, so cutoffs earlier than that have no contemporaneous taxonomy and
-hindsight says so rather than reaching for a later tree.
-
-**NCBI's own products disagree slightly.** The release 97 catalog cites taxid 10658
-(*Enterobacteria phage PRD1*), which the 2019-11-01 taxonomy already lists as deleted.
-One taxon out of 9,305. hindsight checks every catalog taxid against the dated tree and
-splits the misses into merged, deleted and unexplained, so a discrepancy appears in the
-provenance instead of surfacing later as an unexplained Kraken2 build warning.
-
-## Notes from the archive
-
-Things that are easy to get wrong, found the hard way and now encoded in tests:
-
-- **Release numbering is not contiguous.** RefSeq goes 99 (2 March 2020) → 200
-  (4 May 2020). Releases 100–199 do not exist. Any code that interpolates a date
-  between release numbers, or walks the range, is wrong.
-- **Archived file timestamps are not release dates.** Release 97's catalog carries an
-  mtime of 9 January 2020, because that is when it was moved into `archive/` — two
-  months after the release it describes. The date comes from the release notes header,
-  which is why the release table is built from those and vendored into the repo as
-  [`release_dates.tsv`](src/hindsight/data/release_dates.tsv), reviewable in a diff.
-- **The release notes contain typos.** Release 232's header says "Septmeber"; release
-  5's says "May 2 , 2004"; release 39's says "January 23,2010". The parser handles
-  those but refuses anything looser than an unambiguous three-letter month prefix — a
-  fuzzy match would read "Smarch" as March and mis-date a release by a season.
-- **E-utilities signals a rate-limit rejection with HTTP 200** and a JSON body. Code
-  that checks only the status code will write `{"error":"API rate limit exceeded"}`
-  into a FASTA file as a sequence.
+Release granularity rather than day granularity; RefSeq rather than GenBank; withdrawn records reported rather than silently dropped; version substitution refused. Each one bears on how a result from this database may be worded, so [`docs/caveats.md`](docs/caveats.md) states all four in full, along with the archive notes — release numbering that skips from 99 to 200, release-note typos, and E-utilities signalling a rate-limit rejection with HTTP 200.
 
 ## Development
 
@@ -285,9 +89,4 @@ uv run pytest -m network  # 3 more against NCBI; downloads ~1.2 GB
 uv run ruff check . && uv run ruff format --check .
 ```
 
-Network tests are deselected by default and excluded from CI: they are rate-limited
-per IP and move more than a gigabyte. Run them when changing anything about fetching,
-and before trusting a build.
-
-`hindsight refresh-releases` regenerates the vendored release table from NCBI's release
-notes. Only needed when a new release lands.
+Network tests are deselected by default and excluded from CI: they are rate-limited per IP and move more than a gigabyte. Run them when changing anything about fetching, and before trusting a build.
